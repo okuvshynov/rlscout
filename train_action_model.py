@@ -1,28 +1,26 @@
-import torch
-
-boards = torch.load("./boards.pt").float()
-probs = torch.load("./probs.pt")
-
-# let's start defining our first NN model
+from action_model import ActionNN
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+import sys
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
-from action_model import ActionNN
+import torch.optim as optim
 
-# it is called 'policy' because it's a common terminology to call 
-# something that defines agent behavior probabilities as policy
+boards = torch.load("./boards200k.pt").float()
+probs = torch.load("./probs200k.pt")
 
-m, n = 7, 7
 device = "mps"
-minibatch_size = 256
+minibatch_size = 1024
 epochs = 200
 minibatch_per_epoch = 100
 data_subset = 100
-channels = 64
 
-import matplotlib.pyplot as plt
-import numpy as np
+random.seed(1991)
+
+gen = torch.Generator()
+gen.manual_seed(1991)
 
 def plot_sample(board, probs):
     m = board.shape[1]
@@ -49,8 +47,6 @@ def symm(t):
   res += [torch.rot90(t, w, [1, 2]) for w in range(4)]
   return res
 
-import random
-
 samples = []
 
 for s in zip(boards.tolist(), probs.tolist()):
@@ -72,7 +68,7 @@ probs_val = torch.stack(probs_sym[idx:])
 
 def train_minibatch(boards, probs):
     # pick minibatch
-    ix = torch.randint(0, boards.shape[0], (minibatch_size, ))
+    ix = torch.randint(0, boards.shape[0], (minibatch_size, ), generator=gen)
     X = boards[ix]
     y = probs[ix]
 
@@ -88,7 +84,7 @@ def train_minibatch(boards, probs):
 def evaluate_sample(boards, probs):
     sample_size = 2 ** 15
     # pick sample
-    ix = torch.randint(0, boards.shape[0], (sample_size, ))
+    ix = torch.randint(0, boards.shape[0], (sample_size, ), generator=gen)
     X = boards[ix]
     y = probs[ix]
     with torch.no_grad():
@@ -99,14 +95,12 @@ def evaluate_sample(boards, probs):
 
 action_model = ActionNN().to(device)
 
-optimizer = optim.Adam(action_model.parameters(), weight_decay=0.00001, lr=0.002)
+optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.005)
 
 boards_train_gpu = boards_train.to(device)
 probs_train_gpu = probs_train.to(device)
 boards_val_gpu = boards_val.to(device)
 probs_val_gpu = probs_val.to(device)
-
-import sys
 
 epoch_train_losses = [evaluate_sample(boards_train_gpu, probs_train_gpu)]
 epoch_validation_losses = [evaluate_sample(boards_val_gpu, probs_val_gpu)]
@@ -127,4 +121,4 @@ for e in range(epochs):
   epoch_validation_losses.append(evaluate_sample(boards_val_gpu, probs_val_gpu))
   print(f' | epoch {e}: training loss: {epoch_train_losses[-1]}, validation loss: {epoch_validation_losses[-1]}')
 
-torch.save(action_model, 'model200.pt')
+torch.save(action_model, 'model200k.pt')

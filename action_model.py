@@ -3,11 +3,18 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+channels = 256
+m, n = 7, 7
+
 class ActionNN(nn.Module):
   def __init__(self):
     super(ActionNN, self).__init__()
     self.action = nn.Sequential(
       nn.Conv2d(2, channels, kernel_size=3, padding=1),
+      nn.ReLU(),
+      nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+      nn.ReLU(),
+      nn.Conv2d(channels, channels, kernel_size=3, padding=1),
       nn.ReLU(),
       nn.Conv2d(channels, channels, kernel_size=3, padding=1),
       nn.ReLU(),

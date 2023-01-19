@@ -11,10 +11,10 @@ chr_winner = {
 
 # settings
 board_size = 7
-rollouts = 20000
+rollouts = 200000
 temp = 1.5
 sample_for_n_moves = 8
-games = 250
+games = 1000
 
 # cli settings
 rowsize = 50
@@ -69,5 +69,5 @@ probs = torch.stack(probs)
 
 print(boards.shape, probs.shape)
 
-torch.save(boards, "./boards.pt")
-torch.save(probs, "./probs.pt")
+torch.save(boards, "./boards200k.pt")
+torch.save(probs, "./probs200k.pt")
