@@ -1,7 +1,4 @@
-import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 
 channels = 256
 m, n = 7, 7
@@ -29,4 +26,3 @@ class ActionNN(nn.Module):
  
   def forward(self, x):
     return self.action(x)
-

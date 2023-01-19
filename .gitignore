@@ -1,0 +1,3 @@
+mnklib/_build/**
+mnklib/_gen/**
+__pycache__/**

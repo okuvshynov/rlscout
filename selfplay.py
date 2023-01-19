@@ -69,5 +69,5 @@ probs = torch.stack(probs)
 
 print(boards.shape, probs.shape)
 
-torch.save(boards, "./boards200k.pt")
-torch.save(probs, "./probs200k.pt")
+torch.save(boards, f'./_out/boards_{rollouts}r_{games}g.pt')
+torch.save(probs, f'./_out/probs_{rollouts}r_{games}g.pt')

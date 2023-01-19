@@ -54,4 +54,3 @@ for g in range(games):
   sys.stdout.flush()
   if g % rowsize == rowsize - 1:
     print(f' {g+1} played, {model_wins} model wins')
-

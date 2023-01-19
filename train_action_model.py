@@ -1,15 +1,12 @@
 from action_model import ActionNN
 import matplotlib.pyplot as plt
-import numpy as np
 import random
 import sys
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 
-boards = torch.load("./boards200k.pt").float()
-probs = torch.load("./probs200k.pt")
+boards = torch.load("./_out/boards_2000r_100g.pt").float()
+probs = torch.load("./_out/probs_2000r_100g.pt")
 
 device = "mps"
 minibatch_size = 1024
@@ -121,4 +118,4 @@ for e in range(epochs):
   epoch_validation_losses.append(evaluate_sample(boards_val_gpu, probs_val_gpu))
   print(f' | epoch {e}: training loss: {epoch_train_losses[-1]}, validation loss: {epoch_validation_losses[-1]}')
 
-torch.save(action_model, 'model200k.pt')
+torch.save(action_model, './_out/model_2000r_100g.pt')
