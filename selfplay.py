@@ -2,6 +2,9 @@ from mnkgame import State, MCTS
 import numpy as np
 import torch
 import sys
+import threading
+import queue
+import multiprocessing
 
 chr_winner = {
     -1: '.',
@@ -15,18 +18,14 @@ rollouts = 200000
 temp = 1.5
 sample_for_n_moves = 8
 games = 1000
+threads = multiprocessing.cpu_count()
+print(f'Running selfplay in {threads} threads.')
 
 # cli settings
 rowsize = 50
 
-mcts = MCTS(board_size)
-
-boards = []
-probs = []
-
-for g in range(games):
+def playgame(mcts, boards, probs):
   s = State(board_size)
-
   move_index = 0
 
   while not s.finished():
@@ -58,14 +57,46 @@ for g in range(games):
     ## somewhere here 
     # mcts.apply((x, y))
 
-  sys.stdout.write(f'{chr_winner[s.winner()]}')
-  sys.stdout.flush()
-  if g % rowsize == rowsize - 1:
-    print(f' {g+1} played.')
+  return s.winner()
 
+# this is a substitute for atomic counter
+play_queue = queue.Queue()
 
-boards = torch.stack(boards)
-probs = torch.stack(probs)
+def playing_thread(boards, probs):
+  mcts = MCTS(board_size)
+  while True:
+    try:
+      _ = play_queue.get()
+    except queue.Empty:
+      break
+    winner = playgame(mcts, boards, probs)
+
+    sys.stdout.write(f'{chr_winner[winner]}')
+    sys.stdout.flush()
+    play_queue.task_done()
+
+for g in range(games):
+  play_queue.put(g)
+
+boards, probs = zip(*[([], []) for _ in range(threads)])
+
+for t in range(threads):
+  threading.Thread(target=playing_thread, daemon=True, args=(boards[t], probs[t])).start()
+
+play_queue.join()
+
+all_boards = []
+all_probs = []
+
+print()
+print('Done playing. Joining the data.')
+for t in range(threads):
+  print(len(boards[t]), len(probs[t]))
+  all_boards.extend(boards[t])
+  all_probs.extend(probs[t])
+
+boards = torch.stack(all_boards)
+probs = torch.stack(all_probs)
 
 print(boards.shape, probs.shape)
 
