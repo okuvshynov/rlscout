@@ -1,5 +1,5 @@
 #from action_model import ActionNN
-from action_value_model import ActionValueModel as ActionNN
+from action_model import ActionNN
 import matplotlib.pyplot as plt
 import random
 import sys

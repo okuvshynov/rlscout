@@ -19,8 +19,6 @@ class ActionNN(nn.Module):
       nn.ReLU(),
       nn.Flatten(),
       nn.Linear(2 * m * n, m * n),
-      nn.ReLU(),
-      nn.Linear(m * n, m * n),
       nn.LogSoftmax(dim=1),
     )
  
