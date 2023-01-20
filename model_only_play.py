@@ -20,7 +20,7 @@ games = 250
 rowsize = 50
 
 mcts = MCTS(board_size)
-action_model = torch.load("model200.pt", map_location=torch.device('cpu'))
+action_model = torch.load("./_out/model_2000r_100g.pt", map_location=torch.device('cpu'))
 
 def mcts_player(s):
     return mcts.run(s, temp=temp, rollouts=rollouts)

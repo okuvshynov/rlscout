@@ -1,15 +1,16 @@
-from action_model import ActionNN
+#from action_model import ActionNN
+from action_value_model import ActionValueModel as ActionNN
 import matplotlib.pyplot as plt
 import random
 import sys
 import torch
 import torch.optim as optim
 
-boards = torch.load("./_out/boards_2000r_100g.pt").float()
-probs = torch.load("./_out/probs_2000r_100g.pt")
+boards = torch.load("./_out/boards_500000r_1000g.pt").float()
+probs = torch.load("./_out/probs_500000r_1000g.pt")
 
 device = "mps"
-minibatch_size = 1024
+minibatch_size = 512
 epochs = 200
 minibatch_per_epoch = 100
 data_subset = 100

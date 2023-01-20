@@ -63,6 +63,10 @@ struct MCTS {
     uint64_t moves = state.valid_actions();
     nodes[node_id].children_from = size;
     int j = size;
+    // somewhere here, if we do have a model, we make a call
+    // rather than calling back to python adding another dependency like torchlib
+    // we just 'replying' to long-poll call under the hood and waiting for another call
+    // from python counterpart.
     for (uint64_t i = 0; i < m * n; i++) {
       if ((1ull << i) & moves) {
         nodes[j] = MCTSNode(1.0);

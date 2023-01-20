@@ -14,7 +14,7 @@ chr_winner = {
 
 # settings
 board_size = 7
-rollouts = 200000
+rollouts = 500000
 temp = 1.5
 sample_for_n_moves = 8
 games = 1000
