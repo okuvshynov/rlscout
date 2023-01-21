@@ -68,7 +68,7 @@ struct MCTS {
     // we just 'replying' to long-poll call under the hood and waiting for another call
     // from python counterpart.
 
-    static thread_local float[m * n] probs = {1.0f};
+    static thread_local float probs[m * n] = {1.0f};
     // this blocks if we have a model and returns all 1.0
     // when we do not?
     // get_actions(state, probs);

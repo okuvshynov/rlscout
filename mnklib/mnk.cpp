@@ -112,7 +112,8 @@ extern "C" void state_get_boards(int N, void* st, int* boards_out) {
 
 // moves must be N*N elements
 // it WILL zero out
-extern "C" void mcts_get_moves(int N, void* mcts_, void* state_, double temp, int32_t rollouts, double* moves) {
+extern "C" void mcts_get_moves(int N, void* mcts_, void* state_, double temp, int32_t rollouts, double* moves, void (*eval_cb)()) {
+    eval_cb();
     switch (N) {
       case 6: {
         auto state = reinterpret_cast<SquareState<6>*>(state_);

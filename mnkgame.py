@@ -37,7 +37,9 @@ class MNKLib:
     mnk.state_get_boards.argtypes = [ctypes.c_int, ctypes.c_void_p, ndpointer(ctypes.c_int, flags="C_CONTIGUOUS")]
     mnk.state_get_boards.restype = None
 
-    mnk.mcts_get_moves.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_int, ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
+    self.EvalFunction = ctypes.CFUNCTYPE(ctypes.c_void_p)
+
+    mnk.mcts_get_moves.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_int, ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"), self.EvalFunction]
     mnk.mcts_get_moves.restype = None
 
     self.mnklib = mnk
@@ -92,6 +94,12 @@ class MCTS:
     MNKLib.get().mnklib.destroy_mcts(self.N, self.handle)
 
   def run(self, state, temp, rollouts):
+    def evalfn():
+      pass
+      #print("eval called")
+
+    eval_function = MNKLib.get().EvalFunction(evalfn)
     moves = np.zeros(self.N * self.N, dtype=np.double)
-    MNKLib.get().mnklib.mcts_get_moves(self.N, self.handle, state.handle, temp, rollouts, moves)
+    MNKLib.get().mnklib.mcts_get_moves(self.N, self.handle,
+                                       state.handle, temp, rollouts, moves, eval_function)
     return moves.reshape(self.N, self.N)
