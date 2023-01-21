@@ -80,6 +80,7 @@ class State:
   def winner(self):
     return MNKLib.get().mnklib.state_winner(self.N, self.handle)
 
+# single instance of MCTS, not thread-safe. 1:1 relationship with thread
 class MCTS:
   def __init__(self, n):
     if n not in [6, 7, 8]:

@@ -6,8 +6,9 @@ import sys
 import torch
 import torch.optim as optim
 
-boards = torch.load("./_out/boards_500000r_1000g.pt").float()
-probs = torch.load("./_out/probs_500000r_1000g.pt")
+boards = torch.load("./_out/boards_5000r_100g.pt").float()
+probs = torch.load("./_out/probs_5000r_100g.pt")
+model_path = './_out/model_2000r_100g.pt'
 
 device = "mps"
 minibatch_size = 512
@@ -119,4 +120,4 @@ for e in range(epochs):
   epoch_validation_losses.append(evaluate_sample(boards_val_gpu, probs_val_gpu))
   print(f' | epoch {e}: training loss: {epoch_train_losses[-1]}, validation loss: {epoch_validation_losses[-1]}')
 
-torch.save(action_model, './_out/model_2000r_100g.pt')
+torch.save(action_model, model_path)

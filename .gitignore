@@ -1,3 +1,5 @@
 mnklib/_build/**
 mnklib/_gen/**
 __pycache__/**
+_out/*.pt
+_out/*.mlmodel

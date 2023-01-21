@@ -67,9 +67,15 @@ struct MCTS {
     // rather than calling back to python adding another dependency like torchlib
     // we just 'replying' to long-poll call under the hood and waiting for another call
     // from python counterpart.
+
+    static thread_local float[m * n] probs = {1.0f};
+    // this blocks if we have a model and returns all 1.0
+    // when we do not?
+    // get_actions(state, probs);
+    // 
     for (uint64_t i = 0; i < m * n; i++) {
       if ((1ull << i) & moves) {
-        nodes[j] = MCTSNode(1.0);
+        nodes[j] = MCTSNode(probs[i]);
         nodes[j].parent = node_id;
         nodes[j].in_action = i;
         j++;
@@ -117,24 +123,4 @@ struct MCTS {
     }
     return res;
   }
-/*
-  void apply_move(int64_t action) {
-    for (int i = 0; i < nodes[root_id].children_count; i++) {
-      const auto& node = nodes[nodes[root_id].children_from + i];
-      if (node.in_action == action) {
-        root_id = nodes[root_id].children_from + i;
-        return;
-      }
-    }
-    std::cerr << "mcts: applying move which is not there" << std::endl;
-    reset();
-    // something very wrong happened
-    //exit(1);
-  }
-
-  void reset() {
-    nodes[0] = MCTSNode(1.0);
-    size = 1;
-    root_id = 0;
-  }*/
 };
