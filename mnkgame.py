@@ -16,7 +16,8 @@ class MNKLib:
     mnk.destroy_state.argtypes = [ctypes.c_int, ctypes.c_void_p]
     mnk.destroy_state.restype = None
 
-    mnk.new_mcts.argtypes = [ctypes.c_int]
+    # two buffers - IN/OUT for model evaluation.
+    mnk.new_mcts.argtypes = [ctypes.c_int, ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"), ndpointer(ctypes.c_float, flags="C_CONTIGUOUS")]
     mnk.new_mcts.restype = ctypes.c_void_p
 
     mnk.destroy_mcts.argtypes = [ctypes.c_int, ctypes.c_void_p]
@@ -88,17 +89,22 @@ class MCTS:
     if n not in [6, 7, 8]:
       raise Exception("only 6, 7, 8 board size is supported")
     self.N = n;
-    self.handle = MNKLib.get().mnklib.new_mcts(n)
+    self.boards_buffer = np.zeros(2 * self.N * self.N, dtype=np.int32)
+    self.probs_buffer = np.ones(self.N * self.N, dtype=np.float32)
+    self.handle = MNKLib.get().mnklib.new_mcts(n, self.boards_buffer, self.probs_buffer)
 
   def __del__(self):
     MNKLib.get().mnklib.destroy_mcts(self.N, self.handle)
 
-  def run(self, state, temp, rollouts):
-    def evalfn():
-      pass
-      #print("eval called")
+  def run(self, state, temp, rollouts, get_probs_fn=None):
+    def eval_fn():
+      get_probs_fn(self.boards_buffer, self.probs_buffer)
 
-    eval_function = MNKLib.get().EvalFunction(evalfn)
+    if get_probs_fn is None:
+      eval_function = MNKLib.get().EvalFunction(0)
+    else:
+      eval_function = MNKLib.get().EvalFunction(eval_fn)
+
     moves = np.zeros(self.N * self.N, dtype=np.double)
     MNKLib.get().mnklib.mcts_get_moves(self.N, self.handle,
                                        state.handle, temp, rollouts, moves, eval_function)

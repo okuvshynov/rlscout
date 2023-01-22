@@ -25,11 +25,11 @@ extern "C" void destroy_state(int N, void* state) {
   
 }
 
-extern "C" void* new_mcts(int N) {
+extern "C" void* new_mcts(int N, int32_t* boards_buffer, float* probs_buffer) {
   switch (N) {
-    case 6: return reinterpret_cast<void*>(new SquareMCTS<6>());
-    case 7: return reinterpret_cast<void*>(new SquareMCTS<7>());
-    case 8: return reinterpret_cast<void*>(new SquareMCTS<8>());
+    case 6: return reinterpret_cast<void*>(new SquareMCTS<6>(boards_buffer, probs_buffer));
+    case 7: return reinterpret_cast<void*>(new SquareMCTS<7>(boards_buffer, probs_buffer));
+    case 8: return reinterpret_cast<void*>(new SquareMCTS<8>(boards_buffer, probs_buffer));
   };
   return nullptr;
 }
@@ -113,21 +113,20 @@ extern "C" void state_get_boards(int N, void* st, int* boards_out) {
 // moves must be N*N elements
 // it WILL zero out
 extern "C" void mcts_get_moves(int N, void* mcts_, void* state_, double temp, int32_t rollouts, double* moves, void (*eval_cb)()) {
-    eval_cb();
     switch (N) {
       case 6: {
         auto state = reinterpret_cast<SquareState<6>*>(state_);
-        reinterpret_cast<SquareMCTS<6>*>(mcts_)->get_moves(state, temp, rollouts, moves);
+        reinterpret_cast<SquareMCTS<6>*>(mcts_)->get_moves(state, temp, rollouts, moves, eval_cb);
         break;
       }
       case 7: {
         auto state = reinterpret_cast<SquareState<7>*>(state_);
-        reinterpret_cast<SquareMCTS<7>*>(mcts_)->get_moves(state, temp, rollouts, moves);
+        reinterpret_cast<SquareMCTS<7>*>(mcts_)->get_moves(state, temp, rollouts, moves, eval_cb);
         break;
       }
       case 8: {
         auto state = reinterpret_cast<SquareState<8>*>(state_);
-        reinterpret_cast<SquareMCTS<8>*>(mcts_)->get_moves(state, temp, rollouts, moves);
+        reinterpret_cast<SquareMCTS<8>*>(mcts_)->get_moves(state, temp, rollouts, moves, eval_cb);
         break;
       }
     }

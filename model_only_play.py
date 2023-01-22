@@ -4,6 +4,8 @@ import torch
 import numpy as np
 import sys
 
+import coremltools as ct
+
 chr_winner = {
     -1: '.',
     0: '0',
@@ -12,21 +14,32 @@ chr_winner = {
 
 # settings
 board_size = 7
-rollouts = 5000
+rollouts = 500
 temp = 1.5
-games = 250
+games = 100
 
 # cli settings
 rowsize = 50
 
 mcts = MCTS(board_size)
 
-model_path = './_out/model_2000r_100g.pt'
+model_path = './_out/model_cp_1.pt'
 
 action_model = torch.load(model_path, map_location=torch.device('cpu'))
 
+ne_model = ct.models.MLModel(f'./_out/coreml_model_cp_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
+
+def get_probs(boards, probs):
+  sample = {'x': boards.reshape(1, 2, board_size, board_size)}
+  out = np.exp(list(ne_model.predict(sample).values())[0])
+  #probs[1] = 2.0
+  #probs[2] = 3.0
+  np.copyto(probs, out)
+  #print(probs)
+  #print(boards)
+
 def mcts_player(s):
-    return mcts.run(s, temp=temp, rollouts=rollouts)
+    return mcts.run(s, temp=temp, rollouts=rollouts, get_probs_fn=get_probs)
 
 def model_player(s):
     board = torch.from_numpy(s.boards()).float()
@@ -38,22 +51,27 @@ def model_player(s):
     return probs.detach().numpy()
 
 model_wins = 0
+draws = 0
+
 for g in range(games):
   s = State(board_size)
 
   p = g % 2
   players = [model_player, mcts_player]
   wins = [0, 0]
-
+ 
   while not s.finished():
     moves = players[p](s)
     x, y = np.unravel_index(moves.argmax(), moves.shape)
     s.apply((x, y))
     p = 1 - p
 
+  if s.winner() == -1:
+    draws += 1
+
   if s.winner() == g % 2:
     model_wins += 1
   sys.stdout.write(f'{chr_winner[s.winner()]}')
   sys.stdout.flush()
   if g % rowsize == rowsize - 1:
-    print(f' {g+1} played, {model_wins} model wins')
+    print(f' {g+1} played, {model_wins} model wins, {draws} draws')

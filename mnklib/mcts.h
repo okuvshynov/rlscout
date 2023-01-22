@@ -28,9 +28,13 @@ struct MCTS {
   std::vector<MCTSNode>& nodes;
   int size = 0;
   int root_id = 0;
+  int32_t* boards_buffer;
+  float* probs_buffer;
+  void (*eval_cb)();
 
   // no ownership over buffer
-  MCTS(std::vector<MCTSNode>& nodes): nodes(nodes) {
+  MCTS(std::vector<MCTSNode>& nodes, int32_t *boards_buffer, float *probs_buffer, void (*eval_cb)())
+      : nodes(nodes), boards_buffer(boards_buffer), probs_buffer(probs_buffer), eval_cb(eval_cb) {
     nodes[0] = MCTSNode(1.0);
     size = 1;
   }
@@ -63,19 +67,15 @@ struct MCTS {
     uint64_t moves = state.valid_actions();
     nodes[node_id].children_from = size;
     int j = size;
-    // somewhere here, if we do have a model, we make a call
-    // rather than calling back to python adding another dependency like torchlib
-    // we just 'replying' to long-poll call under the hood and waiting for another call
-    // from python counterpart.
 
-    static thread_local float probs[m * n] = {1.0f};
-    // this blocks if we have a model and returns all 1.0
-    // when we do not?
-    // get_actions(state, probs);
-    // 
+    state.fill_boards(boards_buffer);
+    if (eval_cb != nullptr) {
+      eval_cb();
+    }
+
     for (uint64_t i = 0; i < m * n; i++) {
       if ((1ull << i) & moves) {
-        nodes[j] = MCTSNode(probs[i]);
+        nodes[j] = MCTSNode(probs_buffer[i]);
         nodes[j].parent = node_id;
         nodes[j].in_action = i;
         j++;

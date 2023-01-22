@@ -74,6 +74,18 @@ struct State {
     return std::make_pair(curr, opp);
   }
 
+  void fill_boards(int32_t* boards) const {
+    for (uint64_t i = 0; i < m * n; i++) {
+      boards[i] = boards[i + n * m] = 0;
+      if (board[player] & mask(i)) {
+        boards[i] = 1;
+      } 
+      if (board[1 - player] & mask(i)) {
+        boards[i + n * m] = 1;
+      } 
+    }
+  }
+
   // TODO: silly    
   void take_random_action() {
     while (true) {
