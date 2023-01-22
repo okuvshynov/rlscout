@@ -18,7 +18,7 @@ rollouts = 5000
 temp = 1.5
 sample_for_n_moves = 8
 games = 1000
-threads = 1 # multiprocessing.cpu_count()
+threads = multiprocessing.cpu_count()
 print(f'Running selfplay in {threads} threads.')
 
 # cli settings
