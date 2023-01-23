@@ -3,6 +3,7 @@ from action_model import ActionNN
 import torch
 import numpy as np
 import sys
+import time
 
 import coremltools as ct
 
@@ -14,12 +15,12 @@ chr_winner = {
 
 # settings
 board_size = 7
-rollouts = 500
-temp = 1.5
+rollouts = 10000
+temp = 3.0
 games = 100
 
 # cli settings
-rowsize = 50
+rowsize = 10
 
 mcts = MCTS(board_size)
 
@@ -38,8 +39,11 @@ def get_probs(boards, probs):
   #print(probs)
   #print(boards)
 
-def mcts_player(s):
-    return mcts.run(s, temp=temp, rollouts=rollouts, get_probs_fn=get_probs)
+def mcts_pure_player(s):
+    return mcts.run(s, temp=1.5, rollouts=500000)
+
+def mcts_model_player(s):
+    return mcts.run(s, temp=5.0, rollouts=1000, get_probs_fn=get_probs)
 
 def model_player(s):
     board = torch.from_numpy(s.boards()).float()
@@ -53,15 +57,19 @@ def model_player(s):
 model_wins = 0
 draws = 0
 
+players_time = [0.0, 0.0]
+
 for g in range(games):
   s = State(board_size)
 
   p = g % 2
-  players = [model_player, mcts_player]
+  players = [mcts_model_player, mcts_pure_player]
   wins = [0, 0]
  
   while not s.finished():
+    start = time.time()
     moves = players[p](s)
+    players_time[p] += time.time() - start
     x, y = np.unravel_index(moves.argmax(), moves.shape)
     s.apply((x, y))
     p = 1 - p
@@ -74,4 +82,4 @@ for g in range(games):
   sys.stdout.write(f'{chr_winner[s.winner()]}')
   sys.stdout.flush()
   if g % rowsize == rowsize - 1:
-    print(f' {g+1} played, {model_wins} model wins, {draws} draws')
+    print(f' {g+1} played, {model_wins} model wins, {draws} draws, times: {players_time}')
