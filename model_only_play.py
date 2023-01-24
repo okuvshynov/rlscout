@@ -15,12 +15,10 @@ chr_winner = {
 
 # settings
 board_size = 7
-rollouts = 10000
-temp = 3.0
-games = 100
+games = 50
 
 # cli settings
-rowsize = 10
+rowsize = 5
 
 mcts = MCTS(board_size)
 
@@ -33,19 +31,15 @@ ne_model = ct.models.MLModel(f'./_out/coreml_model_cp_1.mlmodel', compute_units=
 def get_probs(boards, probs):
   sample = {'x': boards.reshape(1, 2, board_size, board_size)}
   out = np.exp(list(ne_model.predict(sample).values())[0])
-  #probs[1] = 2.0
-  #probs[2] = 3.0
   np.copyto(probs, out)
-  #print(probs)
-  #print(boards)
 
 def mcts_pure_player(s):
-    return mcts.run(s, temp=1.5, rollouts=500000)
+    return mcts.run(s, temp=1.5, rollouts=5000)
 
 def mcts_model_player(s):
-    return mcts.run(s, temp=5.0, rollouts=1000, get_probs_fn=get_probs)
+    return mcts.run(s, temp=4.0, rollouts=500, get_probs_fn=get_probs)
 
-def model_player(s):
+def model_pure_player(s):
     board = torch.from_numpy(s.boards()).float()
     board = board.view(1, 2, board_size, board_size)
     logprob = action_model(board)
@@ -70,6 +64,7 @@ for g in range(games):
     start = time.time()
     moves = players[p](s)
     players_time[p] += time.time() - start
+    # we do no exploration here, just picking move with max visit count/prob
     x, y = np.unravel_index(moves.argmax(), moves.shape)
     s.apply((x, y))
     p = 1 - p
