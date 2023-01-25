@@ -1,5 +1,5 @@
-from mnkgame import State, MCTS
-from action_model import ActionNN
+from mnklib import State, MCTS
+from action_value_model import ActionValueModel as ActionNN
 import torch
 import numpy as np
 import sys

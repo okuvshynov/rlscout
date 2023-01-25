@@ -9,6 +9,7 @@ Next:
     [ ] the one with attack/defence which works for 1M rollouts 
     [ ] how model-only player gets all draws against deeper search, but loses occasionally to more shallow
 [ ] visualization for activations/gradients
+[ ] understand the ANE performance, implement batching
 
 [x] multitrheading self-play
 [x] use model within search

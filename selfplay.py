@@ -1,4 +1,4 @@
-from mnkgame import State, MCTS
+from mnklib import State, MCTS
 import numpy as np
 import torch
 import sys
@@ -52,7 +52,7 @@ def playgame(mcts, boards, probs):
     # which controls the level of exploration by changing the distribution
     # we sample from: 
     # param is tau,  p2 = torch.pow(torch.from_numpy(moves), 1.0 / tau)
-    # in practice, however, we either sample from the raw counts 
+    # in practice, however, we either sample from the raw counts/probs
     # or just pick the max greedily.
     if move_index >= sample_for_n_moves:
       x, y = np.unravel_index(moves.argmax(), moves.shape)
@@ -62,8 +62,9 @@ def playgame(mcts, boards, probs):
     s.apply((x, y))
     move_index += 1
 
-    ## somewhere here 
-    # mcts.apply((x, y))
+    ## if we were to reuse the search tree, we'd call something like
+    # mcts.apply((x, y)) here
+    # to move the root to the next node
 
   return s.winner()
 
