@@ -15,11 +15,11 @@ chr_winner = {
 
 # settings
 board_size = 8
-rollouts = 1500
+rollouts = 150
 temp = 4.0
 sample_for_n_moves = 8
-games = 1000
-threads = multiprocessing.cpu_count()
+games = 64
+threads = 4 # multiprocessing.cpu_count()
 
 ne_model = ct.models.MLModel(f'./_out/8x8/coreml_model_cp_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
 def get_probs(boards, probs):
