@@ -14,7 +14,7 @@ chr_winner = {
 }
 
 # settings
-board_size = 7
+board_size = 8
 games = 50
 
 # cli settings
@@ -22,11 +22,11 @@ rowsize = 5
 
 mcts = MCTS(board_size)
 
-model_path = './_out/model_cp_1.pt'
+model_path = './_out/8x8/model_500000r_1000g.pt'
 
 action_model = torch.load(model_path, map_location=torch.device('cpu'))
 
-ne_model = ct.models.MLModel(f'./_out/coreml_model_cp_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
+ne_model = ct.models.MLModel(f'./_out/8x8/coreml_model_i0_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
 
 def get_probs(boards, probs):
   sample = {'x': boards.reshape(1, 2, board_size, board_size)}
@@ -34,10 +34,10 @@ def get_probs(boards, probs):
   np.copyto(probs, out)
 
 def mcts_pure_player(s):
-    return mcts.run(s, temp=1.5, rollouts=5000)
+    return mcts.run(s, temp=1.5, rollouts=500000)
 
 def mcts_model_player(s):
-    return mcts.run(s, temp=4.0, rollouts=500, get_probs_fn=get_probs)
+    return mcts.run(s, temp=4.0, rollouts=1500, get_probs_fn=get_probs)
 
 def model_pure_player(s):
     board = torch.from_numpy(s.boards()).float()

@@ -5,6 +5,7 @@ import sys
 import threading
 import queue
 import multiprocessing
+import coremltools as ct
 
 chr_winner = {
     -1: '.',
@@ -13,12 +14,19 @@ chr_winner = {
 }
 
 # settings
-board_size = 7
-rollouts = 5000
-temp = 1.5
+board_size = 8
+rollouts = 1500
+temp = 4.0
 sample_for_n_moves = 8
 games = 1000
 threads = multiprocessing.cpu_count()
+
+ne_model = ct.models.MLModel(f'./_out/8x8/coreml_model_cp_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
+def get_probs(boards, probs):
+  sample = {'x': boards.reshape(1, 2, board_size, board_size)}
+  out = np.exp(list(ne_model.predict(sample).values())[0])
+  np.copyto(probs, out)
+
 print(f'Running selfplay in {threads} threads.')
 
 # cli settings
@@ -29,7 +37,7 @@ def playgame(mcts, boards, probs):
   move_index = 0
 
   while not s.finished():
-    moves = mcts.run(s, temp=temp, rollouts=rollouts)
+    moves = mcts.run(s, temp=temp, rollouts=rollouts, get_probs_fn=get_probs)
 
     # log board state
     board = torch.from_numpy(s.boards()).float()
@@ -100,5 +108,5 @@ probs = torch.stack(all_probs)
 
 print(boards.shape, probs.shape)
 
-torch.save(boards, f'./_out/boards_{rollouts}r_{games}g.pt')
-torch.save(probs, f'./_out/probs_{rollouts}r_{games}g.pt')
+torch.save(boards, f'./_out/{board_size}x{board_size}/boards_{rollouts}r_{games}g.pt')
+torch.save(probs, f'./_out/{board_size}x{board_size}/probs_{rollouts}r_{games}g.pt')

@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 channels = 256
-m, n = 7, 7
+m, n = 8, 8
 
 class ActionNN(nn.Module):
   def __init__(self):

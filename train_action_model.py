@@ -1,14 +1,16 @@
 #from action_model import ActionNN
-from action_model import ActionNN
+#from action_model import ActionNN
+
+from action_value_model import ActionValueModel as ActionNN
 import matplotlib.pyplot as plt
 import random
 import sys
 import torch
 import torch.optim as optim
 
-boards = torch.load("./_out/boards_5000r_100g.pt").float()
-probs = torch.load("./_out/probs_5000r_100g.pt")
-model_path = './_out/model_2000r_100g.pt'
+boards = torch.load("./_out/8x8/boards_1500r_1000g.pt").float()
+probs = torch.load("./_out/8x8/probs_1500r_1000g.pt")
+model_path = './_out/8x8/model_1500r_1000g.pt'
 
 device = "mps"
 minibatch_size = 512
@@ -51,7 +53,7 @@ samples = []
 for s in zip(boards.tolist(), probs.tolist()):
   p = torch.Tensor(s[1])
   p = p / p.sum()
-  samples.extend(list(zip(symm(torch.Tensor(s[0])), symm(p.view(1, 7, 7)))))
+  samples.extend(list(zip(symm(torch.Tensor(s[0])), symm(p.view(1, 8, 8)))))
 
 random.shuffle(samples)
 
