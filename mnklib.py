@@ -2,6 +2,7 @@ import ctypes
 import numpy as np
 import numpy.ctypeslib as ctl
 import os
+import sys
 
 from numpy.ctypeslib import ndpointer
 
@@ -82,6 +83,22 @@ class State:
 
   def winner(self):
     return MNKLib.get().mnklib.state_winner(self.N, self.handle)
+
+  # player is 0 or 1
+  def pp(self, player, last_move=None, f=sys.stdout):
+    chr_player = {
+        (-1, False): '.',
+        (1-player, True): '0',
+        (1-player, False): 'o',
+        (player, True): 'X',
+        (player, False): 'x'
+    }
+    board = self.board()
+    for i in range(self.N):
+      f.write(os.linesep)
+      for j in range(self.N):
+        f.write(chr_player[(board[i, j], (i, j) == last_move)])
+    f.flush()
 
 # single instance of MCTS, not thread-safe. 1:1 relationship with thread
 class MCTS:

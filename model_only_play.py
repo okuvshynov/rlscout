@@ -22,11 +22,11 @@ rowsize = 5
 
 mcts = MCTS(board_size)
 
-model_path = './_out/8x8/model_500000r_1000g.pt'
+model_path = './_out/8x8/model_1500r_500g_i1.pt'
 
 action_model = torch.load(model_path, map_location=torch.device('cpu'))
 
-ne_model = ct.models.MLModel(f'./_out/8x8/coreml_model_i0_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
+ne_model = ct.models.MLModel(f'./_out/8x8/coreml_model_i1_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
 
 def get_probs(boards, probs):
   sample = {'x': boards.reshape(1, 2, board_size, board_size)}
@@ -40,13 +40,13 @@ def mcts_model_player(s):
     return mcts.run(s, temp=4.0, rollouts=1500, get_probs_fn=get_probs)
 
 def model_pure_player(s):
-    board = torch.from_numpy(s.boards()).float()
-    board = board.view(1, 2, board_size, board_size)
-    logprob = action_model(board)
-    board = board.view(2, board_size, board_size)
-    valid_moves = torch.ones(board_size, board_size) - (board[0] + board[1])
-    probs = torch.exp(logprob).view(board_size, board_size) * valid_moves
-    return probs.detach().numpy()
+  board = torch.from_numpy(s.boards()).float()
+  board = board.view(1, 2, board_size, board_size)
+  logprob = action_model(board)
+  board = board.view(2, board_size, board_size)
+  valid_moves = torch.ones(board_size, board_size) - (board[0] + board[1])
+  probs = torch.exp(logprob).view(board_size, board_size) * valid_moves
+  return probs.detach().numpy()
 
 model_wins = 0
 draws = 0

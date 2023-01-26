@@ -1,13 +1,13 @@
 from action_value_model import ActionValueModel as ActionNN
-import matplotlib.pyplot as plt
+
 import random
 import sys
 import torch
 import torch.optim as optim
 
-boards = torch.load("./_out/8x8/boards_1500r_1000g.pt").float()
-probs = torch.load("./_out/8x8/probs_1500r_1000g.pt")
-model_path = './_out/8x8/model_1500r_1000g_50t.pt'
+boards = torch.load("./_out/8x8/boards_1500r_500g_i1.pt").float()
+probs = torch.load("./_out/8x8/probs_1500r_500g_i1.pt")
+model_path = './_out/8x8/model_1500r_500g_i1.pt'
 
 device = "mps"
 minibatch_size = 512
@@ -20,23 +20,6 @@ random.seed(1991)
 gen = torch.Generator()
 gen.manual_seed(1991)
 
-def plot_sample(board, probs):
-    m = board.shape[1]
-    n = board.shape[2]
-    plt.figure(figsize=(3, 3))
-    for x in range(m):
-      for y in range(n):
-        stone = -1
-        if board[0, y, x] > 0:
-          stone = 0
-        if board[1, y, x] > 0:
-          stone = 1
-
-        ch = '0' if stone == 0 else 'X'
-        if stone >= 0:
-          plt.text(x, y, ch, weight="bold", color="red", fontsize='xx-large', va='center', ha='center')
-    plt.imshow(probs.view(m, n).cpu().numpy(), cmap='Blues')
-    plt.show()
 
 # expects tensor of shape [?, N, N], returns list of 8 tensors
 def symm(t):

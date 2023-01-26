@@ -2,7 +2,7 @@ from action_value_model import ActionValueModel as ActionNN
 import coremltools as ct
 import torch
 
-torch_model = torch.load("./_out/8x8/model_1500r_1000g.pt", map_location=torch.device('cpu'))
+torch_model = torch.load("./_out/8x8/model_1500r_500g_i1.pt", map_location=torch.device('cpu'))
 torch_model.eval()
 
 for log_batch_size in range(4):
@@ -15,4 +15,4 @@ for log_batch_size in range(4):
         inputs=[ct.TensorType(shape=sample.shape)]
     )
 
-    coreml_model.save(f'./_out/8x8/coreml_model_i0_{2 ** log_batch_size}.mlmodel')
+    coreml_model.save(f'./_out/8x8/coreml_model_i1_{2 ** log_batch_size}.mlmodel')

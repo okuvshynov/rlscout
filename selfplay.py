@@ -15,13 +15,15 @@ chr_winner = {
 
 # settings
 board_size = 8
-rollouts = 150
+rollouts = 1500
 temp = 4.0
 sample_for_n_moves = 8
-games = 64
+games = 500
 threads = 4 # multiprocessing.cpu_count()
 
-ne_model = ct.models.MLModel(f'./_out/8x8/coreml_model_cp_1.mlmodel', compute_units=ct.ComputeUnit.CPU_AND_NE)
+coreml_model_path = './_out/8x8/coreml_model_i0_1.mlmodel'
+
+ne_model = ct.models.MLModel(coreml_model_path, compute_units=ct.ComputeUnit.CPU_AND_NE)
 def get_probs(boards, probs):
   sample = {'x': boards.reshape(1, 2, board_size, board_size)}
   out = np.exp(list(ne_model.predict(sample).values())[0])
@@ -109,5 +111,5 @@ probs = torch.stack(all_probs)
 
 print(boards.shape, probs.shape)
 
-torch.save(boards, f'./_out/{board_size}x{board_size}/boards_{rollouts}r_{games}g.pt')
-torch.save(probs, f'./_out/{board_size}x{board_size}/probs_{rollouts}r_{games}g.pt')
+torch.save(boards, f'./_out/{board_size}x{board_size}/boards_{rollouts}r_{games}g_i1.pt')
+torch.save(probs, f'./_out/{board_size}x{board_size}/probs_{rollouts}r_{games}g_i1.pt')
