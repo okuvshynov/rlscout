@@ -13,7 +13,6 @@ device = "mps"
 minibatch_size = 512
 epochs = 200
 minibatch_per_epoch = 100
-data_subset = 100
 
 random.seed(1991)
 

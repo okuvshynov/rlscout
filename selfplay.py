@@ -6,6 +6,10 @@ import threading
 import queue
 import multiprocessing
 import coremltools as ct
+import io
+
+from local_db import LocalDB
+from utils import save_sample
 
 chr_winner = {
     -1: '.',
@@ -15,10 +19,10 @@ chr_winner = {
 
 # settings
 board_size = 8
-rollouts = 1500
+rollouts = 15
 temp = 4.0
 sample_for_n_moves = 8
-games = 500
+games = 1
 threads = 4 # multiprocessing.cpu_count()
 
 coreml_model_path = './_out/8x8/coreml_model_i0_1.mlmodel'
@@ -33,6 +37,8 @@ print(f'Running selfplay in {threads} threads.')
 
 # cli settings
 rowsize = 50
+
+localdb = LocalDB('./_out/8x8/test.db')
 
 def playgame(mcts, boards, probs):
   s = State(board_size)
@@ -50,6 +56,8 @@ def playgame(mcts, boards, probs):
     prob = prob / prob.sum()
     probs.append(prob)
 
+    save_sample(localdb, board, prob, 1)
+    
     # in theory, move selection is based on another 'temperature' parameter
     # which controls the level of exploration by changing the distribution
     # we sample from: 
