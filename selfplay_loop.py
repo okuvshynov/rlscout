@@ -20,7 +20,7 @@ chr_winner = {
 # settings
 board_size = 8
 
-model_rollouts = 15
+model_rollouts = 1000
 model_temp = 4.0
 
 raw_rollouts = 500000

@@ -99,8 +99,13 @@ class LocalDB:
     # interface needed for training
 
     def get_batch(self, size):
-        with closing(self.conn.cursor()) as cursor:
-            return cursor.execute(select_training_batch_sql, (size, )).fetchall()
+        try:
+            with closing(self.conn.cursor()) as cursor:
+                return cursor.execute(select_training_batch_sql, (size, )).fetchall()
+        except:
+            print('Error querying DB.')
+        finally:
+            pass
 
     def save_snapshot(self, model):
         with closing(self.conn.cursor()) as cursor:

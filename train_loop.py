@@ -10,10 +10,11 @@ import time
 
 device = "mps"
 minibatch_size = 512
-epochs = 10
+epochs = 20
 minibatch_per_epoch = 100
 checkpoints = 1000
-min_samples = 20000
+max_samples = 50000
+min_samples = 50000
 
 random.seed(1991)
 
@@ -57,17 +58,19 @@ def evaluate_sample(boards, probs):
     return loss.item()
 
 for checkpoint in range(checkpoints):
-    data = db.get_batch(min_samples)
+    data = db.get_batch(max_samples)
     if len(data) < min_samples:
-        print('Not enough samples in the DB. Waiting for a minute.')
-        time.sleep(60)
+        print('Not enough samples in the DB. Waiting for 3 minutes.')
+        time.sleep(3 * 60)
         continue
 
     unpack = lambda buf: torch.load(BytesIO(buf))
 
-    print(unpack(data[0][0]))
+    samples = [(unpack(b), unpack(p)) for (b, p) in data]
 
-    boards, probs = zip(*[(unpack(b), unpack(p)) for (b, p) in data])
+    random.shuffle(samples)
+
+    boards, probs = zip(*samples)
 
     idx = int(0.8 * len(boards))
 
