@@ -10,11 +10,11 @@ import time
 
 device = "mps"
 minibatch_size = 512
-epochs = 20
+epochs = 10
 minibatch_per_epoch = 100
 checkpoints = 1000
-max_samples = 50000
-min_samples = 50000
+max_samples = 100000
+min_samples = 100000
 
 random.seed(1991)
 
@@ -28,7 +28,6 @@ db = LocalDB('./_out/8x8/test2.db')
 action_model = ActionValueModel().to(device)
 
 optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.005)
-
 
 def train_minibatch(boards, probs):
     # pick minibatch
@@ -107,4 +106,4 @@ for checkpoint in range(checkpoints):
     model_buffer = BytesIO()
     torch.save(action_model, model_buffer)
     print('saving model snapshot')
-    db.save_snapshot(model_buffer.getvalue())
+    print(db.save_snapshot(model_buffer.getvalue()))

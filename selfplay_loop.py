@@ -30,7 +30,6 @@ sample_for_n_moves = 8
 games = 10000
 threads = 4 # multiprocessing.cpu_count()
 
-
 # cli settings
 rowsize = 50
 
@@ -57,13 +56,13 @@ class ModelStore:
             torch_model = torch.load(BytesIO(torch_model_b))
             #print(model_id, torch_model)
             (self.model_id, self.model) = (model_id, to_coreml(torch_model.cpu()))
+            print(f'new best model: {self.model_id}')
 
     def get_best_model(self):
         self.maybe_refresh_model()
         return (self.model_id, self.model)
 
 model_store = ModelStore() 
-
 
 def playgame(mcts, model_id, ne_model):
     s = State(board_size)
