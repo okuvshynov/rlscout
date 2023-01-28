@@ -1,20 +1,23 @@
-Next:
+This is a lazily-but-in-progress attempt to find a solution to some game. 
 
-[ ] refactor to make it easier to implement self-play, full loop with distribution
-[ ] full loop 
-[ ] abstract away game from search?
-[ ] value model
-[ ] load to colab and try interactively?
-[ ] examples 
-    [ ] the one with attack/defence which works for 1M rollouts 
-    [ ] how model-only player gets all draws against deeper search, but loses occasionally to more shallow
-[ ] visualization for activations/gradients
-[ ] understand the ANE performance, implement batching
+Most likely candidate is Othello 8x8.
 
-[x] multitrheading self-play
-[x] use model within search
-    [x] allow ANE use for this?
-[-] avoid sending 'handles' back, just send the state itself for state and buffer/root for mcts?
-[x] residual net
-[x] experiment on ANN -- just see what the throughput is depending on batch size
-[x] experiment on Model only vs MCTS Only vs MCTS Search (no value model here)
+Rough idea is the following:
+1. Use self-play DeepRL (think AlphaZero) to get a good model for the game <---- we are here now
+2. Use that model to guide a full search (e.g. https://en.wikipedia.org/wiki/Principal_variation_search)
+
+Current state is roughly:
+1. 3 components (Self play, evaluation, model training) are implemented for MNK game (Free Gomoku 8x8). They can run in parallel to each other.
+2. pytorch is used for all ML work
+3. We use Apple's M2 GPU for training the model (called 'mps' in pytorch)
+4. We use Apple's M2 neural engine for self-play (by compiling torch model to apple's coreml )
+5. To speed up process a bit but still have diverse enough training data and rely on self-play only a faster C++ version of state/mcts is implemented, so that at first iteration we can just run million rollouts and get a somewhat decent player
+6. SQLite is used to store the 'self-play state': training samples, model snapshots, model evaluation. It is a poor choice!
+7. Only action part of the model is done
+
+
+Immediate next steps:
+1. Batching for self-play. we already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead
+2. Create dedicated 'state server' (can be still backed by SQLite), communicate with training/self-play/eval trhough 0MQ. This way we can distribute easily and there won't be any issues with multi-trheading/multi-process access to SQLite.
+3. Implement value model head.
+4. Experiment on model  
