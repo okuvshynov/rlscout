@@ -17,6 +17,7 @@ Current state is roughly:
 8. There's a simple script play_game.py which can be used to see two models/search param sets play against each other.
 
 Immediate next steps:
+```
 [ ] get rid of all hardcoded constants in the code.
 [ ] Implement batching for self-play. We already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead. This will get more important for larger models.
 [ ] Implement value model head.
@@ -27,7 +28,7 @@ Immediate next steps:
 [ ] incremental training data update
 [ ] do not store symmetries in the db. Generate them on the fly in the training. 
 [ ] track time per move in player
-
+```
 
 Current way to run the process:
 1. start game server: 
