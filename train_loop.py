@@ -1,19 +1,17 @@
 from action_value_model import ActionValueModel
-
 import random
 import sys
 import torch
 import torch.optim as optim
-from local_db import LocalDB
-from io import BytesIO
 import time
+from game_client import GameClient
 
 device = "mps"
 minibatch_size = 512
 epochs = 10
 minibatch_per_epoch = 100
 checkpoints = 1000
-max_samples = 100000
+max_samples = 200000
 min_samples = 100000
 
 random.seed(1991)
@@ -23,7 +21,7 @@ gen.manual_seed(1991)
 
 # let's get samples:
 
-db = LocalDB('./_out/8x8/test2.db')
+client = GameClient()
 
 action_model = ActionValueModel().to(device)
 
@@ -57,15 +55,11 @@ def evaluate_sample(boards, probs):
     return loss.item()
 
 for checkpoint in range(checkpoints):
-    data = db.get_batch(max_samples)
-    if len(data) < min_samples:
+    samples = client.get_batch(max_samples)
+    if len(samples) < min_samples:
         print('Not enough samples in the DB. Waiting for 3 minutes.')
         time.sleep(3 * 60)
         continue
-
-    unpack = lambda buf: torch.load(BytesIO(buf))
-
-    samples = [(unpack(b), unpack(p)) for (b, p) in data]
 
     random.shuffle(samples)
 
@@ -103,7 +97,5 @@ for checkpoint in range(checkpoints):
         epoch_validation_losses.append(evaluate_sample(boards_val_dev, probs_val_dev))
         print(f' | epoch {e}: training loss: {epoch_train_losses[-1]}, validation loss: {epoch_validation_losses[-1]}')
     
-    model_buffer = BytesIO()
-    torch.save(action_model, model_buffer)
     print('saving model snapshot')
-    print(db.save_snapshot(model_buffer.getvalue()))
+    print(client.save_snapshot(action_model))

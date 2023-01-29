@@ -5,11 +5,9 @@ import sys
 import threading
 import queue
 import multiprocessing
-import coremltools as ct
-from io import BytesIO
-
-from local_db import LocalDB
 from utils import save_sample, to_coreml
+
+from game_client import GameClient
 
 chr_winner = {
     -1: '.',
@@ -33,8 +31,6 @@ threads = 4 # multiprocessing.cpu_count()
 # cli settings
 rowsize = 50
 
-db = LocalDB('./_out/8x8/test2.db')
-
 print(f'Running selfplay in {threads} threads.')
 
 class ModelStore:
@@ -42,18 +38,16 @@ class ModelStore:
         self.lock = threading.Lock()
         self.model = None
         self.model_id = 0
+        self.game_client = GameClient()
 
     # loads new model if different from current
     def maybe_refresh_model(self):
         with self.lock:
-            out = db.get_best_model()
-            if out is None:
-                (self.model_id, self.model) = (0, None)
-                return
-            (model_id, torch_model_b) = out
+            out = self.game_client.get_best_model()
+            
+            (model_id, torch_model) = out
             if model_id == self.model_id:
                 return 
-            torch_model = torch.load(BytesIO(torch_model_b))
             #print(model_id, torch_model)
             (self.model_id, self.model) = (model_id, to_coreml(torch_model.cpu()))
             print(f'new best model: {self.model_id}')
@@ -64,7 +58,7 @@ class ModelStore:
 
 model_store = ModelStore() 
 
-def playgame(mcts, model_id, ne_model):
+def playgame(client, mcts, model_id, ne_model):
     s = State(board_size)
     move_index = 0
 
@@ -85,7 +79,7 @@ def playgame(mcts, model_id, ne_model):
         prob = torch.from_numpy(moves)
         prob = prob / prob.sum()
         
-        save_sample(db, board, prob, model_id)
+        save_sample(client, board, prob, model_id)
         
         # in theory, move selection is based on another 'temperature' parameter
         # which controls the level of exploration by changing the distribution
@@ -105,7 +99,6 @@ def playgame(mcts, model_id, ne_model):
         # mcts.apply((x, y)) here
         # to move the root to the next node
 
-    db.try_commit()
     return s.winner()
 
 # this is a substitute for atomic counter
@@ -113,6 +106,7 @@ play_queue = queue.Queue()
 
 def playing_thread():
   mcts = MCTS(board_size)
+  client = GameClient()
 
   while True:
     model_id, model = model_store.get_best_model()
@@ -120,7 +114,7 @@ def playing_thread():
       _ = play_queue.get()
     except queue.Empty:
       break
-    winner = playgame(mcts, model_id, model)
+    winner = playgame(client, mcts, model_id, model)
 
     sys.stdout.write(f'{chr_winner[winner]}')
     sys.stdout.flush()
