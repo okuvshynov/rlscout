@@ -3,8 +3,8 @@ This is an in-progress attempt (with very slow progress) to find a solution to s
 Most likely candidate is Othello 8x8.
 
 Rough idea is the following:
-1. Use self-play Deep RL (think AlphaZero) to get a good model for the game <---- we are here now
-2. Use that model to guide a full search (e.g. https://en.wikipedia.org/wiki/Principal_variation_search)
+1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game <---- we are here now
+2. Use that model to provide a good ordering for full search, like [PVS](https://www.chessprogramming.org/Principal_Variation_Search)
 
 Current state is roughly:
 1. 3 core components (Self play, evaluation, model training) are implemented for MNK game (Free Gomoku 8x8). They can run in parallel to each other.
