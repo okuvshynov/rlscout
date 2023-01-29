@@ -22,6 +22,8 @@ Immediate next steps:
 4. Make it work on cuda as well.
 5. train loop starts from scratch now, need to resume from the model
 6. cleanup old training samples
+7. incremental training data update
+8. do not store symmetries in the db. Generate them on the fly in the training.
 
 
 Current way to run the process:
@@ -34,7 +36,7 @@ To monitor what's going on we can query sqlite db.
 Here's an example of how it looks after 7-8 hours:
 ```
 % sqlite3 ./_out/8x8/test3.db
-sqlite> select produced_by_model, sum(1) as sss from samples group by produced_by_model;
+sqlite> select produced_by_model, sum(1) from samples group by produced_by_model;
 0|166384
 3|39736
 8|22632
