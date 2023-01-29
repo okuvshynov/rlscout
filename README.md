@@ -1,17 +1,17 @@
-This is a lazily-but-in-progress attempt to find a solution to some game. 
+This is an in-progress attempt (with very slow progress) to find a solution to some game. 
 
 Most likely candidate is Othello 8x8.
 
 Rough idea is the following:
-1. Use self-play DeepRL (think AlphaZero) to get a good model for the game <---- we are here now
+1. Use self-play Deep RL (think AlphaZero) to get a good model for the game <---- we are here now
 2. Use that model to guide a full search (e.g. https://en.wikipedia.org/wiki/Principal_variation_search)
 
 Current state is roughly:
-1. 3 components (Self play, evaluation, model training) are implemented for MNK game (Free Gomoku 8x8). They can run in parallel to each other.
+1. 3 core components (Self play, evaluation, model training) are implemented for MNK game (Free Gomoku 8x8). They can run in parallel to each other.
 2. pytorch is used for all ML work
-3. We use Apple's M2 GPU for training the model (called 'mps' in pytorch)
-4. We use Apple's M2 neural engine for self-play (by compiling torch model to apple's coreml )
-5. We'd like to speed up process a bit but still have diverse enough training data and rely on self-play only. Therefore, a faster C++ version of state/mcts is implemented, so that at first iteration we can just run million rollouts and get a somewhat decent player. Once the whole thing is done and we run it on large GPU we can probably avoid doing that, but for now it helps with cold start during experimentation.
+3. We use Apple's M2 GPU for training the model ('mps' in pytorch)
+4. We use Apple's M2 neural engine for self-play by compiling torch model to apple's coreml
+5. We'd like to speed up process a bit but still have diverse enough training data and rely on self-play only. Therefore, a [faster C++ version of state/mcts](mnklib/) is implemented, so that at first iteration we can just run million rollouts and get a somewhat decent player. Once the whole thing is done and we run it on large GPU we can probably avoid doing that, but for now it helps with cold start during experimentation.
 6. Only action part of the model is done. We do random rollout at the end for now instead of model-based eval.
 7. game server maintains the state of the search. It is backed by SQLite; training, self-play and evaluation loops communicate with it using 0MQ.
 8. There's a simple script play_game.py which can be used to see two models/search param sets play against each other.
