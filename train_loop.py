@@ -11,8 +11,8 @@ minibatch_size = 512
 epochs = 10
 minibatch_per_epoch = 100
 checkpoints = 1000
-max_samples = 200000
-min_samples = 100000
+max_samples = 300000
+min_samples = 125000
 
 random.seed(1991)
 
@@ -43,7 +43,7 @@ def train_minibatch(boards, probs):
     return loss.item()
 
 def evaluate_sample(boards, probs):
-    sample_size = 2 ** 12
+    sample_size = 2 ** 14
     # pick sample
     ix = torch.randint(0, boards.shape[0], (sample_size, ), generator=gen)
     X = boards[ix]
@@ -98,4 +98,4 @@ for checkpoint in range(checkpoints):
         print(f' | epoch {e}: training loss: {epoch_train_losses[-1]}, validation loss: {epoch_validation_losses[-1]}')
     
     print('saving model snapshot')
-    print(client.save_snapshot(action_model))
+    print(client.save_model_snapshot(action_model))
