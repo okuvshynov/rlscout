@@ -16,6 +16,7 @@ Current state is roughly:
 7. game server maintains the state of the search. It is backed by SQLite; training, self-play and evaluation loops communicate with it using 0MQ.
 
 Immediate next steps:
+0. get rid of all hardcoded constants in the code.
 1. Batching for self-play. we already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead
 2. Implement value model head.
 3. Experiment on model
@@ -23,7 +24,8 @@ Immediate next steps:
 5. train loop starts from scratch now, need to resume from the model
 6. cleanup old training samples
 7. incremental training data update
-8. do not store symmetries in the db. Generate them on the fly in the training.
+8. do not store symmetries in the db. Generate them on the fly in the training. 
+9. track time per move in player
 
 
 Current way to run the process:

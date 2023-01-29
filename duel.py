@@ -24,7 +24,7 @@ class CoreMLPlayer:
 
         return self.mcts.run(state, temp=self.temp, rollouts=self.rollouts, get_probs_fn=get_probs_fn)
 
-def run(A: CoreMLPlayer, B: CoreMLPlayer):
+def run(A: CoreMLPlayer, B: CoreMLPlayer, print_board=False):
     players = [A, B]
     s = State(8)
 
@@ -38,6 +38,8 @@ def run(A: CoreMLPlayer, B: CoreMLPlayer):
         # we do no exploration here, just picking move with max visit count/prob
         x, y = np.unravel_index(moves.argmax(), moves.shape)
         s.apply((x, y))
+        if print_board:
+            s.pp(p, (x, y))
         p = 1 - p
 
     if s.winner() == -1:

@@ -49,6 +49,3 @@ while True:
 
     result = '+' if 100 * score >= 2 * 10 * ngames else '-'
     client.record_eval(model_to_eval_id, result)
-        
-
-    

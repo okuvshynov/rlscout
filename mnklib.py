@@ -107,6 +107,7 @@ class State:
             f.write(os.linesep)
             for j in range(self.N):
                 f.write(chr_player[(board[i, j], (i, j) == last_move)])
+        f.write('\n')
         f.flush()
 
 # single instance of MCTS, not thread-safe. 1:1 relationship with thread
