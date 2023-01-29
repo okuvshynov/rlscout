@@ -50,6 +50,16 @@ ORDER BY id
 LIMIT 1
 """
 
+select_last_model_sql = """
+SELECT
+    id, torch_model
+FROM 
+    models 
+ORDER BY id
+DESC
+LIMIT 1
+"""
+
 insert_model_sql = """
 INSERT INTO
 models(torch_model, evaluation) 
@@ -97,6 +107,10 @@ class GameDB:
     def get_last_not_evaluated_model(self):
         with closing(self.conn.cursor()) as cursor:
             return cursor.execute(select_model_to_eval_sql).fetchone()
+
+    def get_last_model(self):
+        with closing(self.conn.cursor()) as cursor:
+            return cursor.execute(select_model_to_eval_sql).fetchone()        
 
     def get_model(self, model_id):
         with closing(self.conn.cursor()) as cursor:

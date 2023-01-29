@@ -23,7 +23,14 @@ gen.manual_seed(1991)
 
 client = GameClient()
 
-action_model = ActionValueModel().to(device)
+(last_model_id, action_model) = client.get_last_model()
+
+print(f'loading last snapshot from DB: id={last_model_id}')
+
+if action_model is None:
+    action_model = ActionValueModel()
+
+action_model = action_model.to(device)
 
 optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.005)
 

@@ -54,6 +54,17 @@ class GameClient:
             model = torch_decode(model)
         return (id, model)
 
+    def get_last_model(self):
+        req = {
+            'method': 'get_last_model'
+        }
+        self.socket.send_json(req)
+        res = self.socket.recv_json()
+        (id, model) = res['data']
+        if id != 0:
+            model = torch_decode(model)
+        return (id, model)        
+
     def get_model(self, model_id):
         req = {
             'method': 'get_model',

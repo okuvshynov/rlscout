@@ -28,6 +28,10 @@ while True:
         out = db.get_last_not_evaluated_model()
         res['data'] = (0, None) if out is None else out
 
+    if req['method'] == 'get_last_model':
+        out = db.get_last_model()
+        res['data'] = (0, None) if out is None else out
+
     if req['method'] == 'get_model':
         res['data'] = db.get_model(req['id'])
 
