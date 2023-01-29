@@ -21,3 +21,69 @@ Immediate next steps:
 3. Experiment on model
 4. Make it work on cuda as well.
 5. train loop starts from scratch now, need to resume from the model
+6. cleanup old training samples
+
+
+Current way to run the process:
+1. start game server: python game_server.py   # <-- modify the path to sqlite db file if needed
+2. start self-play: python selfplay_loop.py   # <-- it will start playing 'no model' mcts with 500k rollouts
+3. start model training: python train_loop.py # <-- it will wait till it gets enough initial samples   
+4. start model eval: python duel_loop.py
+
+To monitor what's going on we can query sqlite db.
+Here's an example of how it looks after 7-8 hours:
+```
+% sqlite3 ./_out/8x8/test3.db
+sqlite> select produced_by_model, sum(1) as sss from samples group by produced_by_model;
+0|166384
+3|39736
+8|22632
+10|20080
+12|10944
+13|44032
+17|10504
+18|12880
+19|22112
+21|21856
+24|74584
+33|9288
+34|9496
+
+
+sqlite> select id, evaluation from models;
+1|-
+2|-
+3|+
+4|-
+5|-
+6|-
+7|-
+8|+
+9|-
+10|+
+11|-
+12|+
+13|+
+14|-
+15|-
+16|-
+17|+
+18|+
+19|+
+20|-
+21|+
+22|-
+23|-
+24|+
+25|-
+26|-
+27|-
+28|-
+29|-
+30|-
+31|-
+32|-
+33|+
+34|+
+35|-
+```
