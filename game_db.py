@@ -124,7 +124,7 @@ class GameDB:
 
     def get_last_model(self):
         with closing(self.conn.cursor()) as cursor:
-            return cursor.execute(select_model_to_eval_sql).fetchone()        
+            return cursor.execute(select_last_model_sql).fetchone()        
 
     def get_model(self, model_id):
         with closing(self.conn.cursor()) as cursor:
