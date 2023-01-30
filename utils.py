@@ -27,10 +27,6 @@ def symm(t):
   res += [torch.rot90(t, w, [1, 2]) for w in range(4)]
   return res
 
-def save_sample(client, board_tensor, probs_tensor, model_id):
-  for b, p in zip(symm(board_tensor), symm(probs_tensor.view(1, 8, 8))):
-    client.append_sample(b, p, model_id)
-
 def to_coreml(torch_model):
     torch_model = torch_model.cpu()
     torch_model.eval()

@@ -5,14 +5,15 @@ import torch
 import torch.optim as optim
 import time
 from game_client import GameClient
+from utils import symm
 
 device = "mps"
 minibatch_size = 512
 epochs = 10
 minibatch_per_epoch = 100
 checkpoints = 1000
-max_samples = 300000
-min_samples = 125000
+max_samples = 50000
+min_samples = 16000
 
 random.seed(1991)
 
@@ -68,9 +69,17 @@ for checkpoint in range(checkpoints):
         time.sleep(3 * 60)
         continue
 
-    random.shuffle(samples)
+    print(samples)
 
-    boards, probs = zip(*samples)
+    samples_symm = []
+    for b, p in samples:
+        samples_symm.extend(list(zip(symm(b), symm(p))))
+
+    random.shuffle(samples_symm)
+
+    print(samples_symm)
+
+    boards, probs = zip(*samples_symm)
 
     idx = int(0.8 * len(boards))
 

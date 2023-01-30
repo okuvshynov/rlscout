@@ -5,7 +5,7 @@ import sys
 import threading
 import queue
 import multiprocessing
-from utils import save_sample, to_coreml
+from utils import to_coreml
 
 from game_client import GameClient
 
@@ -28,7 +28,7 @@ sample_for_n_moves = 8
 games = 10000
 threads = 4 # multiprocessing.cpu_count()
 
-samples_to_keep = 300000
+samples_to_keep = 50000
 
 # cli settings
 rowsize = 50
@@ -60,7 +60,7 @@ class ModelStore:
 
 model_store = ModelStore() 
 
-def playgame(client, mcts, model_id, ne_model):
+def playgame(client: GameClient, mcts: MCTS, model_id, ne_model):
     s = State(board_size)
     move_index = 0
 
@@ -81,7 +81,7 @@ def playgame(client, mcts, model_id, ne_model):
         prob = torch.from_numpy(moves)
         prob = prob / prob.sum()
         
-        save_sample(client, board, prob, model_id)
+        client.append_sample(board, prob.view(1, board_size, board_size), model_id)
         
         # in theory, move selection is based on another 'temperature' parameter
         # which controls the level of exploration by changing the distribution
