@@ -69,15 +69,11 @@ for checkpoint in range(checkpoints):
         time.sleep(3 * 60)
         continue
 
-    print(samples)
-
     samples_symm = []
     for b, p in samples:
         samples_symm.extend(list(zip(symm(b), symm(p))))
 
     random.shuffle(samples_symm)
-
-    print(samples_symm)
 
     boards, probs = zip(*samples_symm)
 
