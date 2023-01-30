@@ -1,8 +1,8 @@
 from mnklib import State
 import numpy as np
-from players import CoreMLPlayer
+from players import GamePlayer
 
-def run(A: CoreMLPlayer, B: CoreMLPlayer, print_board=False):
+def run(A: GamePlayer, B: GamePlayer, print_board=False):
     players = [A, B]
     s = State(8)
     p = 0

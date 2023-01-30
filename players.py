@@ -3,37 +3,35 @@ import numpy as np
 import time
 from utils import to_coreml
 import torch
+import copy
 
-class TorchPlayer:
-    def __init__(self, torch_model, temp=4.0, rollouts=10000, board_size=8):
-        self.model = torch_model
-        self.model.eval()
+# this looks like a wrong level of abstraction. The better one would be to have one for 'model' part only.
 
-        self.mcts = MCTS(board_size)
-        self.temp = temp
-        self.rollouts = rollouts
+class CoreMLGameModel:
+    def __init__(self, torch_model, board_size=8):
+        self.model = to_coreml(torch_model=torch_model)
         self.board_size = board_size
-        self.thinking_time = 0
 
-    def get_moves(self, state):
-        def get_probs(boards, probs):
-            with torch.no_grad():
-                sample = torch.from_numpy(boards).view(1, 2, self.board_size, self.board_size).float()
-                out = torch.exp(self.model(sample)).numpy().reshape(self.board_size * self.board_size)
-                np.copyto(probs, out)
+    def get_probs(self, boards):
+        sample = {'x': boards.reshape(1, 2, self.board_size, self.board_size)}
+        return np.exp(list(self.model.predict(sample).values())[0])
 
-        get_probs_fn = get_probs if self.model is not None else None
+class TorchGameModel:
+    def __init__(self, torch_model, board_size=8):
+        self.model = copy.deepcopy(torch_model)
+        self.model.eval()
+        self.board_size = board_size
 
-        start = time.time()
-        res = self.mcts.run(state, temp=self.temp, rollouts=self.rollouts, get_probs_fn=get_probs_fn)
-        self.thinking_time += (time.time() - start)
-        return res
+    def get_probs(self, boards):
+        with torch.no_grad():
+            sample = torch.from_numpy(boards).view(1, 2, self.board_size, self.board_size).float()
+            return torch.exp(self.model(sample)).numpy().reshape(self.board_size * self.board_size)
 
-class CoreMLPlayer:
+class GamePlayer:
     def __init__(self, torch_model, temp=4.0, rollouts=10000, board_size=8):
         self.model = None
         if torch_model is not None:
-            self.model = to_coreml(torch_model)
+            self.model = CoreMLGameModel(torch_model, board_size=board_size)
 
         self.mcts = MCTS(board_size)
         self.temp = temp
@@ -43,9 +41,7 @@ class CoreMLPlayer:
 
     def get_moves(self, state):
         def get_probs(boards, probs_out):
-            sample = {'x': boards.reshape(1, 2, self.board_size, self.board_size)}
-            out = np.exp(list(self.model.predict(sample).values())[0])
-            np.copyto(probs_out, out)
+            np.copyto(probs_out, self.model.get_probs(boards))
 
         get_probs_fn = get_probs if self.model is not None else None
 

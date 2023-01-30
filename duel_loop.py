@@ -22,14 +22,14 @@ while True:
         print('no model to evaluate, sleep for a minute')
         time.sleep(60)
         continue
-    new = duel.CoreMLPlayer(model_to_eval, temp=4.0, rollouts=1000, board_size=8)
+    new = duel.GamePlayer(model_to_eval, temp=4.0, rollouts=1000, board_size=8)
 
     (_, best_model) = client.get_best_model()
     if best_model is None:
         # create pure MCTS player with many rollouts
-        old = duel.CoreMLPlayer(torch_model=None, temp=2.0, rollouts=500000, board_size=8)
+        old = duel.GamePlayer(torch_model=None, temp=2.0, rollouts=500000, board_size=8)
     else:
-        old = duel.CoreMLPlayer(best_model, temp=4.0, rollouts=1000, board_size=8)
+        old = duel.GamePlayer(best_model, temp=4.0, rollouts=1000, board_size=8)
 
     print(f'evaluating model snapshot {model_to_eval_id}')
 
