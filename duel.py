@@ -13,6 +13,7 @@ class CoreMLPlayer:
         self.temp = temp
         self.rollouts = rollouts
         self.board_size = board_size
+        self.thinking_time = 0
 
     def run(self, state):
         def get_probs(boards, probs):
@@ -22,19 +23,18 @@ class CoreMLPlayer:
 
         get_probs_fn = get_probs if self.model is not None else None
 
-        return self.mcts.run(state, temp=self.temp, rollouts=self.rollouts, get_probs_fn=get_probs_fn)
+        start = time.time()
+        res = self.mcts.run(state, temp=self.temp, rollouts=self.rollouts, get_probs_fn=get_probs_fn)
+        self.thinking_time += (time.time() - start)
+        return res
 
 def run(A: CoreMLPlayer, B: CoreMLPlayer, print_board=False):
     players = [A, B]
     s = State(8)
-
-    players_time = [0, 0]
     p = 0
 
     while not s.finished():
-        start = time.time()
         moves = players[p].run(s)
-        players_time[p] += time.time() - start
         # we do no exploration here, just picking move with max visit count/prob
         x, y = np.unravel_index(moves.argmax(), moves.shape)
         s.apply((x, y))

@@ -26,8 +26,8 @@ Immediate next steps:
 [+] train loop starts from scratch now, need to resume from the model
 [+] cleanup old training samples
 [ ] incremental training data update
-[ ] do not store symmetries in the db. Generate them on the fly in the training. 
-[ ] track time per move in player
+[+] do not store symmetries in the db. Generate them on the fly in the training. 
+[+] track time per move in player
 ```
 
 Current way to run the process:
