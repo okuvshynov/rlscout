@@ -103,6 +103,14 @@ class GameClient:
         self.socket.send_json(req)
         return self.socket.recv_json()
 
+    def cleanup_samples(self, samples_to_keep):
+        req = {
+            'method': 'cleanup_samples',
+            'samples_to_keep': samples_to_keep
+        }
+        self.socket.send_json(req)
+        return self.socket.recv_json()
+
 if __name__ == '__main__':
     client = GameClient()
     #print(client.get_batch(1)[0][0].shape)

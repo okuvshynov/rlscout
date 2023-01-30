@@ -94,6 +94,20 @@ WHERE
     id = ?
 """
 
+remove_old_samples = """
+DELETE FROM
+    samples
+WHERE id IN (
+    SELECT 
+        id 
+    FROM samples 
+    ORDER BY 
+        id 
+    DESC
+    LIMIT -1
+    OFFSET ?)
+"""
+
 class GameDB:
     def __init__(self, filename):
         self.filename = filename
@@ -121,9 +135,6 @@ class GameDB:
         with closing(self.conn.cursor()) as cursor:
             return cursor.execute(select_training_batch_sql, (size, )).fetchall()
 
-    ###
-    ## all writes
-
     def append_sample(self, boards, probs, model_id=None):
         with closing(self.conn.cursor()) as cursor:
             cursor.execute(insert_samples_sql, (boards, probs, model_id))
@@ -146,7 +157,11 @@ class GameDB:
             """, (evaluation, model_id))
             self.conn.commit()
 
-    # all 
+    def cleanup_samples(self, samples_to_keep):
+        with closing(self.conn.cursor()) as cursor:
+            cursor.execute(remove_old_samples, (samples_to_keep, ))
+            self.conn.commit()
+    
     def _setup_tables(self):
         with closing(self.conn.cursor()) as cursor:
             cursor.execute(init_models)

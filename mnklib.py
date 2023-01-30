@@ -6,7 +6,6 @@ import sys
 
 from numpy.ctypeslib import ndpointer
 
-
 class MNKLib:
     instance = None
 

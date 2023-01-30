@@ -28,6 +28,8 @@ sample_for_n_moves = 8
 games = 10000
 threads = 4 # multiprocessing.cpu_count()
 
+samples_to_keep = 300000
+
 # cli settings
 rowsize = 50
 
@@ -115,6 +117,7 @@ def playing_thread():
     except queue.Empty:
       break
     winner = playgame(client, mcts, model_id, model)
+    client.cleanup_samples(samples_to_keep)
 
     sys.stdout.write(f'{chr_winner[winner]}')
     sys.stdout.flush()

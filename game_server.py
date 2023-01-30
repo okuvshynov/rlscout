@@ -47,6 +47,10 @@ while True:
     if req['method'] == 'record_eval':
         db.record_evaluation(req['model_id'], req['eval_result'])
         res['data'] = True
+
+    if req['method'] == 'cleanup_samples':
+        db.cleanup_samples(req['samples_to_keep'])
+        res['data'] = True
     
     socket.send_json(res)
 

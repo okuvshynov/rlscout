@@ -24,7 +24,7 @@ Immediate next steps:
 [ ] Experiment on model architecture/training hyperparams.
 [ ] Make it work on cuda as well.
 [+] train loop starts from scratch now, need to resume from the model
-[ ] cleanup old training samples
+[+] cleanup old training samples
 [ ] incremental training data update
 [ ] do not store symmetries in the db. Generate them on the fly in the training. 
 [ ] track time per move in player
