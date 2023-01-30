@@ -1,6 +1,6 @@
 This is an in-progress attempt (with very slow progress) to find a solution to some game. 
 
-Most likely candidate is Othello 8x8.
+Most likely candidates are Othello 8x8 or freestyle gomoku on 8x8 - 9x9 boards.  
 
 Rough idea is the following:
 1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game <---- we are here now
