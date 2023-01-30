@@ -38,6 +38,7 @@ class GamePlayer:
         self.rollouts = rollouts
         self.board_size = board_size
         self.thinking_time = 0
+        self.moves = 0
 
     def get_moves(self, state):
         def get_probs(boards, probs_out):
@@ -48,4 +49,11 @@ class GamePlayer:
         start = time.time()
         res = self.mcts.run(state, temp=self.temp, rollouts=self.rollouts, get_probs_fn=get_probs_fn)
         self.thinking_time += (time.time() - start)
+        self.moves += 1
         return res
+    
+    def thinking_per_move_ms(self):
+        return None if self.moves == 0 else 1000.0 * self.thinking_time / self.moves
+
+    def thinking_per_rollout_ms(self):
+        return None if self.moves == 0 else 1000.0 * self.thinking_time / (self.moves * self.rollouts)
