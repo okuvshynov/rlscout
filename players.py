@@ -15,7 +15,7 @@ class TorchPlayer:
         self.board_size = board_size
         self.thinking_time = 0
 
-    def get_move(self, state):
+    def get_moves(self, state):
         def get_probs(boards, probs):
             with torch.no_grad():
                 sample = torch.from_numpy(boards).view(1, 2, self.board_size, self.board_size).float()
@@ -41,11 +41,11 @@ class CoreMLPlayer:
         self.board_size = board_size
         self.thinking_time = 0
 
-    def get_move(self, state):
-        def get_probs(boards, probs):
+    def get_moves(self, state):
+        def get_probs(boards, probs_out):
             sample = {'x': boards.reshape(1, 2, self.board_size, self.board_size)}
             out = np.exp(list(self.model.predict(sample).values())[0])
-            np.copyto(probs, out)
+            np.copyto(probs_out, out)
 
         get_probs_fn = get_probs if self.model is not None else None
 

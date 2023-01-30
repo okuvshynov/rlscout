@@ -64,10 +64,10 @@ def playgame(client: GameClient, mcts: MCTS, model_id, ne_model):
     s = State(board_size)
     move_index = 0
 
-    def get_probs(boards, probs):
+    def get_probs(boards, probs_out):
         sample = {'x': boards.reshape(1, 2, board_size, board_size)}
         out = np.exp(list(ne_model.predict(sample).values())[0])
-        np.copyto(probs, out)
+        np.copyto(probs_out, out)
 
     while not s.finished():
         if ne_model is not None:

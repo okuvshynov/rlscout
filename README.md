@@ -28,6 +28,7 @@ Immediate next steps:
 [ ] incremental training data update
 [+] do not store symmetries in the db. Generate them on the fly in the training. 
 [+] track time per move in player
+[ ] use player in selfplay rather than calling everything manually.
 ```
 
 Current way to run the process:

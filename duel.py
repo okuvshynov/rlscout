@@ -8,7 +8,7 @@ def run(A: CoreMLPlayer, B: CoreMLPlayer, print_board=False):
     p = 0
 
     while not s.finished():
-        moves = players[p].get_move(s)
+        moves = players[p].get_moves(s)
         # we do no exploration here, just picking move with max visit count/prob
         x, y = np.unravel_index(moves.argmax(), moves.shape)
         s.apply((x, y))
