@@ -1,11 +1,13 @@
-from mnklib import State, MCTS
+from mnklib import State
 import numpy as np
 import torch
 import sys
 import threading
 import queue
 import multiprocessing
-from utils import to_coreml
+import time
+
+from players import CoreMLGameModel, GamePlayer
 
 from game_client import GameClient
 
@@ -34,6 +36,7 @@ samples_to_keep = 50000
 rowsize = 50
 
 print(f'Running selfplay in {threads} threads.')
+start = time.time()
 
 class ModelStore:
     def __init__(self):
@@ -51,7 +54,7 @@ class ModelStore:
             if model_id == self.model_id:
                 return 
             #print(model_id, torch_model)
-            (self.model_id, self.model) = (model_id, to_coreml(torch_model.cpu()))
+            (self.model_id, self.model) = (model_id, CoreMLGameModel(torch_model.cpu()))
             print(f'new best model: {self.model_id}')
 
     def get_best_model(self):
@@ -60,20 +63,12 @@ class ModelStore:
 
 model_store = ModelStore() 
 
-def playgame(client: GameClient, mcts: MCTS, model_id, ne_model):
+def playgame(player: GamePlayer, client: GameClient, model_id):
     s = State(board_size)
     move_index = 0
 
-    def get_probs(boards, probs_out):
-        sample = {'x': boards.reshape(1, 2, board_size, board_size)}
-        out = np.exp(list(ne_model.predict(sample).values())[0])
-        np.copyto(probs_out, out)
-
     while not s.finished():
-        if ne_model is not None:
-            moves = mcts.run(s, temp=model_temp, rollouts=model_rollouts, get_probs_fn=get_probs)
-        else:
-            moves = mcts.run(s, temp=raw_temp, rollouts=raw_rollouts)
+        moves = player.get_moves(s)
         # log board state
         board = torch.from_numpy(s.boards()).float()
         
@@ -107,27 +102,32 @@ def playgame(client: GameClient, mcts: MCTS, model_id, ne_model):
 play_queue = queue.Queue()
 
 def playing_thread():
-  mcts = MCTS(board_size)
-  client = GameClient()
+    client = GameClient()
+    model_player = GamePlayer(None, temp=model_temp, rollouts=model_rollouts, board_size=8)
+    pure_player = GamePlayer(None, temp=raw_temp, rollouts=raw_rollouts, board_size=8)
+    while True:
+        model_id, model = model_store.get_best_model()
+        if model_id != 0:
+            model_player.model = model
+        current_player = model_player if model_id > 0 else pure_player
+        
+        try:
+            _ = play_queue.get()
+        except queue.Empty:
+            break
+        winner = playgame(current_player, client, model_id)
+        client.cleanup_samples(samples_to_keep)
 
-  while True:
-    model_id, model = model_store.get_best_model()
-    try:
-      _ = play_queue.get()
-    except queue.Empty:
-      break
-    winner = playgame(client, mcts, model_id, model)
-    client.cleanup_samples(samples_to_keep)
-
-    sys.stdout.write(f'{chr_winner[winner]}')
-    sys.stdout.flush()
-    play_queue.task_done()
+        curr = time.time() - start
+        sys.stdout.write(f'{curr:0.2f} {chr_winner[winner]}\n')
+        sys.stdout.flush()
+        play_queue.task_done()
 
 for g in range(games):
-  play_queue.put(g)
+    play_queue.put(g)
 
 for t in range(threads):
-  threading.Thread(target=playing_thread, daemon=True).start()
+    threading.Thread(target=playing_thread, daemon=True).start()
 
 play_queue.join()
 

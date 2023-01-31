@@ -29,7 +29,7 @@ Immediate next steps:
 [+] do not store symmetries in the db. Generate them on the fly in the training. 
 [+] track time per move in player
     [x] do per move and per rollout, not per game
-[ ] use player in selfplay rather than calling everything manually.
+[x] use player in selfplay rather than calling everything manually.
 [ ] check how often do we copy things around and transform between torch/numpy/different data types/etc.
 [x] factor out model evaluation from 'player'
 [ ] cleanup old models from db?
