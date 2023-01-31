@@ -68,8 +68,10 @@ struct MCTS {
     nodes[node_id].children_from = size;
     int j = size;
 
-    state.fill_boards(boards_buffer);
     if (eval_cb != nullptr) {
+      state.fill_boards(boards_buffer);
+      // eval_cb takes boards_buffer as an input and writes results to probs_buffer
+      // probs_buffer is filled with 1.0 originally 
       eval_cb();
     }
 

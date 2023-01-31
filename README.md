@@ -23,16 +23,16 @@ Immediate next steps:
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
 [ ] Make it work on cuda as well.
-[+] train loop starts from scratch now, need to resume from the model
-[+] cleanup old training samples
 [ ] incremental training data update
-[+] do not store symmetries in the db. Generate them on the fly in the training. 
-[+] track time per move in player
-    [x] do per move and per rollout, not per game
-[x] use player in selfplay rather than calling everything manually.
 [ ] check how often do we copy things around and transform between torch/numpy/different data types/etc.
-[x] factor out model evaluation from 'player'
 [ ] cleanup old models from db?
+[x] do not store symmetries in the db. Generate them on the fly in the training. 
+[x] track time per move in player
+    [x] do per move and per rollout, not per game
+[x] train loop starts from scratch now, need to resume from the model
+[x] use player in selfplay rather than calling everything manually.
+[x] factor out model evaluation from 'player'
+[x] cleanup old training samples
 ```
 
 Current way to run the process:
