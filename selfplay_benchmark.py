@@ -84,7 +84,9 @@ def selfplay_batch(nthreads, rollouts, batch_size, timeout_s=300):
 
 ## first, nobatch version with different # of threads
 
-selfplay_batch(64, rollouts=200, batch_size=16, timeout_s=100)
+selfplay_batch(256, rollouts=200, batch_size=64, timeout_s=1200)
+selfplay_batch(128, rollouts=200, batch_size=32, timeout_s=1200)
+selfplay_batch(64, rollouts=200, batch_size=16, timeout_s=1200)
 
 exit(0)
 
