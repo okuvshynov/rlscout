@@ -81,7 +81,7 @@ class AggregatedModelEval:
             batch_size = 0
             for i in range(self.batch_size):
                 try:
-                    (boards, probs_out, cv) = self.q.get(timeout=0.01)
+                    (boards, probs_out, cv) = self.q.get(timeout=0.001)
                 except queue.Empty as error:
                     break
                 self.boards_batch[i*w:(i+1)*w] = boards
