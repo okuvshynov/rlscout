@@ -29,12 +29,12 @@ def symm(t):
     return res
 
 
-def to_coreml(torch_model):
+def to_coreml(torch_model, batch_size=1, board_size=8):
     if torch_model is None:
         return None
     torch_model = torch_model.cpu()
     torch_model.eval()
-    sample = torch.rand(1, 2, 8, 8)
+    sample = torch.rand(batch_size, 2, board_size, board_size)
 
     traced_model = torch.jit.trace(torch_model, sample)
     return ct.convert(

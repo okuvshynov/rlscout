@@ -63,13 +63,13 @@ struct MCTS {
     return node.children_from + mxi;
   }
 
-  void expand(int node_id, State<m,n,k>& state) {
+  void expand(int node_id, State<m, n, k>& state) {
     uint64_t moves = state.valid_actions();
     nodes[node_id].children_from = size;
     int j = size;
 
     if (eval_cb != nullptr) {
-      state.fill_boards(boards_buffer);
+      state.fill_boards(boards_buffer); 
       // eval_cb takes boards_buffer as an input and writes results to probs_buffer
       // probs_buffer is filled with 1.0 originally 
       eval_cb();
@@ -98,7 +98,7 @@ struct MCTS {
 
   std::vector<std::pair<int64_t, int64_t>> run(State<m, n, k> state, double temp, int32_t rollouts) {
     for (int i = 0; i < rollouts; i++) {
-      State<m,n,k> s = state; // copy here
+      State<m, n, k> s = state; // copy here
       int node_id = root_id;
       while (nodes[node_id].children_count > 0) {
         node_id = select(nodes[node_id], temp);
