@@ -19,10 +19,12 @@ Current state is roughly:
 Immediate next steps:
 ```
 [ ] get rid of all hardcoded constants in the code.
-[ ] Implement batching for self-play. We already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead. This will get more important for larger models.
+[x] Implement batching for self-play. We already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead. This will get more important for larger models.
     [x] basic self-play is done
-    [ ] handle model updates
-    [ ] write the data 
+    [x] handle model updates
+    [x] write the data
+[ ] get rid of locks on every rollouts, that scales poorly with # of threads growing
+[ ] make duel batched as well
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
 [ ] Make it work on cuda as well.
@@ -45,7 +47,7 @@ Current way to run the process:
 
 2. start self-play: 
 
-```python selfplay_loop.py   # <-- it will start playing 'no model' mcts with 500k rollouts```
+```python selfplay.py   # <-- it will start playing 'no model' mcts with 500k rollouts OR get the best latest model from server```
 
 3. start model training:
 

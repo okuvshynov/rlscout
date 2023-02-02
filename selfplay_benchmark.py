@@ -45,8 +45,6 @@ def selfplay_nobatch(nthreads, rollouts, timeout_s=300):
     curr = time.time() - start
     print(f'finished {games_finished} games in {curr:.2f} seconds')
 
-
-
 def selfplay_batch(nthreads, rollouts, batch_size, timeout_s=300):
     core_ml_model = CoreMLGameModel(best_model, batch_size=batch_size)
 
@@ -87,6 +85,7 @@ def selfplay_batch(nthreads, rollouts, batch_size, timeout_s=300):
 #    selfplay_nobatch(nthreads=nthreads, rollouts=1000, timeout_s=1200)
 
 ## looks like one of these is good enough for now
+selfplay_batch(nthreads=16, rollouts=1000, batch_size=4, timeout_s=600)
 selfplay_batch(256, rollouts=1000, batch_size=64, timeout_s=1200)
 selfplay_batch(128, rollouts=1000, batch_size=32, timeout_s=1200)
 
