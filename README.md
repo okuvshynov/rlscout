@@ -20,6 +20,9 @@ Immediate next steps:
 ```
 [ ] get rid of all hardcoded constants in the code.
 [ ] Implement batching for self-play. We already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead. This will get more important for larger models.
+    [x] basic self-play is done
+    [ ] handle model updates
+    [ ] write the data 
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
 [ ] Make it work on cuda as well.
