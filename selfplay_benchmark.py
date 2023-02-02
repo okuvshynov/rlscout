@@ -82,9 +82,9 @@ def selfplay_batch(nthreads, rollouts, batch_size, timeout_s=300):
     curr = time.time() - start
     print(f'finished {games_finished} games in {curr:.2f} seconds')
 
-print('Starting non-batch version')
-for nthreads in [1, 2, 4, 8, 16, 32]:
-    selfplay_nobatch(nthreads=nthreads, rollouts=1000, timeout_s=1200)
+#print('Starting non-batch version')
+#for nthreads in [1, 2, 4, 8, 16, 32]:
+#    selfplay_nobatch(nthreads=nthreads, rollouts=1000, timeout_s=1200)
 
 ## looks like one of these is good enough for now
 selfplay_batch(256, rollouts=1000, batch_size=64, timeout_s=1200)

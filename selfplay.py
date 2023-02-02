@@ -1,29 +1,65 @@
 import duel
-from players import AggregatedModelEval, BatchedGamePlayer, CoreMLGameModel
+from players import AggregatedModelEval, BatchedGamePlayer, CoreMLGameModel, GamePlayer
 from game_client import GameClient
 from threading import Thread, Lock
 import time
 import sys
 
+model_rollouts = 1000
+model_temp = 4.0
+
+raw_rollouts = 500000
+raw_temp = 1.5
+
 client = GameClient() # default localhost:8888
 
-(_, best_model) = client.get_best_model()
+class ModelStore:
+    def __init__(self):
+        self.lock = Lock()
+        self.model_eval = None
+        self.model_id = 0
+        self.game_client = GameClient()
+        self.batch_size = 32
 
-def selfplay_batch(nthreads, rollouts, batch_size, timeout_s=300):
-    core_ml_model = CoreMLGameModel(best_model, batch_size=batch_size)
+    # loads new model if different from current
+    def maybe_refresh_model(self):
+        with self.lock:
+            out = self.game_client.get_best_model()
+            
+            (model_id, torch_model) = out
+            if model_id == self.model_id:
+                return 
+            #print(model_id, torch_model)
+            core_ml_model = CoreMLGameModel(torch_model, batch_size=self.batch_size)
+            model_eval = AggregatedModelEval(core_ml_model, batch_size=self.batch_size, board_size=8)
 
-    model_eval = AggregatedModelEval(core_ml_model, batch_size=batch_size, board_size=8)
+            (self.model_id, self.model_eval) = (model_id, model_eval)
+            print(f'new best model: {self.model_id}')
 
+    def get_best_model(self):
+        self.maybe_refresh_model()
+        return (self.model_id, self.model_eval)
+
+model_store = ModelStore() 
+
+def selfplay_batch(nthreads, timeout_s=3600):
     start = time.time()
     games_finished = 0
     games_finished_lock = Lock()
 
     def play_games():
-        A = BatchedGamePlayer(temp=4.0, rollouts=rollouts, model_evaluator=model_eval)
-        B = BatchedGamePlayer(temp=4.0, rollouts=rollouts, model_evaluator=model_eval)
+        model_player = BatchedGamePlayer(temp=4.0, rollouts=model_rollouts, model_evaluator=None)
+        pure_player = GamePlayer(None, temp=raw_temp, rollouts=raw_rollouts, board_size=8)
         nonlocal games_finished
         while True:
-            result = duel.run(A, B, print_board=False)
+            (model_id, model_eval) = model_store.get_best_model()
+            if model_id == 0:
+                player = pure_player
+            else:
+                player = model_player
+                player.model_evaluator = model_eval
+
+            result = duel.run(player, player, print_board=False)
             with games_finished_lock:
                 games_finished += 1
             curr = time.time() - start
@@ -40,6 +76,7 @@ def selfplay_batch(nthreads, rollouts, batch_size, timeout_s=300):
     for t in threads:
         t.join()
 
-    print(model_eval.batch_size_dist)
     curr = time.time() - start
     print(f'finished {games_finished} games in {curr:.2f} seconds')
+
+selfplay_batch(nthreads=128, timeout_s=1800)
