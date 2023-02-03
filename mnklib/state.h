@@ -86,7 +86,7 @@ struct State {
     }
   }
 
-  // TODO: silly    
+  // TODO: silly
   void take_random_action() {
     while (true) {
       uint64_t index = rand() % (m * n);

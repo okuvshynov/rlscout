@@ -24,6 +24,8 @@ Immediate next steps:
     [x] handle model updates
     [x] write the data
 [ ] get rid of locks on every rollouts, that scales poorly with # of threads growing
+    [ ] looks like the better way would be to call back to Python with the full batch.
+    [ ] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
 [ ] make duel batched as well
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
