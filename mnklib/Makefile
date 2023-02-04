@@ -7,3 +7,4 @@ all:
 	./_build/winner_gen 8 8 > _gen/is_winning8x8x5.h
 	mkdir -p _build
 	c++ -shared -std=c++17 -o _build/libmnk.so -fPIC mnk.cpp -O3 -Wall
+	c++ -shared -std=c++17 -o _build/libmcts.so -fPIC batch_mcts.cpp -O3 -Wall

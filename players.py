@@ -16,7 +16,8 @@ class CoreMLGameModel:
 
     def get_probs(self, boards):
         sample = {'x': boards.reshape(self.batch_size, 2, self.board_size, self.board_size)}
-        return np.exp(list(self.model.predict(sample).values())[0])
+        values = self.model.predict(sample).values()
+        return np.exp(list(values)[0])
 
 class TorchGameModel:
     def __init__(self, torch_model, board_size=8):
