@@ -10,8 +10,8 @@ import time
 from numpy.ctypeslib import ndpointer
 
 board_size = 8
-batch_size = 32
-nthreads = 2
+batch_size = 128
+nthreads = 8
 
 batch_mcts = ctl.load_library("libmcts.so", os.path.join(
                 os.path.dirname(__file__), "mnklib", "_build"))

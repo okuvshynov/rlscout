@@ -23,10 +23,17 @@ Immediate next steps:
     [x] basic self-play is done
     [x] handle model updates
     [x] write the data
-[ ] get rid of locks on every rollouts, that scales poorly with # of threads growing
-    [ ] looks like the better way would be to call back to Python with the full batch.
-    [ ] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
-[ ] make duel batched as well
+[x] get rid of locks on every rollouts, that scales poorly with # of threads growing
+    [x] looks like the better way would be to call back to Python with the full batch.
+    [x] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
+[ ] batched MCTS next steps:
+    [ ] do log
+    [ ] support no model case
+    [ ] support different players case 
+    [ ] add exploration (select node by sampling, not greedily picking max) for first few moves
+    [ ] clean up everything
+    [ ] make duel batched as well
+[ ] run on GPU/distributed
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
 [ ] Make it work on cuda as well.
