@@ -19,8 +19,11 @@ Immediate next steps:
     [x] looks like the better way would be to call back to Python with the full batch.
     [x] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
 [ ] batched MCTS next steps:
-    [ ] do log
+    [x] do log
+    [ ] write util to visualize sample
+        [ ] visualize pure model vs search of different depth
     [ ] support no model case
+    [ ] support model update
     [ ] support different players case 
     [ ] add exploration (select node by sampling, not greedily picking max) for first few moves
     [ ] clean up everything
@@ -147,7 +150,7 @@ Specifically:
     - multiple threads + batching + queue (with lock) for  individual sampels - 3-4 seconds/game
     - multiple threads + batched MCTS (no high-traffic queue) -- 0.6s/game
 14. It is good enough to continue, we can further optimize it when we get to GPU 
-15. important: Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are running many games at a time and our algorithm is identical to typical sequential MCTS.  
+15. important: Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are running many games at a time and our algorithm is equivalent to typical sequential MCTS (no extra heuristics/virtual loss/etc).  
 
 ### Next to/write about:
 
