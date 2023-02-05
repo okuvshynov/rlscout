@@ -20,8 +20,8 @@ Immediate next steps:
     [x] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
 [ ] batched MCTS next steps:
     [x] do log
-    [ ] write util to visualize sample
-        [ ] visualize pure model vs search of different depth
+    [x] write util to visualize sample
+    [ ] visualize pure model vs search of different depth
     [ ] support no model case
     [ ] support model update
     [ ] support different players case 

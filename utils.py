@@ -14,10 +14,10 @@ def plot_sample(board, probs):
             if board[1, y, x] > 0:
                 stone = 1
 
-        ch = '0' if stone == 0 else 'X'
-        if stone >= 0:
-            plt.text(x, y, ch, weight="bold", color="red",
-                   fontsize='xx-large', va='center', ha='center')
+            ch = '0' if stone == 0 else 'X'
+            if stone >= 0:
+                plt.text(x, y, ch, weight="bold", color="red",
+                    fontsize='xx-large', va='center', ha='center')
     plt.imshow(probs.view(m, n).cpu().numpy(), cmap='Blues')
     plt.show()
 
