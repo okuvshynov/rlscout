@@ -11,8 +11,8 @@ import torch
 from numpy.ctypeslib import ndpointer
 
 board_size = 8
-batch_size = 16
-nthreads = 8
+batch_size = 128
+nthreads = 1
 
 batch_mcts = ctl.load_library("libmcts.so", os.path.join(
     os.path.dirname(__file__), "mnklib", "_build"))
@@ -30,11 +30,34 @@ batch_mcts.batch_mcts.argtypes = [
 ]
 batch_mcts.batch_mcts.restype = None
 
-client = GameClient()  # default localhost:8888
+class ModelStore:
+    def __init__(self, batch_size):
+        self.lock = Lock()
+        self.model_id = 0
+        self.model = None
+        self.game_client = GameClient()
+        self.batch_size = batch_size
+        self.maybe_refresh_model()
 
-(_, best_model) = client.get_best_model()
+    # loads new model if different from current
+    def maybe_refresh_model(self):
+        with self.lock:
+            out = self.game_client.get_best_model()
 
-core_ml_model = CoreMLGameModel(best_model, batch_size=batch_size)
+            (model_id, torch_model) = out
+            if model_id == self.model_id:
+                return 
+            #print(model_id, torch_model)
+            core_ml_model = CoreMLGameModel(torch_model, batch_size=self.batch_size)
+
+            (self.model_id, self.model) = (model_id, core_ml_model)
+            print(f'new best model: {self.model_id}')
+
+    def get_best_model(self):
+        with self.lock:
+            return (self.model_id, self.model)
+
+models = ModelStore(batch_size=batch_size)
 
 ## callbacks from native land
 
@@ -48,9 +71,10 @@ def game_done_fn():
     with games_done_lock:
         games_done += 1
         local_gd = games_done
+
+    models.maybe_refresh_model()
     rate = 1.0 * local_gd / (time.time() - start)
     print(f'done {local_gd} games. rate = {rate:.3f} games/s')
-
 
 def start_batch_mcts():
     boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -63,7 +87,8 @@ def start_batch_mcts():
     client = GameClient()
 
     def eval_fn():
-        probs = core_ml_model.get_probs(boards_buffer)
+        (_, model) = models.get_best_model()
+        probs = model.get_probs(boards_buffer)
         #print(probs)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
@@ -76,6 +101,7 @@ def start_batch_mcts():
             
         # TODO: add model id here
         client.append_sample(board, prob.view(1, board_size, board_size), 0)
+        pass
 
     batch_mcts.batch_mcts(
         batch_size,
@@ -87,7 +113,6 @@ def start_batch_mcts():
         VoidFn(log_fn),
         VoidFn(game_done_fn)
     )
-
 
 threads = [Thread(target=start_batch_mcts, daemon=False)
            for _ in range(nthreads)]

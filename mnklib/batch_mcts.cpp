@@ -8,9 +8,11 @@
 
 using State885 = State<8, 8, 5>;
 
+std::random_device batch_mcts_rd;
+
 struct Game
 {
-    Game() : buf(5000 * 8 * 8), temp(4.0), rollouts(5000), gen{rd()}, mcts(buf), rollouts_left(rollouts)
+    Game() : buf(1000 * 8 * 8), temp(4.0), rollouts(1000), gen{batch_mcts_rd()}, mcts(buf), rollouts_left(rollouts)
     {
     }
 
@@ -99,7 +101,6 @@ struct Game
         // applying move
         uint64_t index = get_move_index();
         state.apply_move(index);
-        state.p();
         
         rollouts_left = rollouts;
         mcts.reset();
@@ -118,7 +119,6 @@ struct Game
     std::vector<MCTSNode> buf;
     double temp;
     int rollouts;
-    std::random_device rd;
     std::mt19937 gen;
 
     // per game instance scope
