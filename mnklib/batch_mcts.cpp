@@ -22,9 +22,9 @@ struct Game
         rollouts_left--;
     }
 
-    void simulate_until_expand(void (*log_freq_cb)(), void (*log_game_done_cb)(), int32_t *log_boards_buffer, float *log_probs_buffer)
+    void simulate_until_expand(void (*log_freq_cb)(), bool (*log_game_done_cb)(), int32_t *log_boards_buffer, float *log_probs_buffer)
     {   
-        while (true)
+        while (!stopped)
         {
             if (rollouts_left == 0)
             {
@@ -91,7 +91,7 @@ struct Game
         }
     }
 
-    void make_move(void (*log_freq_cb)(), void (*log_game_done_cb)(), int32_t *log_boards_buffer, float *log_probs_buffer)
+    void make_move(void (*log_freq_cb)(), bool (*log_game_done_cb)(), int32_t *log_boards_buffer, float *log_probs_buffer)
     {
         // logging training data here
         state.fill_boards(log_boards_buffer);
@@ -107,11 +107,15 @@ struct Game
 
         if (state.finished())
         {
+            // TODO: need to get: restart or not, model ids to use
             if (log_game_done_cb != nullptr)
             {
-                log_game_done_cb();
+                stopped = !log_game_done_cb();
             }
-            restart();
+            if (!stopped) 
+            {
+                restart();
+            }
         }
     }
 
@@ -120,6 +124,7 @@ struct Game
     double temp;
     int rollouts;
     std::mt19937 gen;
+    bool stopped = false;
 
     // per game instance scope
     State885 state;
@@ -143,6 +148,9 @@ void expand_and_eval(std::vector<Game> &games, void (*eval_cb)(), int32_t *board
     for (size_t i = 0; i < games.size(); i++)
     {
         auto &g = games[i];
+        if (g.stopped) {
+            continue;
+        }
         g.mcts.nodes[g.node_id].children_from = g.mcts.size;
         if (eval_cb != nullptr)
         {
@@ -159,6 +167,9 @@ void expand_and_eval(std::vector<Game> &games, void (*eval_cb)(), int32_t *board
     for (size_t i = 0; i < games.size(); i++)
     {
         auto &g = games[i];
+        if (g.stopped) {
+            continue;
+        }
         uint64_t moves = g.search_state.valid_actions();
         int j = g.mcts.size;
         for (uint64_t k = 0; k < 8 * 8; k++)
@@ -186,14 +197,20 @@ void expand_and_eval(std::vector<Game> &games, void (*eval_cb)(), int32_t *board
 
 extern "C"
 {
-    void batch_mcts(uint32_t batch_size, int32_t *boards_buffer, float *probs_buffer, int32_t *log_boards_buffer, float *log_probs_buffer, void (*eval_cb)(), void (*log_freq_cb)(), void (*log_game_done_cb)())
+    void batch_mcts(uint32_t batch_size, int32_t *boards_buffer, float *probs_buffer, int32_t *log_boards_buffer, float *log_probs_buffer, void (*eval_cb)(), void (*log_freq_cb)(), bool (*log_game_done_cb)())
     {
         std::vector<Game> games{batch_size};
-        while (true)
+        bool has_active_games = true;
+        while (has_active_games)
         {
+            has_active_games = false;
             for (auto &g : games)
             {
-                g.simulate_until_expand(log_freq_cb, log_game_done_cb, log_boards_buffer, log_probs_buffer);
+                if (!g.stopped)
+                {
+                    has_active_games = true;
+                    g.simulate_until_expand(log_freq_cb, log_game_done_cb, log_boards_buffer, log_probs_buffer);
+                }
             }
             expand_and_eval(games, eval_cb, boards_buffer, probs_buffer);
         }

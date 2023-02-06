@@ -18,6 +18,7 @@ batch_mcts = ctl.load_library("libmcts.so", os.path.join(
     os.path.dirname(__file__), "mnklib", "_build"))
 
 VoidFn = ctypes.CFUNCTYPE(ctypes.c_void_p)
+BoolFn = ctypes.CFUNCTYPE(restype=ctypes.c_bool)
 batch_mcts.batch_mcts.argtypes = [
     ctypes.c_int, 
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
@@ -26,7 +27,7 @@ batch_mcts.batch_mcts.argtypes = [
     ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
     VoidFn,
     VoidFn,
-    VoidFn
+    BoolFn # game_done_fn
 ]
 batch_mcts.batch_mcts.restype = None
 
@@ -64,17 +65,21 @@ models = ModelStore(batch_size=batch_size)
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
+games_to_play = 100
 
 def game_done_fn():
     global games_done, games_done_lock
 
     with games_done_lock:
-        games_done += 1
+        games_done += 1    
         local_gd = games_done
 
     models.maybe_refresh_model()
     rate = 1.0 * local_gd / (time.time() - start)
     print(f'done {local_gd} games. rate = {rate:.3f} games/s')
+
+    # count done + enqueued
+    return local_gd + batch_size <= games_to_play
 
 def start_batch_mcts():
     boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -111,7 +116,7 @@ def start_batch_mcts():
         log_probs_buffer,
         VoidFn(eval_fn),
         VoidFn(log_fn),
-        VoidFn(game_done_fn)
+        BoolFn(game_done_fn)
     )
 
 threads = [Thread(target=start_batch_mcts, daemon=False)
