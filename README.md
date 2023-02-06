@@ -22,11 +22,10 @@ Immediate next steps:
     [x] do log
     [x] write util to visualize sample
     [ ] support no model case
-    [ ] support model update
-    [ ] support different players case 
+    [x] support model update
+    [ ] support different players case / make duel batched as well
     [x] add exploration (select node by sampling, not greedily picking max) for first few moves
     [ ] clean up everything
-    [ ] make duel batched as well
 [ ] visualize pure model vs search of different depth
 [ ] run on GPU/distributed
 [ ] Implement value model head.

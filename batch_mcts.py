@@ -11,7 +11,7 @@ import torch
 from numpy.ctypeslib import ndpointer
 
 board_size = 8
-batch_size = 128
+batch_size = 64
 nthreads = 1
 
 batch_mcts = ctl.load_library("libmcts.so", os.path.join(
@@ -100,7 +100,7 @@ def start_batch_mcts():
         prob = prob / prob.sum()
             
         # TODO: add model id here
-        client.append_sample(board, prob.view(1, board_size, board_size), 0)
+        client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), 0)
         pass
 
     batch_mcts.batch_mcts(
