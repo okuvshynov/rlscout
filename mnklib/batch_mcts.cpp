@@ -1,6 +1,8 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <array>
+#include <random>
 
 #include "mcts_inv.h"
 
@@ -8,25 +10,20 @@ using State885 = State<8, 8, 5>;
 
 struct Game
 {
-    Game() : buf(1000 * 8 * 8), temp(4.0), rollouts(1000), mcts(buf), rollouts_left(rollouts)
+    Game() : buf(5000 * 8 * 8), temp(4.0), rollouts(5000), gen{rd()}, mcts(buf), rollouts_left(rollouts)
     {
     }
 
     void end_rollout(double value_to_record)
     {
-        // std::cout << "end_rollout node_id " << node_id << std::endl;
         mcts.record(node_id, value_to_record);
-        // std::cout << "record done " << std::endl;
         rollouts_left--;
     }
 
     void simulate_until_expand(void (*log_freq_cb)(), void (*log_game_done_cb)(), int32_t *log_boards_buffer, float *log_probs_buffer)
-    {   // might 'restart()'
-        // std::cout << "simulate until expand" << std::endl;
-        // std::cout << "buf len: " << buf.size() << std::endl;
+    {   
         while (true)
         {
-            // std::cout << "rollouts left " << rollouts_left << std::endl;
             if (rollouts_left == 0)
             {
                 make_move(log_freq_cb, log_game_done_cb, log_boards_buffer, log_probs_buffer);
@@ -45,7 +42,6 @@ struct Game
 
             if (!search_state.finished())
             {
-                // std::cout << "going to expand" << std::endl;
                 return;
             }
 
@@ -57,27 +53,29 @@ struct Game
 
     void restart()
     {
-        // std::cout << "restart! " << state.winner << std::endl;
         state = State885();
     }
 
-    // do greedy
-    // TODO: allow sampling
-    uint64_t get_move_index() const
+    uint64_t get_move_index()
     {
-        uint64_t res = 0;
-        uint64_t visits = 0;
+        static thread_local std::array<uint64_t, 64> visits;
+        std::fill(visits.begin(), visits.end(), 0ull);
         for (int i = 0; i < mcts.nodes[mcts.root_id].children_count; i++)
         {
             const auto &node = mcts.nodes[mcts.nodes[mcts.root_id].children_from + i];
-            if (node.N > visits)
-            {
-                res = node.in_action;
-                visits = node.N;
-            }
+            visits[node.in_action] = node.N;
         }
 
-        return res;
+        // TODO: configure 10
+        if (state.stones_played() > 8) {
+            // pick greedily
+            auto it = std::max_element(visits.begin(), visits.end());
+            return std::distance(visits.begin(), it);
+        } else {
+            // sample 
+            std::discrete_distribution<> d(visits.begin(), visits.end());
+            return d(gen);
+        }
     }
 
     void fill_visits(float *freq_buffer) {
@@ -93,23 +91,21 @@ struct Game
 
     void make_move(void (*log_freq_cb)(), void (*log_game_done_cb)(), int32_t *log_boards_buffer, float *log_probs_buffer)
     {
-        // TODO: make the move and log state/frequencies
-        // fill in 'boards'
-        // fill in probs
+        // logging training data here
         state.fill_boards(log_boards_buffer);
         fill_visits(log_probs_buffer);
-
         log_freq_cb();
+
+        // applying move
         uint64_t index = get_move_index();
         state.apply_move(index);
-        // state.p();
-
+        state.p();
+        
         rollouts_left = rollouts;
         mcts.reset();
 
         if (state.finished())
         {
-            // TODO: log something?
             if (log_game_done_cb != nullptr)
             {
                 log_game_done_cb();
@@ -122,6 +118,8 @@ struct Game
     std::vector<MCTSNode> buf;
     double temp;
     int rollouts;
+    std::random_device rd;
+    std::mt19937 gen;
 
     // per game instance scope
     State885 state;
@@ -155,9 +153,7 @@ void expand_and_eval(std::vector<Game> &games, void (*eval_cb)(), int32_t *board
     // probs_buffer is filled with 1.0 originally
     if (eval_cb != nullptr)
     {
-        // std::cout << "calling eval again" << std::endl;
         eval_cb();
-        // std::cout << "eval called11" << std::endl;
     }
 
     for (size_t i = 0; i < games.size(); i++)
@@ -175,7 +171,6 @@ void expand_and_eval(std::vector<Game> &games, void (*eval_cb)(), int32_t *board
                 j++;
             }
         }
-        // std::cout << "node_id " << g.node_id << std::endl;
         g.mcts.nodes[g.node_id].children_count = j - g.mcts.size;
         g.mcts.size = j;
 
@@ -193,7 +188,6 @@ extern "C"
 {
     void batch_mcts(uint32_t batch_size, int32_t *boards_buffer, float *probs_buffer, int32_t *log_boards_buffer, float *log_probs_buffer, void (*eval_cb)(), void (*log_freq_cb)(), void (*log_game_done_cb)())
     {
-        std::cout << "batch size " << batch_size << std::endl;
         std::vector<Game> games{batch_size};
         while (true)
         {
@@ -201,7 +195,7 @@ extern "C"
             {
                 g.simulate_until_expand(log_freq_cb, log_game_done_cb, log_boards_buffer, log_probs_buffer);
             }
-            expand_and_eval(games, eval_cb, boards_buffer, probs_buffer); // somewhere here we call model evaluation?
+            expand_and_eval(games, eval_cb, boards_buffer, probs_buffer);
         }
     }
 }

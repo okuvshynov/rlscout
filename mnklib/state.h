@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <cstdint>
 #include <vector>
 #include <cstdlib>
@@ -58,6 +59,10 @@ struct State {
 
   uint64_t valid_actions() const {
     return kFullBoard ^ (board[0] | board[1]);
+  }
+
+  uint32_t stones_played() const {
+    return std::popcount(board[0] | board[1]); 
   }
 
   // from POV of current player

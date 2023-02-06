@@ -68,11 +68,9 @@ def start_batch_mcts():
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
 
-    # TODO: not thread safe?
     def log_fn():
         board = torch.from_numpy(log_boards_buffer).float()
             
-        # log probs
         prob = torch.from_numpy(log_probs_buffer)
         prob = prob / prob.sum()
             

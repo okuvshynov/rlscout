@@ -21,13 +21,13 @@ Immediate next steps:
 [ ] batched MCTS next steps:
     [x] do log
     [x] write util to visualize sample
-    [ ] visualize pure model vs search of different depth
     [ ] support no model case
     [ ] support model update
     [ ] support different players case 
-    [ ] add exploration (select node by sampling, not greedily picking max) for first few moves
+    [x] add exploration (select node by sampling, not greedily picking max) for first few moves
     [ ] clean up everything
     [ ] make duel batched as well
+[ ] visualize pure model vs search of different depth
 [ ] run on GPU/distributed
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
