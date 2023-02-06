@@ -18,7 +18,7 @@ batch_mcts = ctl.load_library("libmcts.so", os.path.join(
     os.path.dirname(__file__), "mnklib", "_build"))
 
 VoidFn = ctypes.CFUNCTYPE(ctypes.c_void_p)
-BoolFn = ctypes.CFUNCTYPE(restype=ctypes.c_bool)
+BoolFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32)
 batch_mcts.batch_mcts.argtypes = [
     ctypes.c_int, 
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
@@ -66,17 +66,19 @@ games_done = 0
 games_done_lock = Lock()
 start = time.time()
 games_to_play = 100
+games_stats = {0: 0, -1: 0, 1:0}
 
-def game_done_fn():
+def game_done_fn(winner):
     global games_done, games_done_lock
 
     with games_done_lock:
-        games_done += 1    
+        games_done += 1
+        games_stats[winner] += 1
         local_gd = games_done
 
     models.maybe_refresh_model()
     rate = 1.0 * local_gd / (time.time() - start)
-    print(f'done {local_gd} games. rate = {rate:.3f} games/s')
+    print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
     # count done + enqueued
     return local_gd + batch_size <= games_to_play
@@ -127,3 +129,5 @@ for t in threads:
 
 for t in threads:
     t.join()
+
+print(games_stats)
