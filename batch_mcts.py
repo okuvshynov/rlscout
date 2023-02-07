@@ -13,11 +13,17 @@ from numpy.ctypeslib import ndpointer
 board_size = 8
 batch_size = 64
 nthreads = 1
+games_done = 0
+games_done_lock = Lock()
+start = time.time()
+games_to_play = 100
+games_stats = {0: 0, -1: 0, 1:0}
+explore_for_n_moves = 8
 
 batch_mcts = ctl.load_library("libmcts.so", os.path.join(
     os.path.dirname(__file__), "mnklib", "_build"))
 
-VoidFn = ctypes.CFUNCTYPE(ctypes.c_void_p)
+LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
 BoolFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32)
 EvalFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
 batch_mcts.batch_mcts.argtypes = [
@@ -27,7 +33,7 @@ batch_mcts.batch_mcts.argtypes = [
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
     ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
     EvalFn,
-    VoidFn,
+    LogFn,
     BoolFn, # game_done_fn,
     ctypes.c_int, #model_a
     ctypes.c_int, #model_b
@@ -63,14 +69,6 @@ class ModelStore:
             return (self.model_id, self.model)
 
 models = ModelStore(batch_size=batch_size)
-
-## callbacks from native land
-
-games_done = 0
-games_done_lock = Lock()
-start = time.time()
-games_to_play = 100
-games_stats = {0: 0, -1: 0, 1:0}
 
 def game_done_fn(winner):
     global games_done, games_done_lock
@@ -108,14 +106,14 @@ def start_batch_mcts():
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
 
-    def log_fn():
+    def log_fn(model_id):
         board = torch.from_numpy(log_boards_buffer).float()
             
         prob = torch.from_numpy(log_probs_buffer)
         prob = prob / prob.sum()
             
         # TODO: add model id here
-        client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), 0)
+        client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
         pass
 
     batch_mcts.batch_mcts(
@@ -125,11 +123,11 @@ def start_batch_mcts():
         log_boards_buffer,
         log_probs_buffer,
         EvalFn(eval_fn),
-        VoidFn(log_fn),
+        LogFn(log_fn),
         BoolFn(game_done_fn),
         model_id,
         model_id,
-        8
+        explore_for_n_moves
     )
 
 threads = [Thread(target=start_batch_mcts, daemon=False)

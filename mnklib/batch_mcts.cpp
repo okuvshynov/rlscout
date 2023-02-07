@@ -45,14 +45,14 @@ struct Game {
     }
   }
 
-  void make_move(void (*log_freq_cb)(), bool (*log_game_done_cb)(int32_t),
+  void make_move(void (*log_freq_cb)(int32_t), bool (*log_game_done_cb)(int32_t),
                  int32_t *log_boards_buffer, float *log_probs_buffer,
-                 uint32_t explore_for_n_moves) {
+                 uint32_t explore_for_n_moves, int32_t model_id) {
     // logging training data here
     if (log_freq_cb != nullptr) {
       state.fill_boards(log_boards_buffer);
       fill_visits(log_probs_buffer);
-      log_freq_cb();
+      log_freq_cb(model_id);
     }
 
     // applying move
@@ -88,7 +88,7 @@ struct Game {
 void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
                  int32_t *boards_buffer, float *probs_buffer,
                  int32_t *log_boards_buffer, float *log_probs_buffer,
-                 void (*eval_cb)(int32_t), void (*log_freq_cb)(),
+                 void (*eval_cb)(int32_t), void (*log_freq_cb)(int32_t),
                  bool (*log_game_done_cb)(int32_t), uint32_t model_id,
                  uint32_t explore_for_n_moves) {
   static const int kBoardElements = 2 * 8 * 8;
@@ -164,7 +164,7 @@ void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
     }
 
     g.make_move(log_freq_cb, log_game_done_cb, log_boards_buffer,
-                log_probs_buffer, explore_for_n_moves);
+                log_probs_buffer, explore_for_n_moves, model_id);
   }
 }
 
@@ -172,7 +172,7 @@ extern "C" {
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, int32_t *log_boards_buffer,
                 float *log_probs_buffer, void (*eval_cb)(int32_t),
-                void (*log_freq_cb)(), bool (*log_game_done_cb)(int32_t),
+                void (*log_freq_cb)(int32_t), bool (*log_game_done_cb)(int32_t),
                 int32_t model_a, int32_t model_b,
                 uint32_t explore_for_n_moves) {
   std::vector<Game> games{batch_size};
