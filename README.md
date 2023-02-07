@@ -27,6 +27,7 @@ Immediate next steps:
     [x] add exploration (select node by sampling, not greedily picking max) for first few moves
     [ ] clean up everything
 [ ] visualize pure model vs search of different depth
+[ ] sample rotations during mcts
 [ ] run on GPU/distributed
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
@@ -150,6 +151,10 @@ Specifically:
     - multiple threads + batched MCTS (no high-traffic queue) -- 0.6s/game
 14. It is good enough to continue, we can further optimize it when we get to GPU 
 15. important: Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are running many games at a time and our algorithm is equivalent to typical sequential MCTS (no extra heuristics/virtual loss/etc).  
+
+### How exploration/sampling at initial stages of the game affect results?
+
+8x8 is a draw, so as our player gets better, it's likely we'll get many draws. Sampling allows to get more win/lose situation, thus allowing to train value model.
 
 ### Next to/write about:
 

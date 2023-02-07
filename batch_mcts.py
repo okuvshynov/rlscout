@@ -19,15 +19,19 @@ batch_mcts = ctl.load_library("libmcts.so", os.path.join(
 
 VoidFn = ctypes.CFUNCTYPE(ctypes.c_void_p)
 BoolFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32)
+EvalFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
 batch_mcts.batch_mcts.argtypes = [
     ctypes.c_int, 
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
     ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
     ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
+    EvalFn,
     VoidFn,
-    VoidFn,
-    BoolFn # game_done_fn
+    BoolFn, # game_done_fn,
+    ctypes.c_int, #model_a
+    ctypes.c_int, #model_b
+    ctypes.c_int  # explore_for_n_moves
 ]
 batch_mcts.batch_mcts.restype = None
 
@@ -93,10 +97,14 @@ def start_batch_mcts():
 
     client = GameClient()
 
-    def eval_fn():
-        (_, model) = models.get_best_model()
-        probs = model.get_probs(boards_buffer)
-        #print(probs)
+    model_id, model = models.get_best_model()
+
+    models_by_id = {
+        model_id: model
+    }
+
+    def eval_fn(model_id):
+        probs = models_by_id[model_id].get_probs(boards_buffer)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
 
@@ -116,9 +124,12 @@ def start_batch_mcts():
         probs_buffer,
         log_boards_buffer,
         log_probs_buffer,
-        VoidFn(eval_fn),
+        EvalFn(eval_fn),
         VoidFn(log_fn),
-        BoolFn(game_done_fn)
+        BoolFn(game_done_fn),
+        model_id,
+        model_id,
+        8
     )
 
 threads = [Thread(target=start_batch_mcts, daemon=False)
