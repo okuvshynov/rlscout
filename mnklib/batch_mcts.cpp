@@ -131,8 +131,8 @@ void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
       }
     }
     // eval_cb takes boards_buffer as an input and writes results to
-    // probs_buffer probs_buffer is filled with 1.0 originally
-    if (eval_cb != nullptr) {
+    // probs_buffer
+    if (eval_cb != nullptr && model_id != 0) {
       eval_cb(model_id);
     }
 
@@ -145,7 +145,7 @@ void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
       int j = g.mcts.size;
       for (uint64_t k = 0; k < 8 * 8; k++) {
         if ((1ull << k) & moves) {
-          g.mcts.nodes[j] = MCTSNode(probs_buffer[i * kProbElements + k]);
+          g.mcts.nodes[j] = MCTSNode(model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
           g.mcts.nodes[j].parent = g.node_id;
           g.mcts.nodes[j].in_action = k;
           j++;

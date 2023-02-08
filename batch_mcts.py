@@ -11,12 +11,12 @@ import torch
 from numpy.ctypeslib import ndpointer
 
 board_size = 8
-batch_size = 64
+batch_size = 32
 nthreads = 1
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
-games_to_play = 100
+games_to_play = 1000
 games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 8
 model_rollouts = 1000
@@ -79,21 +79,6 @@ class ModelStore:
 
 models = ModelStore(batch_size=batch_size)
 
-def game_done_fn(winner):
-    global games_done, games_done_lock
-
-    with games_done_lock:
-        games_done += 1
-        games_stats[winner] += 1
-        local_gd = games_done
-
-    models.maybe_refresh_model()
-    rate = 1.0 * local_gd / (time.time() - start)
-    print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
-
-    # count done + enqueued
-    return local_gd + batch_size <= games_to_play
-
 def start_batch_mcts():
     boards_buffer = np.zeros(batch_size * 2 * board_size *
                             board_size, dtype=np.int32)
@@ -104,12 +89,32 @@ def start_batch_mcts():
 
     client = GameClient()
 
-    # TODO: refresh more often
     model_id, model = models.get_best_model()
 
     models_by_id = {
         model_id: model
     }
+
+    def game_done_fn(winner):
+        global games_done, games_done_lock
+
+        with games_done_lock:
+            games_done += 1
+            games_stats[winner] += 1
+            local_gd = games_done
+
+        models.maybe_refresh_model()
+        model_id, model = models.get_best_model()
+
+        nonlocal models_by_id
+        models_by_id = {
+            model_id: model
+        }
+        rate = 1.0 * local_gd / (time.time() - start)
+        print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
+
+        # count done + enqueued
+        return local_gd + batch_size <= games_to_play
 
     def eval_fn(model_id):
         probs = models_by_id[model_id].get_probs(boards_buffer)
