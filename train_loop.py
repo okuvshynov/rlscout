@@ -35,6 +35,13 @@ action_model = action_model.to(device)
 
 optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.005)
 
+# expects tensor of shape [?, N, N], returns list of 8 tensors
+def symm(t):
+    res = [torch.rot90(t, w, [1, 2]) for w in range(4)]
+    t = torch.flip(t, [1])
+    res += [torch.rot90(t, w, [1, 2]) for w in range(4)]
+    return res
+
 def train_minibatch(boards, probs):
     # pick minibatch
     ix = torch.randint(0, boards.shape[0], (minibatch_size, ), generator=gen)

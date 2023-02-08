@@ -18,21 +18,23 @@ Immediate next steps:
 [x] get rid of locks on every rollouts, that scales poorly with # of threads growing
     [x] looks like the better way would be to call back to Python with the full batch.
     [x] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
-[ ] batched MCTS next steps:
+[x] batched MCTS next steps:
     [x] do log
     [x] write util to visualize sample
-    [ ] support no model case
+    [x] support no model case
     [x] support model update
-    [ ] support different players case / make duel batched as well
+    [x] support different players case / make duel batched as well
     [x] add exploration (select node by sampling, not greedily picking max) for first few moves
-    [ ] clean up everything
+    [x] clean up everything
+[ ] Make it work on cuda as well.
+    [x] train loop
+    [ ] self-play
+[ ] incremental training data update
 [ ] visualize pure model vs search of different depth
 [ ] sample rotations during mcts
 [ ] run on GPU/distributed
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
-[ ] Make it work on cuda as well.
-[ ] incremental training data update
 [ ] check how often do we copy things around and transform between torch/numpy/different data types/etc.
 [ ] cleanup old models from db?
 [x] do not store symmetries in the db. Generate them on the fly in the training. 

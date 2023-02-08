@@ -13,7 +13,7 @@ def torch_encode(t):
 def torch_decode(s):
     if s is None:
         return None
-    return torch.load(BytesIO(b64decode(s)))
+    return torch.load(BytesIO(b64decode(s)), map_location="cpu")
 
 class GameClient:
     def __init__(self, server="tcp://localhost:8888"):
