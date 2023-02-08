@@ -1,12 +1,8 @@
-import ctypes
 import numpy as np
-import numpy.ctypeslib as ctl
-import os
 from players import CoreMLGameModel
 from game_client import GameClient
 import time
-
-from numpy.ctypeslib import ndpointer
+from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
 
 board_size = 8
 batch_size = 32
@@ -21,31 +17,6 @@ model_temp = 4.0
 
 raw_rollouts = 500000
 raw_temp = 1.5
-
-batch_mcts = ctl.load_library("libmcts.so", os.path.join(
-    os.path.dirname(__file__), "mnklib", "_build"))
-
-LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
-BoolFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32)
-EvalFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
-batch_mcts.batch_mcts.argtypes = [
-    ctypes.c_int, 
-    ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
-    ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
-    ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),
-    ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
-    EvalFn,
-    LogFn,
-    BoolFn, # game_done_fn,
-    ctypes.c_int, #model_a
-    ctypes.c_int, #model_b
-    ctypes.c_int,  # explore_for_n_moves
-    ctypes.c_int32, # a_rollouts
-    ctypes.c_double, # a_temp
-    ctypes.c_int32, # b_rollouts
-    ctypes.c_double # b_temp
-]
-batch_mcts.batch_mcts.restype = None
 
 client = GameClient()
 boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -102,7 +73,7 @@ def start_batch_duel():
     games_done = 0
 
     # new model first player
-    batch_mcts.batch_mcts(
+    batch_mcts_lib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,
@@ -131,7 +102,7 @@ def start_batch_duel():
 
     # new model second player
     games_done = 0
-    batch_mcts.batch_mcts(
+    batch_mcts_lib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,

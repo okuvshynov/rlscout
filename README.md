@@ -29,10 +29,10 @@ Immediate next steps:
 [ ] Make it work on cuda as well.
     [x] train loop
     [ ] self-play
+    [ ] run on GPU/distributed
 [ ] incremental training data update
 [ ] visualize pure model vs search of different depth
 [ ] sample rotations during mcts
-[ ] run on GPU/distributed
 [ ] Implement value model head.
 [ ] Experiment on model architecture/training hyperparams.
 [ ] check how often do we copy things around and transform between torch/numpy/different data types/etc.
@@ -134,7 +134,7 @@ While working, it's fairly inefficient at first.
 Batching is really important for model inference on any device, but especially on GPU/ANE. 
 
 Batching is implemented by introducing batching variation of Monte-Carlo Tree Seacrh.
-Specifically:
+Specifically (change this, it got simplified)
 1. Assume single-thread evaluation for now
 2. Assume we'd like to have batches of size batch_size
 3. Invert the thinking a little - treat games not as 'queries to be processed', but something we can start on demand in order to produce the data.
@@ -152,11 +152,28 @@ Specifically:
     - multiple threads + batching + queue (with lock) for  individual sampels - 3-4 seconds/game
     - multiple threads + batched MCTS (no high-traffic queue) -- 0.6s/game
 14. It is good enough to continue, we can further optimize it when we get to GPU 
-15. important: Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are running many games at a time and our algorithm is equivalent to typical sequential MCTS (no extra heuristics/virtual loss/etc).  
+15. important: Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are running many games at a time and our algorithm is equivalent to typical sequential MCTS (no extra heuristics/virtual loss/etc). 
+
 
 ### How exploration/sampling at initial stages of the game affect results?
 
 8x8 is a draw, so as our player gets better, it's likely we'll get many draws. Sampling allows to get more win/lose situation, thus allowing to train value model.
+
+### Training on CUDA
+
+Rented A100 on lambda, loaded data there. 
+Seems like saving snapshot to db was pretty slow, we should snapshot less often/check why it is slow.
+Getting all the data from db + building symmetries also takes time.
+
+### quick performance notes:
+1. with 1000 rollouts and model with 2 residual blocks on M2 self-play does ~0.7 games/second with 1 thread, 128 batch size
+2. TBD
+
+### run distributed
+1. server + train on remote GPU
+2. self-play on M2
+3. eval also on GPU?
+4. how to sync DB? 
 
 ### Next to/write about:
 
@@ -182,7 +199,7 @@ Current way to run the process:
 
 2. start self-play: 
 
-```python selfplay.py   # <-- it will start playing 'no model' mcts with 500k rollouts OR get the best latest model from server```
+```python selfplay_loop.py   # <-- it will start playing 'no model' mcts with 500k rollouts OR get the best latest model from server```
 
 3. start model training:
 
