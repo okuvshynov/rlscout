@@ -11,12 +11,12 @@ import torch
 from numpy.ctypeslib import ndpointer
 
 board_size = 8
-batch_size = 32
+batch_size = 128
 nthreads = 1
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
-games_to_play = 1000
+games_to_play = 100000
 games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 8
 model_rollouts = 1000
