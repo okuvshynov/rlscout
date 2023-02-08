@@ -5,7 +5,6 @@ import torch
 import torch.optim as optim
 import time
 from game_client import GameClient
-from utils import symm
 
 device = "mps"
 minibatch_size = 512
