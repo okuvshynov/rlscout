@@ -19,6 +19,11 @@ start = time.time()
 games_to_play = 100
 games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 8
+model_rollouts = 1000
+model_temp = 4.0
+
+raw_rollouts = 500000
+raw_temp = 1.5
 
 batch_mcts = ctl.load_library("libmcts.so", os.path.join(
     os.path.dirname(__file__), "mnklib", "_build"))
@@ -37,7 +42,11 @@ batch_mcts.batch_mcts.argtypes = [
     BoolFn, # game_done_fn,
     ctypes.c_int, #model_a
     ctypes.c_int, #model_b
-    ctypes.c_int  # explore_for_n_moves
+    ctypes.c_int,  # explore_for_n_moves
+    ctypes.c_int32, # a_rollouts
+    ctypes.c_double, # a_temp
+    ctypes.c_int32, # b_rollouts
+    ctypes.c_double # b_temp
 ]
 batch_mcts.batch_mcts.restype = None
 
@@ -95,6 +104,7 @@ def start_batch_mcts():
 
     client = GameClient()
 
+    # TODO: refresh more often
     model_id, model = models.get_best_model()
 
     models_by_id = {
@@ -127,7 +137,11 @@ def start_batch_mcts():
         BoolFn(game_done_fn),
         model_id,
         model_id,
-        explore_for_n_moves
+        explore_for_n_moves,
+        model_rollouts,
+        model_temp,
+        model_rollouts,
+        model_temp
     )
 
 threads = [Thread(target=start_batch_mcts, daemon=False)

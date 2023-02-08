@@ -11,7 +11,7 @@ using State885 = State<8, 8, 5>;
 std::random_device batch_mcts_rd;
 
 struct Game {
-  Game() : buf(1000 * 8 * 8), gen{batch_mcts_rd()}, mcts(buf) {}
+  Game() : gen{batch_mcts_rd()}, mcts(buf) {}
 
   void restart() { state = State885(); }
 
@@ -45,9 +45,10 @@ struct Game {
     }
   }
 
-  void make_move(void (*log_freq_cb)(int32_t), bool (*log_game_done_cb)(int32_t),
-                 int32_t *log_boards_buffer, float *log_probs_buffer,
-                 uint32_t explore_for_n_moves, int32_t model_id) {
+  void make_move(void (*log_freq_cb)(int32_t),
+                 bool (*log_game_done_cb)(int32_t), int32_t *log_boards_buffer,
+                 float *log_probs_buffer, uint32_t explore_for_n_moves,
+                 int32_t model_id) {
     // logging training data here
     if (log_freq_cb != nullptr) {
       state.fill_boards(log_boards_buffer);
@@ -58,8 +59,7 @@ struct Game {
     // applying move
     state.apply_move(get_move_index(explore_for_n_moves));
     total_moves++;
-    mcts.reset();
-
+    
     if (state.finished()) {
       if (log_game_done_cb != nullptr) {
         stopped = !log_game_done_cb(state.winner);
@@ -91,6 +91,14 @@ void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
                  void (*eval_cb)(int32_t), void (*log_freq_cb)(int32_t),
                  bool (*log_game_done_cb)(int32_t), uint32_t model_id,
                  uint32_t explore_for_n_moves) {
+  for (auto &g : games) {
+    if (g.stopped || g.state.finished()) {
+      continue;
+    }
+    g.buf.resize(rollouts * 8 * 8);
+    g.mcts.reset();
+  }
+  
   static const int kBoardElements = 2 * 8 * 8;
   static const int kProbElements = 8 * 8;
   for (int32_t r = 0; r < rollouts; r++) {
@@ -173,19 +181,20 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, int32_t *log_boards_buffer,
                 float *log_probs_buffer, void (*eval_cb)(int32_t),
                 void (*log_freq_cb)(int32_t), bool (*log_game_done_cb)(int32_t),
-                int32_t model_a, int32_t model_b,
-                uint32_t explore_for_n_moves) {
+                int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
+                uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
+                double b_temp) {
   std::vector<Game> games{batch_size};
   bool has_active_games = true;
   while (has_active_games) {
     has_active_games = false;
     // first player
-    single_move(games, 1000, 4.0, boards_buffer, probs_buffer,
+    single_move(games, a_rollouts, a_temp, boards_buffer, probs_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
                 log_game_done_cb, model_a, explore_for_n_moves);
 
     // second player
-    single_move(games, 1000, 4.0, boards_buffer, probs_buffer,
+    single_move(games, b_rollouts, b_temp, boards_buffer, probs_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
                 log_game_done_cb, model_b, explore_for_n_moves);
 

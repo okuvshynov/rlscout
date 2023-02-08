@@ -31,7 +31,6 @@ struct MCTS {
   // no ownership over buffer
   MCTS(std::vector<MCTSNode>& nodes)
       : nodes(nodes) {
-    reset();
   }
 
   void reset() {
