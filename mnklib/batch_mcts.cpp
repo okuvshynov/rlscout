@@ -16,7 +16,7 @@ struct Game {
   void restart() { state = State885(); }
 
   uint64_t get_move_index(uint32_t explore_for_n_moves) {
-    static thread_local std::array<uint64_t, 64> visits;
+    static thread_local std::array<uint64_t, 8 * 8> visits;
     std::fill(visits.begin(), visits.end(), 0ull);
 
     for (int i = 0; i < mcts.nodes[mcts.root_id].children_count; i++) {
@@ -36,7 +36,7 @@ struct Game {
   }
 
   void fill_visits(float *freq_buffer) {
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 8 * 8; i++) {
       freq_buffer[i] = 0.0f;
     }
     for (int i = 0; i < mcts.nodes[mcts.root_id].children_count; i++) {

@@ -5,9 +5,8 @@ import time
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
 
 board_size = 8
-batch_size = 32
+batch_size = 8
 games_done = 0
-start = time.time()
 games_to_play = 64
 margin = games_to_play // 16
 games_stats = {0: 0, -1: 0, 1:0}
@@ -27,7 +26,7 @@ log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
 log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
 
 def start_batch_duel():
-    global games_done, games_stats
+    global games_done, games_stats, start
     (model_to_eval_id, model_to_eval) = client.get_model_to_eval()
     if model_to_eval is not None:
         model_to_eval = CoreMLGameModel(model_to_eval, batch_size=batch_size)
@@ -67,9 +66,7 @@ def start_batch_duel():
     print(f'playing {model_to_eval_id} vs {best_model_id}')
 
     games_stats = {0: 0, -1: 0, 1:0}
-
-
-    # new model second player
+    start = time.time()
     games_done = 0
 
     # new model first player
@@ -98,10 +95,9 @@ def start_batch_duel():
     }
 
     games_stats = {0: 0, -1: 0, 1:0}
-
-
-    # new model second player
     games_done = 0
+    start = time.time()
+
     batch_mcts_lib.batch_mcts(
         batch_size,
         boards_buffer,

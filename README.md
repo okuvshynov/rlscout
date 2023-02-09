@@ -26,11 +26,12 @@ Immediate next steps:
     [x] support different players case / make duel batched as well
     [x] add exploration (select node by sampling, not greedily picking max) for first few moves
     [x] clean up everything
+[x] measure time for training
+[ ] make it distributed?
+[ ] incremental training data update
 [ ] Make it work on cuda as well.
     [x] train loop
     [ ] self-play
-    [ ] run on GPU/distributed
-[ ] incremental training data update
 [ ] visualize pure model vs search of different depth
 [ ] sample rotations during mcts
 [ ] Implement value model head.

@@ -6,7 +6,12 @@ import torch.optim as optim
 import time
 from game_client import GameClient
 
-device = "mps"
+device = "cpu"
+if torch.backends.mps.is_available():
+    device = "mps"
+if torch.cuda.is_available():
+    device = "cuda:0"
+
 minibatch_size = 512
 epochs = 10
 minibatch_per_epoch = 100
@@ -26,6 +31,7 @@ client = GameClient()
 (last_model_id, action_model) = client.get_last_model()
 
 print(f'loading last snapshot from DB: id={last_model_id}')
+print(f'training on device {device}')
 
 if action_model is None:
     action_model = ActionValueModel()
@@ -79,6 +85,8 @@ for checkpoint in range(checkpoints):
     for b, p in samples:
         samples_symm.extend(list(zip(symm(b), symm(p))))
 
+    print(f'training on {len(samples_symm)} recent samples')
+
     random.shuffle(samples_symm)
 
     boards, probs = zip(*samples_symm)
@@ -98,11 +106,11 @@ for checkpoint in range(checkpoints):
 
     epoch_train_losses = [evaluate_sample(boards_train_dev, probs_train_dev)]
     epoch_validation_losses = [evaluate_sample(boards_val_dev, probs_val_dev)]
-    print(f'training loss: {epoch_train_losses[-1]}')
-    print(f'validation loss: {epoch_validation_losses[-1]}')
+    print(f'training loss: {epoch_train_losses[-1]:.3f}')
+    print(f'validation loss: {epoch_validation_losses[-1]:.3f}')
 
     for e in range(epochs):
-        sys.stdout.write(f'{e}:0 ')
+        start = time.time()
         for i in range(minibatch_per_epoch):
             train_minibatch(boards_train_dev, probs_train_dev)
             if i % 10 == 9:
@@ -113,7 +121,8 @@ for checkpoint in range(checkpoints):
         #    optimizer.param_groups[0]['lr'] = 0.0005
         epoch_train_losses.append(evaluate_sample(boards_train_dev, probs_train_dev))
         epoch_validation_losses.append(evaluate_sample(boards_val_dev, probs_val_dev))
-        print(f' | epoch {e}: training loss: {epoch_train_losses[-1]}, validation loss: {epoch_validation_losses[-1]}')
+        dur = time.time() - start
+        print(f' | {dur:.1f} seconds | epoch {e}: training loss: {epoch_train_losses[-1]:.3f}, validation loss: {epoch_validation_losses[-1]:.3f}')
     
     print('saving model snapshot')
     print(client.save_model_snapshot(action_model))
