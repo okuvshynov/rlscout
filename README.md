@@ -132,28 +132,16 @@ While working, it's fairly inefficient at first.
 3. Do batching in self-play
 
 ### Batching
-Batching is really important for model inference on any device, but especially on GPU/ANE. 
+Batching is really important for model inference on any device, but especially on GPU/ANE. As we care about throughput much more than latency, we can just play many games at once and 'sync' on model evaluation step. 
 
 Batching is implemented by introducing batching variation of Monte-Carlo Tree Seacrh.
-Specifically (change this, it got simplified)
+Specifically
 1. Assume single-thread evaluation for now
 2. Assume we'd like to have batches of size batch_size
-3. Invert the thinking a little - treat games not as 'queries to be processed', but something we can start on demand in order to produce the data.
-4. Start batch_size games at once. Allocate MCTS instance for each game.
-5. In single thread iterate over the games and run MCTS for each game until we reach node expansion step. At this point we save the context for the search procedure, and expand all batch_size nodes at once, thus, evaluating neural net once with input of 'batch_size' tensors rather than batch_size times with a single tensor. Evaluation is done by making a callback to python where we can load whatever model we'd like.
-6. After that, restore the search context and continue back to step 5
-7. Sometimes within step (5) game might: pass through expand step if we reached the winning node, or even reach the end of the game. In this case we just restart the game, reset the mcts (while keeping the buffer for nodes) and continue as before. We don't care too much about latency of individual game, we care about throughput.
-8. One way to think of it - expand would be like await coroutine.
-9. Another way - we can explicitly represent this as state machine and transition games from one state to another.
-10. All of the above is done in single CPU thread + evaluates the model on neural engine. On more traditional for ML hardware we'll be able to evaluate on GPU.
-11. Now we can start multiple threads doing the same thing.
-12. This seems to be easier to scale than building/using multiple-producer-single-consumer queue for individual samples, aggregating them, evaluating and notifying completion/making callbacks/using futures/whatever. We can avoid all thread syncronization (lock free or not) at rollout level and only do some at move level - several orders of magnitude less often.
-13. The experiments on M2 CPU/ANE SoC show roughly following results with current setup (2 residual layers, 1000 rollouts per move):
-    - multiple threads + no batching -- 14-15 seconds/game
-    - multiple threads + batching + queue (with lock) for  individual sampels - 3-4 seconds/game
-    - multiple threads + batched MCTS (no high-traffic queue) -- 0.6s/game
-14. It is good enough to continue, we can further optimize it when we get to GPU 
-15. important: Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are running many games at a time and our algorithm is equivalent to typical sequential MCTS (no extra heuristics/virtual loss/etc). 
+3. Start batch_size games at once. Allocate MCTS instance for each game.
+4. All of the above is done in single CPU thread + evaluates the model on neural engine. On more traditional for ML hardware we'll be able to evaluate on GPU.
+5. It is good enough to continue, we can further optimize it when we get to GPU 
+6. Compared to other methods in literature (e.g. see https://ludii.games/citations/ARXIV2021-1.pdf), as we don't care too much about latency, we are not trying to parallelize/batch individual game state evaluation. Instead, we are just running many games at a time.
 
 
 ### How exploration/sampling at initial stages of the game affect results?
@@ -169,6 +157,8 @@ Getting all the data from db + building symmetries also takes time.
 ### quick performance notes:
 1. with 1000 rollouts and model with 2 residual blocks on M2 self-play does ~0.7 games/second with 1 thread, 128 batch size
 2. TBD
+
+![Deep Rl horizon chart here](DeepRL_example.png)
 
 ### run distributed
 1. server + train on remote GPU
