@@ -1,11 +1,14 @@
 import numpy as np
-from players import CoreMLGameModel
+from players import CoreMLGameModel, TorchGameModel
 from game_client import GameClient
 from threading import Thread, Lock
 import time
 import torch
 
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+
+# can be 'cpu', 'cuda:x', 'mps', 'ane'
+device = "ane"
 
 board_size = 8
 batch_size = 128
@@ -33,16 +36,19 @@ class ModelStore:
 
     # loads new model if different from current
     def maybe_refresh_model(self):
+        global device
         with self.lock:
             out = self.game_client.get_best_model()
 
             (model_id, torch_model) = out
             if model_id == self.model_id:
                 return 
-            #print(model_id, torch_model)
-            core_ml_model = CoreMLGameModel(torch_model, batch_size=self.batch_size)
+            if device == 'ane':
+                model = CoreMLGameModel(torch_model, self.batch_size)
+            else:
+                model = TorchGameModel(device, torch_model, self.batch_size)
 
-            (self.model_id, self.model) = (model_id, core_ml_model)
+            (self.model_id, self.model) = (model_id, model)
             print(f'new best model: {self.model_id}')
 
     def get_best_model(self):
