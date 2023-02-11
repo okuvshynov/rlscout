@@ -26,3 +26,8 @@ class TorchGameModel:
         with torch.no_grad():
             sample = torch.from_numpy(boards).view(self.batch_size, 2, self.board_size, self.board_size).float().to(self.device)
             return torch.exp(self.model(sample)).to("cpu").numpy().reshape(self.batch_size * self.board_size * self.board_size)
+
+def build_evaluator(device, torch_model, batch_size):
+    if device == 'ane':
+        return CoreMLGameModel(torch_model, batch_size)
+    return TorchGameModel(device, torch_model, batch_size)

@@ -1,5 +1,5 @@
 import numpy as np
-from players import CoreMLGameModel, TorchGameModel
+from players import build_evaluator
 from game_client import GameClient
 from threading import Thread, Lock
 import time
@@ -43,11 +43,7 @@ class ModelStore:
             (model_id, torch_model) = out
             if model_id == self.model_id:
                 return 
-            if device == 'ane':
-                model = CoreMLGameModel(torch_model, self.batch_size)
-            else:
-                model = TorchGameModel(device, torch_model, self.batch_size)
-
+            model = build_evaluator(device, torch_model, self.batch_size)
             (self.model_id, self.model) = (model_id, model)
             print(f'new best model: {self.model_id}')
 
