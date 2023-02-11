@@ -27,14 +27,22 @@ Immediate next steps:
     [x] add exploration (select node by sampling, not greedily picking max) for first few moves
     [x] clean up everything
 [x] measure time for training
-[ ] make it distributed?
-[ ] incremental training data update
-[ ] Make it work on cuda as well.
+[x] Make it work on cuda as well.
     [x] train loop
-    [ ] self-play
-[ ] visualize pure model vs search of different depth
+    [x] self-play
+[ ] pick the best model eval mode out of available (e.g. coreml on apple, torch2trt for nVidia)
+[ ] multi threading and queue for batches
+  [ ] same for training - getting data in a separate thread
+[ ] try e2e without 'no model' special case
+[ ] PID for rollout count
+[ ] model testing - how much to test stat sig
+[ ] incremental training data update
+[ ] 
+
+
 [ ] sample rotations during mcts
 [ ] Implement value model head.
+[ ] visualize pure model vs search of different depth
 [ ] Experiment on model architecture/training hyperparams.
 [ ] check how often do we copy things around and transform between torch/numpy/different data types/etc.
 [ ] cleanup old models from db?
@@ -159,6 +167,19 @@ Getting all the data from db + building symmetries also takes time.
 2. TBD
 
 ![Deep Rl horizon chart here](DeepRL_example.png)
+
+### installing torch2trt on lambda machines
+```
+pip install tensorrt
+git clone https://github.com/NVIDIA-AI-IOT/torch2trt
+cd torch2trt/
+sudo chown ubuntu /usr/local/lib/python3.8/dist-packages/
+python setup.py install
+```
+
+### how to dynamically adjust complexity
+for self-play, we can increase/decrease number of rollouts
+for training - ?
 
 ### run distributed
 1. server + train on remote GPU

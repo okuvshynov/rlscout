@@ -4,7 +4,7 @@ from game_client import GameClient
 import time
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
 
-device = "mps"
+device = "ane"
 
 board_size = 8
 batch_size = 8
