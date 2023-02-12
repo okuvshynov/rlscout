@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-import torch
-import coremltools as ct
 
 def plot_sample(board, probs):
     m = board.shape[1]
@@ -20,18 +18,3 @@ def plot_sample(board, probs):
                     fontsize='xx-large', va='center', ha='center')
     plt.imshow(probs.view(m, n).cpu().numpy(), cmap='Blues')
     plt.show()
-
-
-def to_coreml(torch_model, batch_size=1, board_size=8):
-    if torch_model is None:
-        return None
-    torch_model = torch_model.cpu()
-    torch_model.eval()
-    sample = torch.rand(batch_size, 2, board_size, board_size)
-
-    traced_model = torch.jit.trace(torch_model, sample)
-    return ct.convert(
-        traced_model,
-        inputs=[ct.TensorType(shape=sample.shape)],
-        compute_units=ct.ComputeUnit.CPU_AND_NE
-    )

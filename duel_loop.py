@@ -1,5 +1,5 @@
 import numpy as np
-from players import build_evaluator
+from backend_coreml import EvalBackend
 from game_client import GameClient
 import time
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
@@ -31,13 +31,13 @@ def start_batch_duel():
     global games_done, games_stats, start
     (model_to_eval_id, model_to_eval) = client.get_model_to_eval()
     if model_to_eval is not None:
-        model_to_eval = build_evaluator(device, model_to_eval, batch_size)
+        model_to_eval = EvalBackend(device, model_to_eval, batch_size)
     else:
         return False
 
     (best_model_id, best_model) = client.get_best_model()
     if best_model is not None:
-        best_model = build_evaluator(device, best_model, batch_size)
+        best_model = EvalBackend(device, best_model, batch_size)
 
     models_by_id = {
         best_model_id: best_model,

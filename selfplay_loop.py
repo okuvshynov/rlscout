@@ -1,5 +1,4 @@
 import numpy as np
-from players import build_evaluator
 from game_client import GameClient
 from threading import Thread, Lock
 import time
@@ -7,8 +6,10 @@ import torch
 
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
 
+from backend_coreml import EvalBackend
+
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
-device = "ane"
+device = "mps"
 
 board_size = 8
 batch_size = 128
@@ -43,7 +44,7 @@ class ModelStore:
             (model_id, torch_model) = out
             if model_id == self.model_id:
                 return 
-            model = build_evaluator(device, torch_model, self.batch_size)
+            model = EvalBackend(device, torch_model, self.batch_size)
             (self.model_id, self.model) = (model_id, model)
             print(f'new best model: {self.model_id}')
 
