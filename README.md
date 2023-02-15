@@ -32,7 +32,7 @@ Immediate next steps:
     [x] self-play
 [ ] pick the best model eval mode out of available (e.g. coreml on apple, torch2trt for nVidia)
 [ ] multi threading and queue for batches
-  [ ] same for training - getting data in a separate thread
+  [ ] same for training - getting data/saving snapshot in a separate thread
 [ ] try e2e without 'no model' special case
 [ ] PID for rollout count
 [ ] model testing - how much to test stat sig
@@ -54,6 +54,11 @@ Immediate next steps:
 [x] factor out model evaluation from 'player'
 [x] cleanup old training samples
 ```
+
+## LIFO order notes
+
+on Apple M2 with 256 batch and no model update
+rate = 0.833 games/s
 
 ## Brief notes/history of building it
 
@@ -166,7 +171,7 @@ Getting all the data from db + building symmetries also takes time.
 1. with 1000 rollouts and model with 2 residual blocks on M2 self-play does ~0.7 games/second with 1 thread, 128 batch size
 2. TBD
 
-![Deep Rl horizon chart here](DeepRL_example.png)
+![Deep Rl horizon chart here](static/DeepRL_example.png)
 
 ### installing torch2trt on lambda machines
 ```
@@ -180,6 +185,13 @@ python setup.py install
 ### how to dynamically adjust complexity
 for self-play, we can increase/decrease number of rollouts
 for training - ?
+all hyperparams - ?
+model complexity
+
+### running self-play on A100
+
+Pretty good, close to 10 games/s. Need to optimize:
+1. create 'evaluator' which we run on a thread pool (or several of them)
 
 ### run distributed
 1. server + train on remote GPU

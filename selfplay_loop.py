@@ -9,10 +9,10 @@ from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
 from backend_coreml import EvalBackend
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
-device = "mps"
+device = "ane"
 
 board_size = 8
-batch_size = 128
+batch_size = 256
 nthreads = 1
 games_done = 0
 games_done_lock = Lock()
