@@ -1,6 +1,5 @@
 from torch2trt import torch2trt
 import torch
-import numpy as np
 
 class EvalBackend:
     def __init__(self, device, torch_model, batch_size=1, board_size=8):

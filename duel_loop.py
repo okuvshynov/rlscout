@@ -1,15 +1,29 @@
 import numpy as np
-from backend_coreml import EvalBackend
+from backend import backend
 from game_client import GameClient
 import time
+import torch
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+import argparse
 
-device = "ane"
+device = "cpu"
+if torch.backends.mps.is_available():
+    device = "ane"
+if torch.cuda.is_available():
+    device = "cuda:0"
+
+parser = argparse.ArgumentParser("rlscout training")
+parser.add_argument('-d', '--device')
+
+args = parser.parse_args()
+
+if args.device is not None:
+    device = args.device
 
 board_size = 8
-batch_size = 8
+batch_size = 64
 games_done = 0
-games_to_play = 64
+games_to_play = 512
 margin = games_to_play // 16
 games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 0
@@ -31,13 +45,13 @@ def start_batch_duel():
     global games_done, games_stats, start
     (model_to_eval_id, model_to_eval) = client.get_model_to_eval()
     if model_to_eval is not None:
-        model_to_eval = EvalBackend(device, model_to_eval, batch_size)
+        model_to_eval = backend(device, model_to_eval, batch_size, board_size)
     else:
         return False
 
     (best_model_id, best_model) = client.get_best_model()
     if best_model is not None:
-        best_model = EvalBackend(device, best_model, batch_size)
+        best_model = backend(device, best_model, batch_size, board_size)
 
     models_by_id = {
         best_model_id: best_model,

@@ -30,14 +30,14 @@ Immediate next steps:
 [x] Make it work on cuda as well.
     [x] train loop
     [x] self-play
-[ ] pick the best model eval mode out of available (e.g. coreml on apple, torch2trt for nVidia)
-[ ] multi threading and queue for batches
+[x] pick the best model eval mode out of available (e.g. coreml on apple, torch2trt for nVidia)
+[x] multi threading and queue for batches
   [ ] same for training - getting data/saving snapshot in a separate thread
 [ ] try e2e without 'no model' special case
 [ ] PID for rollout count
 [ ] model testing - how much to test stat sig
 [ ] incremental training data update
-[ ] 
+[ ] check how many 'same' nodes visited during MCTS.
 
 
 [ ] sample rotations during mcts
@@ -66,7 +66,7 @@ This is a set of notes for myself, so that I can later write it up in a more rea
 
 ### idea
 1. Train a really strong model for some game (currently freestyle gomoku 8x8, maybe othello 8x8 in future) <-- currently here
-2. Use that model to guide full search and find a (weak? how to make strong?) solution to a game.
+2. Use that model to guide full search and find a solution to a game.
 
 ### First implementation of mcts 
 

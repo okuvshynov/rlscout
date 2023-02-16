@@ -5,6 +5,7 @@ import torch
 import torch.optim as optim
 import time
 from game_client import GameClient
+import argparse
 
 device = "cpu"
 if torch.backends.mps.is_available():
@@ -12,8 +13,16 @@ if torch.backends.mps.is_available():
 if torch.cuda.is_available():
     device = "cuda:0"
 
+parser = argparse.ArgumentParser("rlscout training")
+parser.add_argument('-d', '--device')
+
+args = parser.parse_args()
+
+if args.device is not None:
+    device = args.device
+
 minibatch_size = 512
-epochs = 10
+epochs = 20
 minibatch_per_epoch = 100
 checkpoints = 1000
 max_samples = 50000

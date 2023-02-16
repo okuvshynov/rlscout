@@ -3,17 +3,29 @@ from game_client import GameClient
 from threading import Thread, Lock
 import time
 import torch
-
+from concurrent.futures import ThreadPoolExecutor
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
-
-from backend_coreml import EvalBackend
+from backend import backend
+import argparse
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
-device = "ane"
+device = "cpu"
+if torch.backends.mps.is_available():
+    device = "ane"
+if torch.cuda.is_available():
+    device = "cuda:0"
+
+parser = argparse.ArgumentParser("rlscout training")
+parser.add_argument('-d', '--device')
+
+args = parser.parse_args()
+
+if args.device is not None:
+    device = args.device
 
 board_size = 8
 batch_size = 256
-nthreads = 1
+nthreads = 4
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
@@ -26,6 +38,8 @@ model_temp = 4.0
 raw_rollouts = 500000
 raw_temp = 1.5
 
+executor = ThreadPoolExecutor(max_workers=1)
+
 class ModelStore:
     def __init__(self, batch_size):
         self.lock = Lock()
@@ -33,18 +47,23 @@ class ModelStore:
         self.model = None
         self.game_client = GameClient()
         self.batch_size = batch_size
+        self.last_refresh = 0.0
         self.maybe_refresh_model()
+
 
     # loads new model if different from current
     def maybe_refresh_model(self):
         global device
         with self.lock:
+            if self.last_refresh + 1.0 > time.time():
+                # no refreshing too often
+                return
             out = self.game_client.get_best_model()
-
+            self.last_refresh = time.time()
             (model_id, torch_model) = out
             if model_id == self.model_id:
                 return 
-            model = EvalBackend(device, torch_model, self.batch_size)
+            model = backend(device, torch_model, self.batch_size, board_size)
             (self.model_id, self.model) = (model_id, model)
             print(f'new best model: {self.model_id}')
 
@@ -92,7 +111,10 @@ def start_batch_mcts():
         return local_gd + batch_size <= games_to_play
 
     def eval_fn(model_id):
-        probs = models_by_id[model_id].get_probs(boards_buffer)
+        def eval_model():
+            return models_by_id[model_id].get_probs(boards_buffer)
+        fut = executor.submit(eval_model)
+        probs = fut.result()
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
 
