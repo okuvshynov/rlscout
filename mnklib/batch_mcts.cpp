@@ -131,7 +131,8 @@ void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
       }
     }
     // eval_cb takes boards_buffer as an input and writes results to
-    // probs_buffer
+    // probs_buffer.
+    // Where do we pass value? 
     if (eval_cb != nullptr && model_id != 0) {
       eval_cb(model_id);
     }
@@ -154,6 +155,7 @@ void single_move(std::vector<Game> &games, int32_t rollouts, double temp,
       g.mcts.nodes[g.node_id].children_count = j - g.mcts.size;
       g.mcts.size = j;
 
+      // TODO: get value from the model here
       while (!g.search_state.finished()) {
         g.search_state.take_random_action();
       }

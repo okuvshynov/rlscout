@@ -33,6 +33,7 @@ Immediate next steps:
 [x] pick the best model eval mode out of available (e.g. coreml on apple, torch2trt for nVidia)
 [x] multi threading and queue for batches
   [ ] same for training - getting data/saving snapshot in a separate thread
+[x] measure moves/second rather than games/second
 [ ] try e2e without 'no model' special case
 [ ] PID for rollout count
 [ ] model testing - how much to test stat sig
@@ -57,8 +58,35 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Running on multi-GPU
+
+### Running on lambda instances (until I make an image):
+1. clone this repo
+2. install torch2trt
+
+```
+pip install tensorrt
+git clone https://github.com/NVIDIA-AI-IOT/torch2trt
+cd torch2trt/
+sudo chown ubuntu /usr/local/lib/python3.8/dist-packages/
+python setup.py install
+```
+
+3. clone https://github.com/okuvshynov/cubestat
+4. ```pip install pynvml```
+5. clone https://github.com/okuvshynov/vimrc, follow the instructions there
+6. depending on where we'd want to start, scp db file to remote machine
+
+
+### self-play throughput tests
+
+on single A100 with model update, 2048 batch size and 3 CPU threads we reach 12+ games/s.
+
 on Apple M2 with 256 batch and no model update
 rate = 0.833 games/s
+
+
+
 
 ## Brief notes/history of building it
 

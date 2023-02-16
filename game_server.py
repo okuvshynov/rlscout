@@ -1,5 +1,8 @@
 import zmq
 from game_db import GameDB
+import time
+from collections import deque
+
 
 port = 8888
 db_filename = './_out/8x8/test3.db'
@@ -11,6 +14,20 @@ socket.bind("tcp://*:8888")
 db = GameDB(db_filename)
 
 queries_processed = 0
+
+samples_last_min = deque()
+samples_last_10min = deque()
+
+def append_sample_log():
+    now = time.time()
+    samples_last_min.append(now)
+    samples_last_10min.append(now)
+
+    while samples_last_min[0] + 60.0 < now:
+        samples_last_min.popleft()
+    while samples_last_10min[0] + 600.0 < now:
+        samples_last_10min.popleft()
+
 
 while True:
     req = socket.recv_json()
@@ -39,6 +56,7 @@ while True:
     if req['method'] == 'append_sample':
         db.append_sample(req['board'], req['probs'], req['model_id'])
         res['data'] = True
+        append_sample_log()
 
     if req['method'] == 'save_model_snapshot':
         db.save_snapshot(req['model'])
@@ -58,3 +76,4 @@ while True:
 
     if queries_processed % 100 == 0:
         print(f'processed {queries_processed} queries')
+        print(f'samples processed: {len(samples_last_min)} last min,  {len(samples_last_10min)} last 10 min')

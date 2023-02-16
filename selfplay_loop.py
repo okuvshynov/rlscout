@@ -24,8 +24,8 @@ if args.device is not None:
     device = args.device
 
 board_size = 8
-batch_size = 256
-nthreads = 4
+batch_size = 128
+nthreads = 1
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
