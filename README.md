@@ -58,7 +58,33 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Benchmark 
+
+Let's do the following test for Apple's M2 ANE and whatever
+CUDA GPUs we can find:
+1. We'll follow rough model structure of AGZ anyway, but will likely change number of residual blocks.
+2. We can change batch size
+
+Let's run a test to measure time for 1 inference depending on
+these settings.
+
+### Higher-level plan
+
+1. Implement Reversi state, support 6x6 and 8x8 sizes.
+2. Finish missing pieces for e2e learning - value model part, check multi-GPU support
+3. Try training 6x6 model on single multi-GPU machine
+4. Once model is good enough, try using it for complete Alpha/Beta search ordering
+5. Check: how good our ordering actually was, how often did we end up cutting significant portion of a tree
+6. Check: how can we leverage our model, and do we need to have another head in the model for prediction 'what to store in transposition table'
+7. Iterate if needed
+8. Once this is done, apply the findings to 8x8 case.
+9. Train larger model, for longer time
+10. Once we have a model, start Alpha-Beta search. Consider distributed search this time.  
+
+
 ### Running on multi-GPU
+
+tbd
 
 ### Running on lambda instances (until I make an image):
 1. clone this repo
