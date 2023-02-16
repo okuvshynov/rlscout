@@ -39,7 +39,7 @@ Immediate next steps:
 [ ] model testing - how much to test stat sig
 [ ] incremental training data update
 [ ] check how many 'same' nodes visited during MCTS.
-
+[ ] quantization
 
 [ ] sample rotations during mcts
 [ ] Implement value model head.
