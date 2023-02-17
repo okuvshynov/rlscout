@@ -58,6 +58,29 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### quantization (post-training)
+
+just used in benchmark on A100. fp16 is ~2x more throughput and int8 2x more.
+
+### Batched MCTS or just use good queue? 
+
+Based on the benchmark I did individual A100 will be able to evaluate the model with 10 residual blocks 60-70k times per second.
+This doesn't sound like too much, so we might be able to just use some fast enough queue implementation to aggreagate samples to batches. For example, we can use fb's folly, use futures which we execute in pool with 1 thread, which will aggregate data to a buffer and call inference.
+
+Batched MCTS, as of this writing, while providing really good throughput during active phase has pauses where CPUs are busy but GPU is idle.
+
+At the same time:
+1. We might get (how much?) higher numbers if we quantize? Let's try with fp16 first.
+2. Maybe other GPUs will get faster (e.g. H100?)
+3. With that, it's possible we can get to millions of evaluations/second and queue might become a bottleneck
+3. Thus, it is unclear if we'll be able to easily aggregate samples to a batch without hitting some issue where queue/syncronization becomes a bottleneck
+
+Hybrid approach is possible:
+1. we use batch MCTS on micro-batches of size, say, 128, rather than actual larger batch size (2048?)
+2. we dynamically aggregate mini-batches to large batch
+3. This way we can both get large batch, avoid any potential issues with work queue overhead and avoid long idle periods.
+
+
 ### Benchmark 
 
 Let's do the following test for Apple's M2 ANE and whatever
