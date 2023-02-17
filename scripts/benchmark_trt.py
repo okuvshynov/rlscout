@@ -1,5 +1,4 @@
 from torch2trt import torch2trt
-import coremltools as ct
 import numpy as np
 import time
 import torch
@@ -12,22 +11,23 @@ def to_trt(torch_model, batch_size, device):
 
 run_for_nseconds = 30
 step_target = 0.05 * run_for_nseconds
+device = 'cuda'
 
 for nblocks in range(1, 15):
     model = ActionValueModel(nblocks=nblocks)
-    for log_batch_size in range(10):
+    for log_batch_size in range(12):
         batch_size = 2 ** log_batch_size
 
-        sample = {'x': np.random.rand(batch_size, 2, 8, 8)}
+        sample = torch.rand(batch_size, 2, 8, 8).detach().to(device)
         
-        ne_model = to_trt(model, batch_size, 'cuda')
+        ne_model = to_trt(model, batch_size, device)
 
         start = time.time()
         it = 0
         step = 100
         while True:
             for _ in range(step):
-                out = ne_model.predict(sample)
+                out = ne_model(sample)
             it += step
             curr = time.time()
             if curr > run_for_nseconds + start:
