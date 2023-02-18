@@ -34,6 +34,8 @@ Immediate next steps:
 [x] multi threading and queue for batches
   [ ] same for training - getting data/saving snapshot in a separate thread
 [x] measure moves/second rather than games/second
+[ ] try quantization
+[ ] duel with quantized model
 [ ] try e2e without 'no model' special case
 [ ] PID for rollout count
 [ ] model testing - how much to test stat sig
@@ -58,6 +60,22 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### revisiting M2 ANE again
+
+Based on synthetic test, with 256 batch size for 2 residual blocks 
+it takes [0.022ms per sample](scripts/m2_ane_benchmark.csv#L19), so the throughput is ~45k samples per second.
+With 1000 rollouts per move that would be equivalent to 45 moves per second. 
+
+What do we observe in practice for self-play is [~23k moves per 10 minute](scripts/m2_ane_moves_per_minute.log), thus, 38 moves per second which is pretty good.
+
+With 2 threads we get 24.8k moves per 10 minute, thus, 41 moves per second which is even better.
+
+### micro-batching for self-play
+
+if we will run quantized to fp8 on H100, we might expect 4x from quantization + ~5-6x from new HW. That would mean ~2M per second per GPU. If we have MPMC queue for 8 GPU workers, that's 16M/s operations which might have quite some overhead.
+
+So, we can probably proceed with hybrid approach: do the same MPMC, but for entire batches, not individual samples.
+
 ### quantization (post-training)
 
 just used in benchmark on A100. fp16 is ~2x more throughput and int8 2x more.
@@ -74,6 +92,7 @@ At the same time:
 2. Maybe other GPUs will get faster (e.g. H100?)
 3. With that, it's possible we can get to millions of evaluations/second and queue might become a bottleneck
 3. Thus, it is unclear if we'll be able to easily aggregate samples to a batch without hitting some issue where queue/syncronization becomes a bottleneck
+
 
 Hybrid approach is possible:
 1. we use batch MCTS on micro-batches of size, say, 128, rather than actual larger batch size (2048?)
