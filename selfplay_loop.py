@@ -39,6 +39,7 @@ raw_rollouts = 500000
 raw_temp = 1.5
 
 executor = ThreadPoolExecutor(max_workers=1)
+log_executor = ThreadPoolExecutor(max_workers=1)
 
 class ModelStore:
     def __init__(self, batch_size):
@@ -55,7 +56,7 @@ class ModelStore:
     def maybe_refresh_model(self):
         global device
         with self.lock:
-            if self.last_refresh + 1.0 > time.time():
+            if self.last_refresh + 2.0 > time.time():
                 # no refreshing too often
                 return
             out = self.game_client.get_best_model()
@@ -97,18 +98,18 @@ def start_batch_mcts():
             games_stats[winner] += 1
             local_gd = games_done
 
-        #models.maybe_refresh_model()
-        #model_id, model = models.get_best_model()
+        models.maybe_refresh_model()
+        model_id, model = models.get_best_model()
 
-        #nonlocal models_by_id
-        #models_by_id = {
-        #    model_id: model
-        #}
+        nonlocal models_by_id
+        models_by_id = {
+            model_id: model
+        }
         rate = 1.0 * local_gd / (time.time() - start)
         print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
-        return local_gd + batch_size <= games_to_play
+        return local_gd + batch_size * nthreads <= games_to_play
 
     def eval_fn(model_id):
         def eval_model():
@@ -119,14 +120,14 @@ def start_batch_mcts():
             (batch_size * board_size * board_size, )))
 
     def log_fn(model_id):
-        pass
-        #board = torch.from_numpy(log_boards_buffer).float()
-            
-        #prob = torch.from_numpy(log_probs_buffer)
-        #prob = prob / prob.sum()
-            
-        #client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
+        board = torch.from_numpy(log_boards_buffer)    
+        prob = torch.from_numpy(log_probs_buffer)
+        def log_impl(board, prob):
+            board = board.float()
+            prob = prob / prob.sum()
+            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
 
+        log_executor.submit(log_impl, board, prob)
 
     batch_mcts_lib.batch_mcts(
         batch_size,

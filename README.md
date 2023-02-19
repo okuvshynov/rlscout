@@ -60,6 +60,15 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### offload everything
+
+Looking at the GPU util, seems like we can just offload IO to separate thread and be happy.
+Commenting it out is >15games/second.
+
+And GPU util is ~94-95%
+
+
+
 ### revisiting M2 ANE again
 
 Based on synthetic test, with 256 batch size for 2 residual blocks 
