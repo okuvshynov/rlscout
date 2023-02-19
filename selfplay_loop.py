@@ -120,12 +120,11 @@ def start_batch_mcts():
         evaluator.enqueue_and_wait(boards_buffer, probs_buffer, cv)
 
     def log_fn(model_id):
-        board = torch.from_numpy(log_boards_buffer).float()
-            
-        prob = torch.from_numpy(log_probs_buffer)
-        prob = prob / prob.sum()
-            
-        client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
+        pass
+        #board = torch.from_numpy(log_boards_buffer).float()
+        #prob = torch.from_numpy(log_probs_buffer)
+        #prob = prob / prob.sum()            
+        #client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
 
     batch_mcts_lib.batch_mcts(
         minibatch_size,
