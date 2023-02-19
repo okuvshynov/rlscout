@@ -7,8 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
 from backend import backend
 import argparse
-from batch_evaluator import BatchEvaluator
-from threading import Condition
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
 device = "cpu"
@@ -26,9 +24,8 @@ if args.device is not None:
     device = args.device
 
 board_size = 8
-minibatch_size = 64
 batch_size = 256
-nthreads = 8
+nthreads = 2
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
@@ -41,7 +38,7 @@ model_temp = 4.0
 raw_rollouts = 500000
 raw_temp = 1.5
 
-evaluator = BatchEvaluator(None, minibatch_size, batch_size, board_size)
+executor = ThreadPoolExecutor(max_workers=1)
 
 class ModelStore:
     def __init__(self, batch_size):
@@ -77,9 +74,9 @@ class ModelStore:
 models = ModelStore(batch_size=batch_size)
 
 def start_batch_mcts():
-    boards_buffer = np.zeros(minibatch_size * 2 * board_size *
+    boards_buffer = np.zeros(batch_size * 2 * board_size *
                             board_size, dtype=np.int32)
-    probs_buffer = np.ones(minibatch_size * board_size * board_size, dtype=np.float32)
+    probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
 
     log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
     log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
@@ -91,9 +88,6 @@ def start_batch_mcts():
     models_by_id = {
         model_id: model
     }
-
-    evaluator.backend = model
-    cv = Condition()
 
     def game_done_fn(winner):
         global games_done, games_done_lock
@@ -114,10 +108,15 @@ def start_batch_mcts():
         print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
-        return local_gd + minibatch_size * nthreads<= games_to_play
+        return local_gd + batch_size <= games_to_play
 
     def eval_fn(model_id):
-        evaluator.enqueue_and_wait(boards_buffer, probs_buffer, cv)
+        def eval_model():
+            return models_by_id[model_id].get_probs(boards_buffer)
+        fut = executor.submit(eval_model)
+        probs = fut.result()
+        np.copyto(probs_buffer, probs.reshape(
+            (batch_size * board_size * board_size, )))
 
     def log_fn(model_id):
         board = torch.from_numpy(log_boards_buffer).float()
@@ -126,9 +125,10 @@ def start_batch_mcts():
         prob = prob / prob.sum()
             
         client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
+        pass
 
     batch_mcts_lib.batch_mcts(
-        minibatch_size,
+        batch_size,
         boards_buffer,
         probs_buffer,
         log_boards_buffer,
