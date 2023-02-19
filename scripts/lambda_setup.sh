@@ -26,6 +26,6 @@ cd ..
 # ### rlscout itself
 echo "Setting up rlscout"
 git clone https://github.com/okuvshynov/rlscout.git
-cd mnklib && make all && cd ..
+cd rlscout/mnklib && make all && cd ../..
 
 echo "Done."

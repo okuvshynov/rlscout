@@ -64,7 +64,7 @@ Immediate next steps:
 
 rather than using docker container, just pull everything we need.
 
-wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/rlscout/master/scripts/lambda_setup.sh && ~/lambda_rlscout_setup.sh
+wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/rlscout/master/scripts/lambda_setup.sh && chmod +x ~/lambda_rlscout_setup.sh && ~/lambda_rlscout_setup.sh
 
 
 ### offload everything
