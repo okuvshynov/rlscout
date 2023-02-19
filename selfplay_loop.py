@@ -25,7 +25,7 @@ if args.device is not None:
 
 board_size = 8
 batch_size = 256
-nthreads = 2
+nthreads = 1
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
@@ -97,13 +97,13 @@ def start_batch_mcts():
             games_stats[winner] += 1
             local_gd = games_done
 
-        models.maybe_refresh_model()
-        model_id, model = models.get_best_model()
+        #models.maybe_refresh_model()
+        #model_id, model = models.get_best_model()
 
-        nonlocal models_by_id
-        models_by_id = {
-            model_id: model
-        }
+        #nonlocal models_by_id
+        #models_by_id = {
+        #    model_id: model
+        #}
         rate = 1.0 * local_gd / (time.time() - start)
         print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
@@ -119,13 +119,14 @@ def start_batch_mcts():
             (batch_size * board_size * board_size, )))
 
     def log_fn(model_id):
-        board = torch.from_numpy(log_boards_buffer).float()
-            
-        prob = torch.from_numpy(log_probs_buffer)
-        prob = prob / prob.sum()
-            
-        client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
         pass
+        #board = torch.from_numpy(log_boards_buffer).float()
+            
+        #prob = torch.from_numpy(log_probs_buffer)
+        #prob = prob / prob.sum()
+            
+        #client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
+
 
     batch_mcts_lib.batch_mcts(
         batch_size,

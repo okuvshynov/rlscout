@@ -5,7 +5,7 @@ from collections import deque
 
 
 port = 8888
-db_filename = './_out/8x8/test3.db'
+db_filename = './_out/8x8/m1.db'
 #db_filename = ':memory:'
 
 context = zmq.Context()
