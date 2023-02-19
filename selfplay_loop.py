@@ -1,12 +1,13 @@
-import numpy as np
-from game_client import GameClient
+from concurrent.futures import ThreadPoolExecutor
 from threading import Thread, Lock
+import argparse
+import numpy as np
 import time
 import torch
-from concurrent.futures import ThreadPoolExecutor
-from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+
 from backends.backend import backend
-import argparse
+from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+from game_client import GameClient
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
 device = "cpu"

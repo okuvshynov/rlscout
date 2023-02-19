@@ -26,7 +26,7 @@ cd ..
 # ### rlscout itself
 echo "Setting up rlscout"
 git clone https://github.com/okuvshynov/rlscout.git
-cd rlscout/mnklib && make all && cd ../..
+cd rlscout/mctslib && make all && cd ../..
 cp rlscout/db/onemodel_template.db rlscout/db/onemodel.db
 
 echo "Done."

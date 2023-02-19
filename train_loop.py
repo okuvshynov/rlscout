@@ -1,11 +1,12 @@
-from action_value_model import ActionValueModel
+import argparse
 import random
 import sys
+import time
 import torch
 import torch.optim as optim
-import time
+
+from action_value_model import ActionValueModel
 from game_client import GameClient
-import argparse
 
 device = "cpu"
 if torch.backends.mps.is_available():

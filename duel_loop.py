@@ -1,10 +1,11 @@
+import argparse
 import numpy as np
-from backends.backend import backend
-from game_client import GameClient
 import time
 import torch
+
+from backends.backend import backend
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
-import argparse
+from game_client import GameClient
 
 device = "cpu"
 if torch.backends.mps.is_available():

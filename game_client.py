@@ -1,7 +1,7 @@
-import zmq
 from base64 import b64encode, b64decode
-import torch
 from io import BytesIO
+import torch
+import zmq
 
 def torch_encode(t):
     if t is None:

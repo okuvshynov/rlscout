@@ -1,6 +1,6 @@
+import coremltools as ct
 import numpy as np
 import torch
-import coremltools as ct
 
 def to_coreml(torch_model, batch_size=1, board_size=8):
     if torch_model is None:

@@ -81,7 +81,7 @@ struct GameSlot {
   MCTS mcts;
 
   // within current search state scope
-  State search_state;
+  State rollout_state;
   int node_id;
   int last_player;
 };
@@ -111,27 +111,27 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
       if (!g.slot_active || g.state.finished()) {
         continue;
       }
-      g.search_state = g.state;
+      g.rollout_state = g.state;
       g.node_id = g.mcts.root_id;
       while (g.mcts.nodes[g.node_id].children_count > 0) {
         g.node_id = g.mcts.select(g.mcts.nodes[g.node_id], temp);
-        g.search_state.apply_move(g.mcts.nodes[g.node_id].in_action);
+        g.rollout_state.apply_move(g.mcts.nodes[g.node_id].in_action);
       }
 
-      g.last_player = 1 - g.search_state.player;
+      g.last_player = 1 - g.rollout_state.player;
     }
 
-    // now expand all games where !search_state.finished
+    // now expand all games where !rollout_state.finished
     for (size_t i = 0; i < games.size(); ++i) {
       auto &g = games[i];
       // slot_active -- new game need to be started in that slot
       // finished -- this rollout is over, no need to evaluate
-      if (!g.slot_active || g.search_state.finished() || g.state.finished()) {
+      if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
         continue;
       }
       g.mcts.nodes[g.node_id].children_from = g.mcts.size;
       if (eval_cb != nullptr) {
-        g.search_state.fill_boards(boards_buffer + i * kBoardElements);
+        g.rollout_state.fill_boards(boards_buffer + i * kBoardElements);
       }
     }
     // eval_cb takes boards_buffer as an input and writes results to
@@ -143,10 +143,10 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
 
     for (size_t i = 0; i < games.size(); i++) {
       auto &g = games[i];
-      if (!g.slot_active || g.search_state.finished() || g.state.finished()) {
+      if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
         continue;
       }
-      uint64_t moves = g.search_state.valid_actions();
+      uint64_t moves = g.rollout_state.valid_actions();
       int j = g.mcts.size;
       for (uint64_t k = 0; k < State::M * State::N; k++) {
         if ((1ull << k) & moves) {
@@ -160,14 +160,14 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
       g.mcts.size = j;
 
       // TODO: get value from the model here
-      while (!g.search_state.finished()) {
-        g.search_state.take_random_action();
+      while (!g.rollout_state.finished()) {
+        g.rollout_state.take_random_action();
       }
     }
 
     for (auto &g : games) {
       if (g.slot_active && !g.state.finished()) {
-        g.mcts.record(g.node_id, g.search_state.score(g.last_player));
+        g.mcts.record(g.node_id, g.rollout_state.score(g.last_player));
       }
     }
   }

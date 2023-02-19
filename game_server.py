@@ -1,7 +1,8 @@
-import zmq
-from game_db import GameDB
-import time
 from collections import deque
+import time
+import zmq
+
+from game_db import GameDB
 
 port = 8888
 db_filename = './db/onemodel.db'
