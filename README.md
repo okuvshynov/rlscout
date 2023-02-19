@@ -43,6 +43,7 @@ Immediate next steps:
 [ ] check how many 'same' nodes visited during MCTS.
 [ ] decent logging
 [ ] decouple batch_mcts from game logic, so that we can reuse it in different game
+[ ] check bias=False performance
 
 [ ] sample rotations during mcts
 [ ] Implement value model head.

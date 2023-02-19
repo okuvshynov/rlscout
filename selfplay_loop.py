@@ -5,7 +5,7 @@ import time
 import torch
 from concurrent.futures import ThreadPoolExecutor
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
-from backend import backend
+from backends.backend import backend
 import argparse
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'

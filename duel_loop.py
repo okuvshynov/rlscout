@@ -1,5 +1,5 @@
 import numpy as np
-from backend import backend
+from backends.backend import backend
 from game_client import GameClient
 import time
 import torch
