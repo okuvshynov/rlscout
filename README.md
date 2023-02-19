@@ -34,14 +34,13 @@ Immediate next steps:
 [x] multi threading and queue for batches
   [ ] same for training - getting data/saving snapshot in a separate thread
 [x] measure moves/second rather than games/second
-[ ] try quantization
+[x] try quantization
 [ ] duel with quantized model
 [ ] try e2e without 'no model' special case
 [ ] PID for rollout count
 [ ] model testing - how much to test stat sig
 [ ] incremental training data update
 [ ] check how many 'same' nodes visited during MCTS.
-[ ] quantization
 
 [ ] sample rotations during mcts
 [ ] Implement value model head.
@@ -59,6 +58,14 @@ Immediate next steps:
 ```
 
 ## LIFO order notes
+
+
+### single script to setup everything for lambda cloud
+
+rather than using docker container, just pull everything we need.
+
+wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/rlscout/master/scripts/lambda_setup.sh && ~/lambda_rlscout_setup.sh
+
 
 ### offload everything
 
