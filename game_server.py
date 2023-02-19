@@ -27,7 +27,6 @@ def append_sample_log():
     while samples_last_10min[0] + 600.0 < now:
         samples_last_10min.popleft()
 
-
 while True:
     req = socket.recv_json()
     res = {}

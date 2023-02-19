@@ -184,7 +184,8 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
 
 extern "C" {
 
-// we add something like 'game name' here
+// we add something like 'game name' here and dispatch to the 
+// right implementation
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, int32_t *log_boards_buffer,
                 float *log_probs_buffer, void (*eval_cb)(int32_t),

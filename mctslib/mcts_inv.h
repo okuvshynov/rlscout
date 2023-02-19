@@ -1,9 +1,8 @@
 #pragma once
 
-#include <iostream>
 #include <memory>
 #include <cmath>
-
+#include <vector>
 
 struct MCTSNode {
   uint64_t in_action;

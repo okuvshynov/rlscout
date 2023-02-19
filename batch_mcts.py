@@ -5,7 +5,7 @@ import os
 from numpy.ctypeslib import ndpointer
 
 batch_mcts_lib = ctl.load_library("libmcts.so", os.path.join(
-    os.path.dirname(__file__), "mnklib", "_build"))
+    os.path.dirname(__file__), "mctslib", "_build"))
 
 LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
 BoolFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32)
