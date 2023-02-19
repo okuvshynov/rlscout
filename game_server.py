@@ -3,9 +3,8 @@ from game_db import GameDB
 import time
 from collections import deque
 
-
 port = 8888
-db_filename = './_out/8x8/m1.db'
+db_filename = './db/onemodel.db'
 #db_filename = ':memory:'
 
 context = zmq.Context()
