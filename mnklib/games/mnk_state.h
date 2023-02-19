@@ -6,10 +6,13 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "is_winning.h"
+#include "mnk_is_winning.h"
 
+// This is mnk-game specific state
+// We need to clearly define interface here
+// so that we can make generic batch mcts work with other games
 template<uint8_t m, uint8_t n, uint8_t k>
-struct State {
+struct MNKState {
 
   // in fact for now we only support 6x6, 7x7 and 8x8 boards and 5 in a row.
   // as we didn't generate the is_winning code for other variants.
@@ -19,6 +22,9 @@ struct State {
   // -1 if not finished or draw
   int32_t winner = -1;
   uint64_t board[2] = {0ULL, 0ULL};
+
+  static constexpr auto M = m;
+  static constexpr auto N = n;
 
   static constexpr uint64_t kFullBoard = m * n < 64 ? ((1ULL << (m * n)) - 1ULL) : 0xFFFFFFFFFFFFFFFFULL;
 
@@ -92,6 +98,7 @@ struct State {
   }
 
   // TODO: silly
+  // Won't need this once we have value model though
   void take_random_action() {
     while (true) {
       uint64_t index = rand() % (m * n);

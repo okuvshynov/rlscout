@@ -4,7 +4,6 @@
 #include <memory>
 #include <cmath>
 
-#include "state.h"
 
 struct MCTSNode {
   uint64_t in_action;
