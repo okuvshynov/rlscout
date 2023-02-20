@@ -74,7 +74,7 @@ here we try the following setup:
 285k samples received in 10 minutes, which is 285m evaluations in 10 min, which is ~500k samples/second. GPU util is at ~75%.
 
 synthetic benchmark w fp16:
-
+```
 2,1,30.137,236700,0.127
 2,2,30.137,473400,0.064
 2,4,30.113,946800,0.032
@@ -85,8 +85,9 @@ synthetic benchmark w fp16:
 2,128,30.415,13504000,0.002
 2,256,30.809,17177600,0.002
 2,512,30.183,19609600,0.002
+```
 
-Our throughput is very close to synthetic benchmark.
+Benchmark throughput is 650k samples/second. We can probably improve a little further.
 
 ### single script to setup everything for lambda cloud
 

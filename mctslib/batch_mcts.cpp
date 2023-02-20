@@ -6,6 +6,20 @@
 
 #include "games/mnk_state.h"
 
+/*
+
+This is batched implementation of MCTS (or, rather, PUCT) algorithm. 
+Rather than parallelizing each individual MCTS instance we just play multiple games at a time.
+
+
+For self-play and player evaluation we care more about throughput than latency, thus, 
+we can serially evaluate and prepare the board for evaluation, evaluate them in 1 batch and then continue serially.
+
+Multithreading (and another layer of batching) can be applied on top if needed.
+
+
+*/
+
 std::random_device batch_mcts_rd;
 
 struct MCTSNode {
@@ -159,10 +173,16 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
   static const int kBoardElements = 2 * State::M * State::N;
   static const int kProbElements = State::M * State::N;
   for (int32_t r = 0; r < rollouts; r++) {
-    for (auto &g : game_slots) {
+
+    // serially traverse the tree for each active game slot
+    // and prepare the board for each game for evaluation
+    for (size_t i = 0; i < game_slots.size(); ++i) {
+      auto &g = game_slots[i];
       if (!g.slot_active || g.state.finished()) {
         continue;
       }
+
+      // traverse the tree until we get to leaf node
       g.rollout_state = g.state;
       g.node_id = g.root_id;
       while (g.nodes[g.node_id].children_count > 0) {
@@ -171,56 +191,52 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
       }
 
       g.last_player = 1 - g.rollout_state.player;
-    }
 
-    // now expand all games where !rollout_state.finished
-    for (size_t i = 0; i < game_slots.size(); ++i) {
-      auto &g = game_slots[i];
-      // slot_active -- new game can be started in that slot
-      // finished -- this rollout is over, no need to evaluate
-      if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
+      // if leaf node was 'end-of-game' there's no need to evaluate action model 
+      if (g.rollout_state.finished()) {
         continue;
       }
-      g.nodes[g.node_id].children_from = g.size;
+
       if (eval_cb != nullptr) {
         g.rollout_state.fill_boards(boards_buffer + i * kBoardElements);
       }
     }
-    // eval_cb takes boards_buffer as an input and writes results to
-    // probs_buffer.
-    // Where do we pass value? 
+
+    // now evaluate model for all the game slots (including inactive ones)
+    // we'll just ignore the output for that part of input.
+    // eval_cb takes boards_buffer as an input and writes results to probs_buffer.
+    // TODO: Where do we pass value? 
     if (eval_cb != nullptr && model_id != 0) {
       eval_cb(model_id);
     }
 
     for (size_t i = 0; i < game_slots.size(); ++i) {
       auto &g = game_slots[i];
-      if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
+      if (!g.slot_active || g.state.finished()) {
         continue;
       }
-      uint64_t moves = g.rollout_state.valid_actions();
-      int j = g.size;
-      for (uint64_t k = 0; k < State::M * State::N; k++) {
-        if ((1ull << k) & moves) {
-          g.nodes[j] = MCTSNode(model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
-          g.nodes[j].parent = g.node_id;
-          g.nodes[j].in_action = k;
-          j++;
+
+      if (!g.rollout_state.finished()) {
+        g.nodes[g.node_id].children_from = g.size;
+        uint64_t moves = g.rollout_state.valid_actions();
+        int j = g.size;
+        for (uint64_t k = 0; k < State::M * State::N; k++) {
+          if ((1ull << k) & moves) {
+            g.nodes[j] = MCTSNode(model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
+            g.nodes[j].parent = g.node_id;
+            g.nodes[j].in_action = k;
+            j++;
+          }
+        }
+        g.nodes[g.node_id].children_count = j - g.size;
+        g.size = j;
+
+        // TODO: get value from the model here
+        while (!g.rollout_state.finished()) {
+          g.rollout_state.take_random_action();
         }
       }
-      g.nodes[g.node_id].children_count = j - g.size;
-      g.size = j;
-
-      // TODO: get value from the model here
-      while (!g.rollout_state.finished()) {
-        g.rollout_state.take_random_action();
-      }
-    }
-
-    for (auto &g : game_slots) {
-      if (g.slot_active && !g.state.finished()) {
-        g.record(g.node_id, g.rollout_state.score(g.last_player));
-      }
+      g.record(g.node_id, g.rollout_state.score(g.last_player));
     }
   }
   // now pick and apply moves
