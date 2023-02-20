@@ -5,9 +5,24 @@
 #include <vector>
 
 #include "games/mnk_state.h"
-#include "mcts_inv.h"
 
 std::random_device batch_mcts_rd;
+
+struct MCTSNode {
+  uint64_t in_action;
+  double N = 0.0;
+  double Q = 0.0;
+  double P = 0.0;
+  int parent = -1;
+
+  // rather than creating nodes dynamically we'll create a contiguous buffer
+  // in advance and fill it in. Children of current node will be stored in that
+  // buffer at indicies [children_from; children_from + children_count)
+  int children_from = 0;
+  int children_count = 0;
+  MCTSNode(double prior) : P(prior) {};
+  MCTSNode() : P(1.0) {};
+};
 
 template<typename State>
 struct GameSlot {
@@ -19,8 +34,8 @@ struct GameSlot {
     static thread_local std::array<uint64_t, State::M * State::N> visits;
     std::fill(visits.begin(), visits.end(), 0ull);
 
-    for (int i = 0; i < mcts.nodes[mcts.root_id].children_count; i++) {
-      const auto &node = mcts.nodes[mcts.nodes[mcts.root_id].children_from + i];
+    for (int i = 0; i < nodes[root_id].children_count; i++) {
+      const auto &node = nodes[nodes[root_id].children_from + i];
       visits[node.in_action] = node.N;
     }
 
@@ -39,8 +54,8 @@ struct GameSlot {
     for (int i = 0; i < State::N * State::M; i++) {
       freq_buffer[i] = 0.0f;
     }
-    for (int i = 0; i < mcts.nodes[mcts.root_id].children_count; i++) {
-      const auto &node = mcts.nodes[mcts.nodes[mcts.root_id].children_from + i];
+    for (int i = 0; i < nodes[root_id].children_count; i++) {
+      const auto &node = nodes[nodes[root_id].children_from + i];
       freq_buffer[node.in_action] = node.N;
     }
   }
@@ -68,6 +83,42 @@ struct GameSlot {
     }
   }
 
+  void reset(size_t buffer_size) {
+    nodes.resize(buffer_size);
+    nodes[0] = MCTSNode(1.0);
+    size = 1;
+  }
+
+  double value(const MCTSNode& node, double temp) const {
+    double res = node.Q;
+    if (node.parent != -1) {
+      res += node.P * temp * std::sqrt(nodes[node.parent].N) / (node.N + 1.0);
+    }
+    return res;
+  }
+
+  int select(MCTSNode& node, double temp) const {
+    double mx = -10000.0;
+    int32_t mxi = -1;
+    for (int i = 0; i < node.children_count; i++) {
+      double val = value(nodes[node.children_from + i], temp);
+      if (val > mx) {
+        mx = val;
+        mxi = i;
+      }
+    }
+    return node.children_from + mxi;
+  }
+
+  void record(int node_id, double value) {
+    auto& node = nodes[node_id];
+    if (node.parent >= 0) {
+      record(node.parent, -value);
+    }
+    node.Q = (node.Q * node.N + value) / (node.N + 1);
+    node.N++;
+  }
+
   // global scope
   std::mt19937 gen;
   bool slot_active = true;
@@ -77,7 +128,11 @@ struct GameSlot {
   State state;
 
   // per each move scope
-  MCTS mcts;
+  std::vector<MCTSNode> nodes;
+  int size = 0;
+  // currently we do not reuse search tree during self-play at all. In this case, 
+  // there's no need to store root_id. We might want to add it in future though.
+  int root_id = 0;
 
   // within current search state scope
   State rollout_state;
@@ -98,7 +153,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
     if (!g.slot_active || g.state.finished()) {
       continue;
     }
-    g.mcts.reset(rollouts * State::M * State::N);
+    g.reset(rollouts * State::M * State::N);
   }
   
   static const int kBoardElements = 2 * State::M * State::N;
@@ -109,10 +164,10 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         continue;
       }
       g.rollout_state = g.state;
-      g.node_id = g.mcts.root_id;
-      while (g.mcts.nodes[g.node_id].children_count > 0) {
-        g.node_id = g.mcts.select(g.mcts.nodes[g.node_id], temp);
-        g.rollout_state.apply_move(g.mcts.nodes[g.node_id].in_action);
+      g.node_id = g.root_id;
+      while (g.nodes[g.node_id].children_count > 0) {
+        g.node_id = g.select(g.nodes[g.node_id], temp);
+        g.rollout_state.apply_move(g.nodes[g.node_id].in_action);
       }
 
       g.last_player = 1 - g.rollout_state.player;
@@ -126,7 +181,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
       if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
         continue;
       }
-      g.mcts.nodes[g.node_id].children_from = g.mcts.size;
+      g.nodes[g.node_id].children_from = g.size;
       if (eval_cb != nullptr) {
         g.rollout_state.fill_boards(boards_buffer + i * kBoardElements);
       }
@@ -144,17 +199,17 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         continue;
       }
       uint64_t moves = g.rollout_state.valid_actions();
-      int j = g.mcts.size;
+      int j = g.size;
       for (uint64_t k = 0; k < State::M * State::N; k++) {
         if ((1ull << k) & moves) {
-          g.mcts.nodes[j] = MCTSNode(model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
-          g.mcts.nodes[j].parent = g.node_id;
-          g.mcts.nodes[j].in_action = k;
+          g.nodes[j] = MCTSNode(model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
+          g.nodes[j].parent = g.node_id;
+          g.nodes[j].in_action = k;
           j++;
         }
       }
-      g.mcts.nodes[g.node_id].children_count = j - g.mcts.size;
-      g.mcts.size = j;
+      g.nodes[g.node_id].children_count = j - g.size;
+      g.size = j;
 
       // TODO: get value from the model here
       while (!g.rollout_state.finished()) {
@@ -164,7 +219,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
 
     for (auto &g : game_slots) {
       if (g.slot_active && !g.state.finished()) {
-        g.mcts.record(g.node_id, g.rollout_state.score(g.last_player));
+        g.record(g.node_id, g.rollout_state.score(g.last_player));
       }
     }
   }
@@ -181,7 +236,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
 
 extern "C" {
 
-// we add something like 'game name' here and dispatch to the 
+// TODO: add something like 'game name' here and dispatch to the 
 // right implementation
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, int32_t *log_boards_buffer,
