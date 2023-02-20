@@ -11,7 +11,7 @@ std::random_device batch_mcts_rd;
 
 template<typename State>
 struct GameSlot {
-  GameSlot() : gen{batch_mcts_rd()}, mcts(buf) {}
+  GameSlot() : gen{batch_mcts_rd()} {}
 
   void restart() { state = State(); }
 
@@ -69,7 +69,6 @@ struct GameSlot {
   }
 
   // global scope
-  std::vector<MCTSNode> buf;
   std::mt19937 gen;
   bool slot_active = true;
   uint64_t total_moves = 0ull;
@@ -89,25 +88,23 @@ struct GameSlot {
 
 // plays one move in all active games in all slots
 template<typename State>
-void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double temp,
+void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
                  int32_t *boards_buffer, float *probs_buffer,
                  int32_t *log_boards_buffer, float *log_probs_buffer,
                  void (*eval_cb)(int32_t), void (*log_freq_cb)(int32_t),
                  bool (*log_game_done_cb)(int32_t), uint32_t model_id,
                  uint32_t explore_for_n_moves) {
-  for (auto &g : games) {
+  for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
       continue;
     }
-    g.buf.resize(rollouts * State::M * State::N);
-    g.mcts.reset();
+    g.mcts.reset(rollouts * State::M * State::N);
   }
   
   static const int kBoardElements = 2 * State::M * State::N;
   static const int kProbElements = State::M * State::N;
   for (int32_t r = 0; r < rollouts; r++) {
-    // traverse all games
-    for (auto &g : games) {
+    for (auto &g : game_slots) {
       if (!g.slot_active || g.state.finished()) {
         continue;
       }
@@ -122,9 +119,9 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
     }
 
     // now expand all games where !rollout_state.finished
-    for (size_t i = 0; i < games.size(); ++i) {
-      auto &g = games[i];
-      // slot_active -- new game need to be started in that slot
+    for (size_t i = 0; i < game_slots.size(); ++i) {
+      auto &g = game_slots[i];
+      // slot_active -- new game can be started in that slot
       // finished -- this rollout is over, no need to evaluate
       if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
         continue;
@@ -141,8 +138,8 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
       eval_cb(model_id);
     }
 
-    for (size_t i = 0; i < games.size(); i++) {
-      auto &g = games[i];
+    for (size_t i = 0; i < game_slots.size(); ++i) {
+      auto &g = game_slots[i];
       if (!g.slot_active || g.rollout_state.finished() || g.state.finished()) {
         continue;
       }
@@ -165,14 +162,14 @@ void single_move(std::vector<GameSlot<State>> &games, int32_t rollouts, double t
       }
     }
 
-    for (auto &g : games) {
+    for (auto &g : game_slots) {
       if (g.slot_active && !g.state.finished()) {
         g.mcts.record(g.node_id, g.rollout_state.score(g.last_player));
       }
     }
   }
   // now pick and apply moves
-  for (auto &g : games) {
+  for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
       continue;
     }

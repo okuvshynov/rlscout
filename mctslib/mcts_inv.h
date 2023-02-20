@@ -22,16 +22,12 @@ struct MCTSNode {
 };
 
 struct MCTS {
-  std::vector<MCTSNode>& nodes;
+  std::vector<MCTSNode> nodes;
   int size = 0;
   int root_id = 0;
 
-  // no ownership over buffer
-  MCTS(std::vector<MCTSNode>& nodes)
-      : nodes(nodes) {
-  }
-
-  void reset() {
+  void reset(size_t buffer_size) {
+    nodes.resize(buffer_size);
     nodes[0] = MCTSNode(1.0);
     size = 1;
   }
