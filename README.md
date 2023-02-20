@@ -62,6 +62,31 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### testing fp16 on a100
+
+here we try the following setup:
+1. 2048 batch size
+2. 3 threads
+3. fp16 allowed for trt
+4. 1000 rollouts per move
+5. 2 res blocks
+
+285k samples received in 10 minutes, which is 285m evaluations in 10 min, which is ~500k samples/second. GPU util is at ~75%.
+
+synthetic benchmark w fp16:
+
+2,1,30.137,236700,0.127
+2,2,30.137,473400,0.064
+2,4,30.113,946800,0.032
+2,8,30.182,1893600,0.016
+2,16,30.417,3787200,0.008
+2,32,30.344,7369600,0.004
+2,64,30.420,10233600,0.003
+2,128,30.415,13504000,0.002
+2,256,30.809,17177600,0.002
+2,512,30.183,19609600,0.002
+
+Our throughput is very close to synthetic benchmark.
 
 ### single script to setup everything for lambda cloud
 

@@ -24,6 +24,9 @@ struct MCTSNode {
 struct MCTS {
   std::vector<MCTSNode> nodes;
   int size = 0;
+
+  // currently we do not reuse search tree during self-play at all. In this case, 
+  // there's no need to store root_id. We might want to add it in future though.
   int root_id = 0;
 
   void reset(size_t buffer_size) {
