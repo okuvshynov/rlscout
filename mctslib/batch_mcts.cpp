@@ -155,6 +155,9 @@ struct GameSlot {
 };
 
 
+uint64_t puct_cycles = 0ull, puct_wasted_cycles = 0ll;
+
+
 // plays one move in all active games in all slots
 template<typename State>
 void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
@@ -172,13 +175,16 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
   
   static const int kBoardElements = 2 * State::M * State::N;
   static const int kProbElements = State::M * State::N;
+
   for (int32_t r = 0; r < rollouts; r++) {
 
     // serially traverse the tree for each active game slot
     // and prepare the board for each game for evaluation
     for (size_t i = 0; i < game_slots.size(); ++i) {
+      puct_cycles++;
       auto &g = game_slots[i];
       if (!g.slot_active || g.state.finished()) {
+        puct_wasted_cycles++;
         continue;
       }
 
@@ -194,6 +200,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
 
       // if leaf node was 'end-of-game' there's no need to evaluate action model 
       if (g.rollout_state.finished()) {
+        puct_wasted_cycles++;
         continue;
       }
 
@@ -287,6 +294,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
         }
       }
     }
+    std::cout << "puct cycles: " << puct_cycles << ", " << puct_wasted_cycles << std::endl;
   }
 }
 }

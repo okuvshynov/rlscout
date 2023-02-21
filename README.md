@@ -6,6 +6,10 @@ Rough idea is the following:
 1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game <---- we are here now
 2. Use that model to provide a good ordering for full search, like [PVS](https://www.chessprogramming.org/Principal_Variation_Search)
 
+Currently is tested on:
+1. Apple's M* SoC (using GPU for training, ANE for self-play)
+2. x86 Linux with nVidia GPUs
+
 ## TODO now
 
 Immediate next steps:
@@ -61,6 +65,16 @@ Immediate next steps:
 ```
 
 ## LIFO order notes
+
+### wasted puct cycles
+
+Despite high GPU utilization, we might be wasting some of it. We'll evaluate whole batch no matter what, even if game is not in the active state.
+
+Measurements show that ~10% of all evaluations are wasted:
+
+```puct cycles: 126976000, 12967108```
+
+We can overcome that by introducing separate game queue (still in single thread).
 
 ### testing fp16 on a100
 
