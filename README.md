@@ -76,6 +76,22 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### training data diversity and exploration rate
+TBD. Put some chart here
+
+Query to get it from db:
+```
+sqlite> select repeats, sum(1) from (select boards_tensor, probs_tensor, sum(1) as repeats from samples group by boards_tensor, probs_tensor) group by repeats;
+```
+
+What we can visualize is the rate of repetition as a function of 'explore till move N' 
+
+### NaN / Inf in the training data
+
+Likely happens when I abruptly shut down self-play.
+Need to fix still.
+
+
 ### wasted puct cycles
 
 Despite high GPU utilization, we might be wasting some of it. We'll evaluate whole batch no matter what, even if game is not in the active state.
