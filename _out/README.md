@@ -1,1 +1,0 @@
-# all artifacts (training data, logs, models go here for now)

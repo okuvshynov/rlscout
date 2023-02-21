@@ -1,1 +1,0 @@
-artifacts for 7x7x5 mnk

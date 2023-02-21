@@ -39,6 +39,7 @@ Immediate next steps:
   [ ] same for training - getting data/saving snapshot in a separate thread
 [x] measure moves/second rather than games/second
 [x] try quantization
+[ ] avoid wasted puct cycles
 [ ] duel with quantized model
 [ ] try e2e without 'no model' special case
 [ ] PID for rollout count
@@ -116,8 +117,6 @@ Looking at the GPU util, seems like we can just offload IO to separate thread an
 Commenting it out is >15games/second.
 
 And GPU util is ~94-95%
-
-
 
 ### revisiting M2 ANE again
 
