@@ -4,6 +4,7 @@ import sys
 import time
 import torch
 import torch.optim as optim
+import math
 
 from action_value_model import ActionValueModel
 from game_client import GameClient
@@ -48,7 +49,7 @@ if action_model is None:
 
 action_model = action_model.to(device)
 
-optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.005)
+optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.001)
 
 # expects tensor of shape [?, N, N], returns list of 8 tensors
 def symm(t):
@@ -93,6 +94,8 @@ for checkpoint in range(checkpoints):
 
     samples_symm = []
     for b, p in samples:
+        if torch.isnan(b).any() or torch.isnan(p).any():
+            continue
         samples_symm.extend(list(zip(symm(b), symm(p))))
 
     print(f'training on {len(samples_symm)} recent samples')

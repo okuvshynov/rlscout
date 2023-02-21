@@ -86,6 +86,8 @@ Measurements show that ~10% of all evaluations are wasted:
 
 We can overcome that by introducing separate game queue (still in single thread).
 
+
+
 ### testing fp16 on a100
 
 here we try the following setup:

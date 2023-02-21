@@ -3,7 +3,7 @@ from utils import plot_sample
 
 client = GameClient()
 
-samples = client.get_batch(100)
+samples = client.get_batch(10)
 
 def format_sample(sample):
     b, p = sample

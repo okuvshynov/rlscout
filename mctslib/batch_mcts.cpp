@@ -17,7 +17,6 @@ we can serially evaluate and prepare the board for evaluation, evaluate them in 
 
 Multithreading (and another layer of batching) can be applied on top if needed.
 
-
 */
 
 std::random_device batch_mcts_rd;
@@ -154,9 +153,7 @@ struct GameSlot {
   int last_player;
 };
 
-
 uint64_t puct_cycles = 0ull, puct_wasted_cycles = 0ll;
-
 
 // plays one move in all active games in all slots
 template<typename State>

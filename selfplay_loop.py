@@ -123,6 +123,9 @@ def start_batch_mcts():
     def log_fn(model_id):
         board = torch.from_numpy(log_boards_buffer)    
         prob = torch.from_numpy(log_probs_buffer)
+        print(board)
+        print(prob)
+        input()
         def log_impl(board, prob):
             board = board.float()
             prob = prob / prob.sum()
