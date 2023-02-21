@@ -10,6 +10,15 @@ Currently is tested on:
 1. Apple's M* SoC (using GPU for training, ANE for self-play)
 2. x86 Linux with nVidia GPUs
 
+### script to setup everything for lambda cloud instance
+
+just pull everything we need.
+
+```
+wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/rlscout/master/scripts/lambda_setup.sh && chmod +x ~/lambda_rlscout_setup.sh && ~/lambda_rlscout_setup.sh
+```
+
+
 ## TODO now
 
 Immediate next steps:
@@ -103,12 +112,6 @@ synthetic benchmark w fp16:
 ```
 
 Benchmark throughput is 650k samples/second. We can probably improve a little further.
-
-### single script to setup everything for lambda cloud
-
-rather than using docker container, just pull everything we need.
-
-wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/rlscout/master/scripts/lambda_setup.sh && chmod +x ~/lambda_rlscout_setup.sh && ~/lambda_rlscout_setup.sh
 
 
 ### offload everything
@@ -210,8 +213,6 @@ on single A100 with model update, 2048 batch size and 3 CPU threads we reach 12+
 
 on Apple M2 with 256 batch and no model update
 rate = 0.833 games/s
-
-
 
 
 ## Brief notes/history of building it
@@ -388,72 +389,3 @@ Current way to run the process:
 ```python duel_loop.py```
 
 To monitor what's going on we can query sqlite db.
-Here's an example of how it looks after 7-10 hours on a single MacBook Air
-
-This is a query which shows 'which model was used to generate self-play data'. 
-```
-% sqlite3 ./_out/8x8/test3.db
-sqlite> select produced_by_model, sum(1) from samples group by produced_by_model;
-0|166384
-3|39736
-8|22632
-10|20080
-12|10944
-13|44032
-17|10504
-18|12880
-19|22112
-21|21856
-24|74584
-33|9288
-34|27864
-37|8456
-38|40192
-42|20912
-44|9280
-45|10488
-46|21016
-```
-
-
-Here's a history of model selection - if new model snapshot was considered 'better' 
-and was selected for self-play (the ones with '+')
-
-```
-sqlite> select id, evaluation from models;
-1|-
-2|-
-3|+
-4|-
-5|-
-6|-
-7|-
-8|+
-9|-
-10|+
-11|-
-12|+
-13|+
-14|-
-15|-
-16|-
-17|+
-18|+
-19|+
-20|-
-21|+
-22|-
-23|-
-24|+
-25|-
-26|-
-27|-
-28|-
-29|-
-30|-
-31|-
-32|-
-33|+
-34|+
-35|-
-```
