@@ -49,7 +49,7 @@ if action_model is None:
 
 action_model = action_model.to(device)
 
-optimizer = optim.Adam(action_model.parameters(), weight_decay=0.001, lr=0.001)
+optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9)
 
 # expects tensor of shape [?, N, N], returns list of 8 tensors
 def symm(t):
@@ -95,6 +95,8 @@ for checkpoint in range(checkpoints):
     samples_symm = []
     for b, p in samples:
         if torch.isnan(b).any() or torch.isnan(p).any():
+            continue
+        if torch.isinf(b).any() or torch.isinf(p).any():
             continue
         samples_symm.extend(list(zip(symm(b), symm(p))))
 
