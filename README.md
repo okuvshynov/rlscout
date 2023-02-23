@@ -48,6 +48,11 @@ Immediate next steps:
   [ ] same for training - getting data/saving snapshot in a separate thread
 [x] measure moves/second rather than games/second
 [x] try quantization
+
+[ ] othello state for 6x6 and 8x8
+[ ] frozen baseline - pure mcts
+
+
 [ ] avoid wasted puct cycles
 [ ] duel with quantized model
 [ ] try e2e without 'no model' special case
@@ -76,6 +81,38 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### othello
+
+Given that most likely and interesting candidate is 8x8 othello, let's implement that game.
+Something I need to look at is the best way to find all legal moves (seems possible to do with bit operations?)
+and applying the moves themselves.
+
+If we represent a board as 2 64-bit ints.
+All valid moves has to have opponent stone as a neighbor and be empty.
+
+So, for example, to get bits which has neighbor to the right we probably can:
+
+1. mask out right boundary 
+```v0 = board[opp] & 0xfefefefefefefefe;```
+
+2. shift to the right by 1
+
+```v0 = (v0 >> 1)```
+
+3. check that bits are in empty slots:
+
+```v0 = v0 & (~(board[self] | board[opp]))```
+
+After that we can do the same with other 7 directions, and OR all of them
+
+That's not sufficient - we need to have own stone at the end of the line though.
+
+We can pre-generate the masks to check? Something like we did for winner check in mnk game.
+
+This looks a little slower than it could be though. 
+
+Need to look into this more, there might be already implementations doing this using AVX/NEON.
+
 ### training data diversity and exploration rate
 TBD. Put some chart here
 
@@ -84,7 +121,7 @@ Query to get it from db:
 sqlite> select repeats, sum(1) from (select boards_tensor, probs_tensor, sum(1) as repeats from samples group by boards_tensor, probs_tensor) group by repeats;
 ```
 
-What we can visualize is the rate of repetition as a function of 'explore till move N' 
+What we can visualize is the rate of repetition as a function of 'explore till move N' ?
 
 ### NaN / Inf in the training data
 

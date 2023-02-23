@@ -4,7 +4,6 @@ import sys
 import time
 import torch
 import torch.optim as optim
-import math
 
 from action_value_model import ActionValueModel
 from game_client import GameClient
