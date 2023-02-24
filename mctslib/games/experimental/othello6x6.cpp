@@ -10,130 +10,88 @@
 // However, we'll use the same implementation for full search, where speed will become 
 // important
 
+// TODO: refactor all this so that it's not that long!!! 
+// do not unroll everything prematurely!!!
 template<uint64_t N>
 struct OthelloValidMoves {
     static_assert(N == 6 || N == 8, "Only 6x6 and 8x8 boards");
 
-    static const uint64_t kLeft1Mask = ~0b000001000001000001000001000001000001ull;
-    static const uint64_t kLeft2Mask = ~0b000011000011000011000011000011000011ull;
-    static const uint64_t kLeft3Mask = ~0b000111000111000111000111000111000111ull;
-    static const uint64_t kLeft4Mask = ~0b001111001111001111001111001111001111ull;
-    static const uint64_t kLeft5Mask = ~0b011111011111011111011111011111011111ull;
-    
-    static const uint64_t kRight1Mask  = ~0b100000100000100000100000100000100000ull;
-    static const uint64_t kRight2Mask  = ~0b110000110000110000110000110000110000ull;
-    static const uint64_t kRight3Mask  = ~0b111000111000111000111000111000111000ull;
-    static const uint64_t kRight4Mask  = ~0b111100111100111100111100111100111100ull;
-    static const uint64_t kRight5Mask  = ~0b111110111110111110111110111110111110ull;  
+    static constexpr uint64_t kLeftMasks[N - 1] = {
+        ~0b000001000001000001000001000001000001ull,
+        ~0b000011000011000011000011000011000011ull,
+        ~0b000111000111000111000111000111000111ull,
+        ~0b001111001111001111001111001111001111ull,
+        ~0b011111011111011111011111011111011111ull       
+    };
 
-    static const uint64_t kTop1Mask = ~0b000000000000000000000000000000111111ull;
-    static const uint64_t kTop2Mask = ~0b000000000000000000000000111111111111ull;
-    static const uint64_t kTop3Mask = ~0b000000000000000000111111111111111111ull;
-    static const uint64_t kTop4Mask = ~0b000000000000111111111111111111111111ull;
-    static const uint64_t kTop5Mask = ~0b000000111111111111111111111111111111ull;
+    static constexpr uint64_t kRightMasks[N - 1] = {
+        ~0b100000100000100000100000100000100000ull,
+        ~0b110000110000110000110000110000110000ull,
+        ~0b111000111000111000111000111000111000ull,
+        ~0b111100111100111100111100111100111100ull,
+        ~0b111110111110111110111110111110111110ull 
+    };
 
-    static const uint64_t kBottom1Mask = ~0b111111000000000000000000000000000000ull;
-    static const uint64_t kBottom2Mask = ~0b111111111111000000000000000000000000ull;
-    static const uint64_t kBottom3Mask = ~0b111111111111111111000000000000000000ull;
-    static const uint64_t kBottom4Mask = ~0b111111111111111111111111000000000000ull;
-    static const uint64_t kBottom5Mask = ~0b111111111111111111111111111111000000ull;
+    static constexpr uint64_t kTopMasks[N - 1] = {
+        ~0b000000000000000000000000000000111111ull,
+        ~0b000000000000000000000000111111111111ull,
+        ~0b000000000000000000111111111111111111ull,
+        ~0b000000000000111111111111111111111111ull,
+        ~0b000000111111111111111111111111111111ull
+    };
 
-    // moving left-right is equivalent to shifts by 1 right/left
-    static uint64_t valid_moves_h(uint64_t self, uint64_t opp) {
+    static constexpr uint64_t kBottomMasks[N - 1] = {
+        ~0b111111000000000000000000000000000000ull,
+        ~0b111111111111000000000000000000000000ull,
+        ~0b111111111111111111000000000000000000ull,
+        ~0b111111111111111111111111000000000000ull,
+        ~0b111111111111111111111111111111000000ull
+    };
+
+    static uint64_t valid_moves(uint64_t self, uint64_t opp) {
         uint64_t res = 0ull;
+        static const uint64_t full = 0xffffffffffffffffull;
+        uint64_t o1 = full, o2 = full, o3 = full, o4 = full;
+        uint64_t o5 = full, o6 = full, o7 = full, o8 = full;
+        uint64_t s;
 
-        // elements to the left of opp
-        uint64_t o1 = (opp & kLeft1Mask) >> 1ull;
-        uint64_t s1 = (self & kLeft2Mask) >> 2ull;
-        res |= (o1 & s1);
+        for (uint64_t i = 0; i + 2 < N; i++) {
+            // horizontal
+            o1 &= ((opp & kLeftMasks[i]) >> (i + 1ull));
+            s = (self & kLeftMasks[i + 1]) >> (i + 2ull);
+            res |= (o1 & s);
 
-        // next must be either self or opp
-        o1 &= ((opp & kLeft2Mask) >> 2ull);
-        s1 = (self & kLeft3Mask) >> 3ull;
-        res |= (o1 & s1);
+            o2 &= ((opp & kRightMasks[i]) << (i + 1ull));
+            s = (self & kRightMasks[i + 1]) << (i + 2ull);
+            res |= (o2 & s);
 
-        // next must be either self or opp
-        o1 &= ((opp & kLeft3Mask) >> 3ull);
-        s1 = (self & kLeft4Mask) >> 4ull;
-        res |= (o1 & s1);
+            // vertical
+            o3 &= ((opp & kTopMasks[i]) >> ((i + 1ull) * 6ull));
+            s = (self & kTopMasks[i + 1]) >> ((i + 2ull) * 6ull);
+            res |= (o3 & s);
 
-        // next must be either self or opp
-        o1 &= ((opp & kLeft4Mask) >> 4ull);
-        s1 = (self & kLeft5Mask) >> 5ull;
-        res |= (o1 & s1);
+            o4 &= ((opp & kBottomMasks[i]) << ((i + 1ull) * 6ull));
+            s = (self & kBottomMasks[i + 1]) << ((i + 2ull) * 6ull);
+            res |= (o4 & s);
 
+            // diagonals
+            o5 &= ((opp & kLeftMasks[i] & kTopMasks[i]) >> ((i + 1ull) * 7ull));
+            s = (self & kLeftMasks[i + 1] & kTopMasks[i + 1]) >> ((i + 2ull) * 7ull);
+            res |= (o5 & s);
 
-        // elements to the left of opp
-        o1 = (opp & kRight1Mask) << 1ull;
-        s1 = (self & kRight2Mask) << 2ull;
-        res |= (o1 & s1);
+            o6 &= ((opp & kRightMasks[i] & kTopMasks[i]) >> ((i + 1ull) * 5ull));
+            s = (self & kRightMasks[i + 1] & kTopMasks[i + 1]) >> ((i + 2ull) * 5ull);
+            res |= (o6 & s);
 
-        // next must be either self or opp
-        o1 &= ((opp & kRight2Mask) << 2ull);
-        s1 = (self & kRight3Mask) << 3ull;
-        res |= (o1 & s1);
+            o7 &= ((opp & kRightMasks[i] & kBottomMasks[i]) << ((i + 1ull) * 7ull));
+            s = (self & kRightMasks[i + 1] & kBottomMasks[i + 1]) << ((i + 2ull) * 7ull);
+            res |= (o7 & s);
 
-        // next must be either self or opp
-        o1 &= ((opp & kRight3Mask) << 3ull);
-        s1 = (self & kRight4Mask) << 4ull;
-        res |= (o1 & s1);
+            o8 &= ((opp & kLeftMasks[i] & kBottomMasks[i]) << ((i + 1ull) * 5ull));
+            s = (self & kLeftMasks[i + 1] & kBottomMasks[i + 1]) << ((i + 2ull) * 5ull);
+            res |= (o8 & s);
+        }
 
-        // next must be either self or opp
-        o1 &= ((opp & kRight4Mask) << 4ull);
-        s1 = (self & kRight5Mask) << 5ull;
-        res |= (o1 & s1);
-
-        // which are empty:
-        res = res & (~(opp | self));
-
-        return res;
-    }         
-
-    // moving up/down is equivalent to shifts by N
-    static uint64_t valid_moves_v(uint64_t self, uint64_t opp) {
-        uint64_t res = 0ull;
-
-        // elements to the top of opp
-        uint64_t o1 = (opp & kTop1Mask) >> (1ull * 6ull);
-        uint64_t s1 = (self & kTop2Mask) >> (2ull * 6ull);
-        res |= (o1 & s1);
-
-        // next must be either self or opp
-        o1 &= ((opp & kTop2Mask) >> (2ull * 6ull));
-        s1 = (self & kTop3Mask) >> (3ull * 6ull);
-        res |= (o1 & s1);
-
-        // next must be either self or opp
-        o1 &= ((opp & kTop3Mask) >> (3ull * 6ull));
-        s1 = (self & kTop4Mask) >> (4ull * 6ull);
-        res |= (o1 & s1);
-
-        // next must be either self or opp
-        o1 &= ((opp & kTop4Mask) >> (4ull * 6ull));
-        s1 = (self & kTop5Mask) >> (5ull * 6ull);
-        res |= (o1 & s1);
-
-        // elements to the bottom of opp
-        o1 = (opp & kBottom1Mask) << (1ull * 6ull);
-        s1 = (self & kBottom2Mask) << (2ull * 6ull);
-        res |= (o1 & s1);
-
-        // next must be either self or opp
-        o1 &= ((opp & kBottom2Mask) << (2ull * 6ull));
-        s1 = (self & kBottom3Mask) << (3ull * 6ull);
-        res |= (o1 & s1);
-
-        // next must be either self or opp
-        o1 &= ((opp & kBottom3Mask) << (3ull * 6ull));
-        s1 = (self & kBottom4Mask) << (4ull * 6ull);
-        res |= (o1 & s1);
-
-        // next must be either self or opp
-        o1 &= ((opp & kBottom4Mask) << (4ull * 6ull));
-        s1 = (self & kBottom5Mask) << (5ull * 6ull);
-        res |= (o1 & s1);
-
-        // which are empty:
         res = res & (~(opp | self));
 
         return res;
@@ -203,15 +161,34 @@ struct State {
 std::string bb = 
 ".X0..."
 ".XXXX0"
-".XX0.."
+".XX0.0"
 ".X0X.."
 "..XX0."
 "0XX...";
 
+std::string bw = 
+"......"
+"....0."
+"..XX.."
+"..XX.."
+"....0."
+"......";
+
+std::string bw2 = 
+"......"
+".0..X."
+"..XX.."
+"..XX.."
+".0..X."
+"......";
+
 int main() {
-    auto s = State::from_string(bb);
-    s.p(OthelloValidMoves<6>::valid_moves_v(s.self, s.opp));
-    s.p(OthelloValidMoves<6>::valid_moves_h(s.self, s.opp));
+    auto s = State::from_string(bw2);
+    s.p(OthelloValidMoves<6>::valid_moves(s.self, s.opp));
+    
+    //s.p(OthelloValidMoves<6>::valid_moves_v(s.self, s.opp));
+    //s.p(OthelloValidMoves<6>::valid_moves_h(s.self, s.opp));
+    //s.p(OthelloValidMoves<6>::valid_moves_d1(s.self, s.opp));
     
     return 0;
 }
