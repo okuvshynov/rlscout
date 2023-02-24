@@ -7,3 +7,8 @@ all:
 	./_build/mnk_winner_gen 8 8 > _gen/mnk_is_winning8x8x5.h
 	mkdir -p _build
 	c++ -shared -std=c++2a -o _build/libmcts.so -fPIC batch_mcts.cpp -O3 -Wall
+
+othello:
+	mkdir -p _build
+	c++ games/experimental/othello6x6.cpp -std=c++2a -Wall -O3 -o _build/othello6x6
+	_build/othello6x6
