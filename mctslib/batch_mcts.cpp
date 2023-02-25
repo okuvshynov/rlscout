@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "games/mnk_state.h"
+#include "games/othello_state.h"
 
 /*
 
@@ -265,7 +266,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp) {
-  using State = MNKState<8, 8, 5>;
+  using State = OthelloState<6>;
   
   std::vector<GameSlot<State>> games{batch_size};
   bool has_active_games = true;
@@ -291,7 +292,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
         }
       }
     }
-    std::cout << "puct cycles: " << puct_cycles << ", " << puct_wasted_cycles << std::endl;
+    //std::cout << "puct cycles: " << puct_cycles << ", " << puct_wasted_cycles << std::endl;
   }
 }
 }

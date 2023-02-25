@@ -81,6 +81,35 @@ Immediate next steps:
 
 ## LIFO order notes
 
+
+### TIL - torch.from_numpy() 
+
+will not copy the underlying storage, need to be careful with multithreading here
+
+
+### othello dumb7fill 
+
+Looks like there's a well-known approach to this:
+
+https://www.chessprogramming.org/Dumb7Fill
+
+
+
+
+### othello check valid moves
+We indeed can find it with some bit operations.
+See [mctslib/games/experimental/othello6x6.cpp]. We can shift in the loop (or unroll if needed).
+
+Need to make it better and work for both 6x6 and 8x8
+
+How do we apply move as quickly as possible?
+
+This we can probably do with some generated code?
+
+
+
+
+
 ### othello
 
 Given that most likely and interesting candidate is 8x8 othello, let's implement that game.

@@ -20,7 +20,7 @@ class ResidualBlock(nn.Module):
         return self.relu(out)
 
 channels = 256
-m, n = 8, 8
+m, n = 6, 6
 
 class ActionValueModel(nn.Module):
     def __init__(self):

@@ -7,7 +7,7 @@ samples = client.get_batch(10)
 
 def format_sample(sample):
     b, p = sample
-    return b.view(2, 8, 8), p
+    return b.view(2, 6, 6), p
 
 for s in samples:
     b, p = format_sample(s)

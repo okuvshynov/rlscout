@@ -10,5 +10,5 @@ all:
 
 othello:
 	mkdir -p _build
-	c++ games/experimental/othello6x6.cpp -std=c++2a -Wall -O3 -o _build/othello6x6
+	c++ games/othello_player.cpp -std=c++2a -Wall -O3 -o _build/othello6x6
 	_build/othello6x6

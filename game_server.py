@@ -5,7 +5,7 @@ import zmq
 from game_db import GameDB
 
 port = 8888
-db_filename = './db/onemodel.db'
+db_filename = './db/othello6x6.db'
 #db_filename = ':memory:'
 
 context = zmq.Context()

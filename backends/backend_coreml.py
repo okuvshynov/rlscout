@@ -18,7 +18,7 @@ def to_coreml(torch_model, batch_size=1, board_size=8):
 
 class EvalBackend:
     def __init__(self, device, torch_model, batch_size=1, board_size=8):
-        self.model = to_coreml(torch_model=torch_model, batch_size=batch_size)
+        self.model = to_coreml(torch_model=torch_model, batch_size=batch_size, board_size=board_size)
         self.board_size = board_size
         self.batch_size = batch_size
 

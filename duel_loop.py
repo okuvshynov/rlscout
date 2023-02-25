@@ -21,7 +21,7 @@ args = parser.parse_args()
 if args.device is not None:
     device = args.device
 
-board_size = 8
+board_size = 6
 batch_size = 64
 games_done = 0
 games_to_play = 512
@@ -31,7 +31,7 @@ explore_for_n_moves = 0
 model_rollouts = 1000
 model_temp = 4.0
 
-raw_rollouts = 500000
+raw_rollouts = 1000
 raw_temp = 1.5
 
 client = GameClient()

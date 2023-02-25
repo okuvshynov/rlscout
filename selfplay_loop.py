@@ -24,7 +24,7 @@ args = parser.parse_args()
 if args.device is not None:
     device = args.device
 
-board_size = 8
+board_size = 6
 batch_size = 256
 nthreads = 1
 games_done = 0
@@ -32,12 +32,9 @@ games_done_lock = Lock()
 start = time.time()
 games_to_play = 100000
 games_stats = {0: 0, -1: 0, 1:0}
-explore_for_n_moves = 8
-model_rollouts = 1000
+explore_for_n_moves = 6
+model_rollouts = 5000
 model_temp = 4.0
-
-raw_rollouts = 500000
-raw_temp = 1.5
 
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)
@@ -121,8 +118,9 @@ def start_batch_mcts():
             (batch_size * board_size * board_size, )))
 
     def log_fn(model_id):
-        board = torch.from_numpy(log_boards_buffer)    
-        prob = torch.from_numpy(log_probs_buffer)
+        ## logging will be done in separate thread so we clone 
+        board = torch.from_numpy(log_boards_buffer).clone()
+        prob = torch.from_numpy(log_probs_buffer).clone()
         def log_impl(board, prob):
             board = board.float()
             prob = prob / prob.sum()
