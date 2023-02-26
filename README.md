@@ -49,9 +49,8 @@ Immediate next steps:
 [x] measure moves/second rather than games/second
 [x] try quantization
 
-[ ] othello state for 6x6 and 8x8
-[ ] frozen baseline - pure mcts
-
+[x] othello state for 6x6 and 8x8
+[ ] frozen baseline - pure mcts with many rollouts
 
 [ ] avoid wasted puct cycles
 [ ] duel with quantized model

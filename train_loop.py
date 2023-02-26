@@ -26,8 +26,8 @@ minibatch_size = 512
 epochs = 20
 minibatch_per_epoch = 100
 checkpoints = 1000
-max_samples = 50000
-min_samples = 16000
+max_samples = 200000
+min_samples = 20000
 
 random.seed(1991)
 

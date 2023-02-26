@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import time
 import torch
+import sys
 
 from backends.backend import backend
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
@@ -15,19 +16,21 @@ if torch.cuda.is_available():
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
+parser.add_argument('-m', '--model_id')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
 
+if args.model_id is not None:
+    model_id = int(args.model_id)
+
 board_size = 6
-batch_size = 64
+batch_size = 32
 games_done = 0
-games_to_play = 256
-margin = games_to_play // 16
+games_to_play = 128
 games_stats = {0: 0, -1: 0, 1:0}
-explore_for_n_moves = 0
 model_rollouts = 5000
 model_temp = 4.0
 
@@ -42,21 +45,16 @@ probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
 log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
 log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
 
-def start_batch_duel():
+def start_batch_duel(model_id):
     global games_done, games_stats, start
-    (model_to_eval_id, model_to_eval) = client.get_model_to_eval()
+    model_to_eval = client.get_model(model_id)
     if model_to_eval is not None:
         model_to_eval = backend(device, model_to_eval, batch_size, board_size)
     else:
         return False
 
-    (best_model_id, best_model) = client.get_best_model()
-    if best_model is not None:
-        best_model = backend(device, best_model, batch_size, board_size)
-
     models_by_id = {
-        best_model_id: best_model,
-        model_to_eval_id: model_to_eval
+        model_id: model_to_eval
     }
 
     def game_done_fn(winner):
@@ -80,7 +78,7 @@ def start_batch_duel():
     def log_fn(model_id):
         pass
 
-    print(f'playing {model_to_eval_id} vs {best_model_id}')
+    print(f'playing {model_id} vs baseline {raw_rollouts} rollouts')
 
     games_stats = {0: 0, -1: 0, 1:0}
     start = time.time()
@@ -96,13 +94,13 @@ def start_batch_duel():
         EvalFn(eval_fn),
         LogFn(log_fn),
         BoolFn(game_done_fn),
-        model_to_eval_id,
-        best_model_id,
-        explore_for_n_moves,
+        model_id,
+        0, # model_id
+        0, #explore_for_n_moves,
         model_rollouts,
         model_temp,
-        model_rollouts if best_model is not None else raw_rollouts,
-        model_temp if best_model is not None else raw_temp
+        raw_rollouts,
+        raw_temp
     )
     print(games_stats)
 
@@ -124,11 +122,11 @@ def start_batch_duel():
         EvalFn(eval_fn),
         LogFn(log_fn),
         BoolFn(game_done_fn),
-        best_model_id,
-        model_to_eval_id,
-        explore_for_n_moves,
-        model_rollouts if best_model is not None else raw_rollouts,
-        model_temp if best_model is not None else raw_temp,
+        0, # model id
+        model_id,
+        0, #explore_for_n_moves,
+        raw_rollouts,
+        raw_temp,
         model_rollouts,
         model_temp,
     )
@@ -139,12 +137,7 @@ def start_batch_duel():
 
     print(local_stats)
 
-    outcome = '+' if local_stats['new'] >= local_stats['old'] + margin else '-'
-    client.record_eval(model_to_eval_id, outcome)
-
     return True
 
-while True:
-    if not start_batch_duel():
-        print('no model to eval, sleeping')
-        time.sleep(60)
+if __name__ == '__main__':
+    start_batch_duel(model_id)
