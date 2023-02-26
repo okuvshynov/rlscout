@@ -18,15 +18,20 @@ if torch.cuda.is_available():
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
+parser.add_argument('-t', '--nthreads')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
 
-board_size = 6
-batch_size = 256
 nthreads = 1
+if args.nthreads is not None:
+    nthreads = int(args.nthreads)
+
+board_size = 6
+batch_size = 16
+
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
@@ -34,7 +39,7 @@ games_to_play = 100000
 games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 6
 model_rollouts = 5000
-model_temp = 4.0
+model_temp = 1.0
 
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)

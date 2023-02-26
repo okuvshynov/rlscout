@@ -19,7 +19,7 @@ class ResidualBlock(nn.Module):
         out += residual
         return self.relu(out)
 
-channels = 256
+channels = 64
 m, n = 6, 6
 
 class ActionValueModel(nn.Module):

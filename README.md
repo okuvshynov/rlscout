@@ -80,6 +80,21 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### othello 6x6 first training loop
+
+1. We overfit with the old settings
+2. Sample diversity seems ok from the first glance, but that's not taking symmetries into account
+3. We do get a model which is better than raw MCTS, so it 'works'.
+
+Useful queries:
+```
+sqlite> select repeats, sum(1) from (select boards_tensor, probs_tensor, sum(1) as repeats from samples group by boards_tensor, probs_tensor) group by repeats;
+
+sqlite> select produced_by_model, sum(1) from samples group by produced_by_model;
+
+sqlite> select id, evaluation from models;
+```
+
 
 ### TIL - torch.from_numpy() 
 
