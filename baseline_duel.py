@@ -29,12 +29,12 @@ if args.model_id is not None:
 board_size = 6
 batch_size = 32
 games_done = 0
-games_to_play = 128
+games_to_play = 64
 games_stats = {0: 0, -1: 0, 1:0}
 model_rollouts = 5000
 model_temp = 4.0
 
-raw_rollouts = 5000
+raw_rollouts = 7000
 raw_temp = 1.5
 
 client = GameClient()

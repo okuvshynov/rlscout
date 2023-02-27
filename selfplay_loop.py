@@ -89,10 +89,6 @@ def start_batch_mcts():
 
     model_id, model = models.get_best_model()
 
-    models_by_id = {
-        model_id: model
-    }
-
     def game_done_fn(winner):
         global games_done, games_done_lock
 
@@ -101,28 +97,27 @@ def start_batch_mcts():
             games_stats[winner] += 1
             local_gd = games_done
 
+        nonlocal model
         models.maybe_refresh_model()
         model_id, model = models.get_best_model()
-
-        nonlocal models_by_id
-        models_by_id = {
-            model_id: model
-        }
         rate = 1.0 * local_gd / (time.time() - start)
         print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
         return local_gd + batch_size * nthreads <= games_to_play
 
-    def eval_fn(model_id):
+    def eval_fn(model_id_IGNORE):
+        # in self-play we ignore model id and just use the latest one
+
         def eval_model():
-            return models_by_id[model_id].get_probs(boards_buffer)
+            if model is not None:
+                return model.get_probs(boards_buffer)
         fut = executor.submit(eval_model)
         probs = fut.result()
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
 
-    def log_fn(model_id):
+    def log_fn(model_id_IGNORE):
         ## logging will be done in separate thread so we clone 
         board = torch.from_numpy(log_boards_buffer).clone()
         prob = torch.from_numpy(log_probs_buffer).clone()

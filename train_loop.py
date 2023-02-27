@@ -23,7 +23,7 @@ if args.device is not None:
     device = args.device
 
 minibatch_size = 512
-epochs = 20
+epochs = 50
 minibatch_per_epoch = 100
 checkpoints = 1000
 max_samples = 200000
