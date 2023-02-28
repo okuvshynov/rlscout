@@ -34,7 +34,7 @@ games_stats = {0: 0, -1: 0, 1:0}
 model_rollouts = 5000
 model_temp = 4.0
 
-raw_rollouts = 10000
+raw_rollouts = 50000
 raw_temp = 1.5
 
 client = GameClient()

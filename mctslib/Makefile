@@ -12,3 +12,8 @@ othello:
 	mkdir -p _build
 	c++ games/othello_player.cpp -std=c++2a -Wall -O3 -o _build/othello6x6
 	_build/othello6x6
+
+othello_ab:
+	mkdir -p _build
+	c++ games/othello_6x6_ab.cpp -std=c++2a -Wall -O3 -o _build/othello6x6_ab
+	_build/othello6x6_ab

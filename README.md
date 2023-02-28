@@ -80,6 +80,16 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### how to use this with A/B search?
+
+First option is to just do both things 'independently' - first we get a strong model and then 
+we use it in A/B search to identify the ordering.
+
+What if we try combining both? For example:
+1. instead of value model evaluation we can use transposition table data (if available)?
+2. let's think backwards - assume we have complete transposition table and already 'solved' the game.
+How can we use it to train the model to reduce the 
+
 ### need 4th process - baseline duel
 
 A baseline to play against raw MCTS with many rollouts.

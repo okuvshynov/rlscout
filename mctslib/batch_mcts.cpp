@@ -237,6 +237,8 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         g.size = j;
 
         // TODO: get value from the model here
+        // when we do full search we can also consider getting data from
+        // transposition table???
         while (!g.rollout_state.finished()) {
           g.rollout_state.take_random_action();
         }
