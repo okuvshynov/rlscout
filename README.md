@@ -80,6 +80,18 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### need 4th process - baseline duel
+
+A baseline to play against raw MCTS with many rollouts.
+
+
+### how to allocate resources between train/selfplay/duel
+
+Also other tradeoffs.
+
+We can easily make self-play/duel cheaper by doing less rollouts. Is it a good idea though?
+
+
 ### othello 6x6 first training loop
 
 1. We overfit with the old settings

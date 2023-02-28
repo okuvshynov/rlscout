@@ -19,7 +19,7 @@ class ResidualBlock(nn.Module):
         out += residual
         return self.relu(out)
 
-channels = 64
+channels = 128
 m, n = 6, 6
 
 class ActionValueModel(nn.Module):
@@ -31,10 +31,10 @@ class ActionValueModel(nn.Module):
             nn.ReLU(),
             ResidualBlock(channels, channels),
             ResidualBlock(channels, channels),
-#            ResidualBlock(channels, channels),
-#            ResidualBlock(channels, channels),
-#            ResidualBlock(channels, channels),
-#            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
             nn.Conv2d(channels, 2, kernel_size=1),
             nn.BatchNorm2d(2),
             nn.ReLU(),

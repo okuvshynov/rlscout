@@ -34,7 +34,7 @@ games_stats = {0: 0, -1: 0, 1:0}
 model_rollouts = 5000
 model_temp = 4.0
 
-raw_rollouts = 7000
+raw_rollouts = 10000
 raw_temp = 1.5
 
 client = GameClient()
@@ -137,7 +137,11 @@ def start_batch_duel(model_id):
 
     print(local_stats)
 
-    return True
+    return local_stats
 
 if __name__ == '__main__':
+    #res = {}
+    #for model_id in range(20, 100):
+    #    res[model_id] = start_batch_duel(model_id)
+
     start_batch_duel(model_id)

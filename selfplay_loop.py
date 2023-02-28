@@ -37,9 +37,9 @@ games_done_lock = Lock()
 start = time.time()
 games_to_play = 100000
 games_stats = {0: 0, -1: 0, 1:0}
-explore_for_n_moves = 6
-model_rollouts = 5000
-model_temp = 1.0
+explore_for_n_moves = 10
+model_rollouts = 500000
+model_temp = 1.5
 
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)
