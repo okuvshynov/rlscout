@@ -105,19 +105,26 @@ uint64_t tt_hits[kLevels] = {0ull};
 uint64_t completions[kLevels] = {0ull};
 uint64_t cutoffs[kLevels] = {0ull};
 
-int32_t tt_max_level = 25;
+int32_t tt_max_level = 26;
 int32_t log_max_level = 15;
 
 constexpr size_t tt_size = 1 << 20; 
-std::array<std::pair<State, score_t>, tt_size> transposition_table[kLevels];
+
+
+struct TTEntry {
+    State state;
+    score_t low, high;
+};
+
+std::array<TTEntry, tt_size> transposition_table[kLevels];
 
 auto start = std::chrono::steady_clock::now();
 
 void init_tt() {
     for (size_t i = 0; i < kLevels; i++) {
         for (auto& p: transposition_table[i]) {
-            p.first.board[0] = 0ull;
-            p.first.board[1] = 0ull;
+            p.state.board[0] = 0ull;
+            p.state.board[1] = 0ull;
         }
     }
 }
@@ -134,11 +141,22 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
     if (depth < tt_max_level) {
         slot = state.hash() % tt_size;
 
-        if (transposition_table[depth][slot].first == state) {
-            tt_hits[depth]++;
-            return transposition_table[depth][slot].second;
+        if (transposition_table[depth][slot].state == state) {
+            if (transposition_table[depth][slot].low >= beta) {
+                tt_hits[depth]++;
+                return transposition_table[depth][slot].low;
+            }
+            if (transposition_table[depth][slot].high <= alpha) {
+                tt_hits[depth]++;
+                return transposition_table[depth][slot].high;
+            }
+
+            alpha = std::max(alpha, transposition_table[depth][slot].low);
+            beta = std::min(alpha, transposition_table[depth][slot].high);
         }
     }
+    auto alpha0 = alpha;
+    auto beta0 = beta;
     auto moves = state.valid_actions();
     score_t value;
     if (do_max) {
@@ -187,8 +205,18 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
     }
     completions[depth]++;
     if (depth < tt_max_level) {
-        transposition_table[depth][slot].first = state;
-        transposition_table[depth][slot].second = value;
+        transposition_table[depth][slot].state = state;
+        
+        if (value <= alpha0) {
+            transposition_table[depth][slot].high = value;
+        }
+        if (value >= beta0){
+            transposition_table[depth][slot].low = value;
+        } 
+        if (value > alpha0 && value < beta0) {
+            transposition_table[depth][slot].high = value;
+            transposition_table[depth][slot].low = value;
+        }
         if (depth < log_max_level) {
             auto curr = std::chrono::steady_clock::now();
             std::chrono::duration<double> diff = curr - start;
