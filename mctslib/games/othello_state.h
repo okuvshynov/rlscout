@@ -32,8 +32,15 @@ struct OthelloState {
            skipped == other.skipped;
   }
 
+  // Hash128to64 function from Google's cityhash (under the MIT License).
   uint64_t hash() const {
-    return board[0] & (board[1] << 28);
+    const uint64_t kMul = 0x9ddfea08eb382d69ULL;
+    uint64_t a = (board[0] ^ board[1]) * kMul;
+    a ^= (a >> 47);
+    uint64_t b = (board[1] ^ a) * kMul;
+    b ^= (b >> 47);
+    b *= kMul;
+    return b;
   }
 
   void apply_skip() {
@@ -128,7 +135,7 @@ struct OthelloState {
     }
   }
 
-  double score(int32_t player) const {
+  int32_t score(int32_t player) const {
     return std::popcount(board[player]) - std::popcount(board[1 - player]);
   }
 

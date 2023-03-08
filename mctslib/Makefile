@@ -16,4 +16,3 @@ othello:
 othello_ab:
 	mkdir -p _build
 	c++ games/othello_6x6_ab.cpp -std=c++2a -Wall -O3 -o _build/othello6x6_ab
-	_build/othello6x6_ab

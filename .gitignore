@@ -1,4 +1,5 @@
 mctslib/_build/**
+mctslib/build/**
 mctslib/_gen/**
 **/__pycache__/**
 _out/7x7/*.pt
