@@ -7,6 +7,20 @@
 
 #include "othello_dumb7.h"
 
+
+uint64_t flip_v_6x6(uint64_t v) {
+  return
+  ((v & 0b111111000000000000000000000000000000ull) >> 30) |
+  ((v & 0b111111000000000000000000000000ull) >> 18) |
+  ((v & 0b111111000000000000000000ull) >> 6) |
+  ((v & 0b111111000000000000ull) << 6) |
+  ((v & 0b111111000000ull) << 18) |
+  ((v & 0b111111ull) << 30);
+}
+
+
+
+
 template <uint8_t n>
 struct OthelloState {
   using Self = OthelloState<n>;
@@ -41,6 +55,23 @@ struct OthelloState {
     b ^= (b >> 47);
     b *= kMul;
     return b;
+  }
+
+  bool empty() const {
+    return board[0] == 0ull && board[1] == 0ull;
+  }
+
+  // just to test
+  uint64_t flip_diag_6x6_slow(uint64_t v) const {
+    uint64_t res = 0ull;
+    for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 6; j++) {
+        if (v & mask(index(i, j))) {
+          res |= mask(index(j, i));
+        }
+      }
+    }
+    return res;
   }
 
   void apply_skip() {
@@ -112,6 +143,57 @@ struct OthelloState {
 
   uint64_t valid_actions() const {
     return OthelloDumb7Fill6x6::valid_moves(board[player], board[1 - player]);
+  }
+
+  void dflip() {
+    board[0] = flip_diag_6x6_slow(board[0]);
+    board[1] = flip_diag_6x6_slow(board[1]);
+  }
+
+  // TODO: slow 
+  void vflip() {
+    board[0] = flip_v_6x6(board[0]);
+    board[1] = flip_v_6x6(board[1]);
+  }
+
+  bool operator<(const Self& other) {
+    return (board[0] | board[1]) < (other.board[0] | other.board[1]);
+  }
+
+  // TODO: this is too slow
+  Self to_canonical() const {
+    Self res = *this;
+    Self curr = res;
+    curr.vflip();
+    if (curr < res) {
+      res = curr;
+    }
+    curr.dflip();
+    if (curr < res) {
+      res = curr;
+    }
+    curr.vflip();
+    if (curr < res) {
+      res = curr;
+    }
+    curr.dflip();
+    if (curr < res) {
+      res = curr;
+    }
+    curr.vflip();
+    if (curr < res) {
+      res = curr;
+    }
+    curr.dflip();
+    if (curr < res) {
+      res = curr;
+    }
+    curr.vflip();
+    if (curr < res) {
+      res = curr;
+    }
+
+    return res;
   }
 
   // TODO: remove after we have value model

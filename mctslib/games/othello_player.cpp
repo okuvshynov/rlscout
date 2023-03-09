@@ -1,15 +1,14 @@
 #include "othello_state.h"
-#include <chrono>
-#include <thread>
+#include <iostream>
 
 int main() {
     OthelloState<6> state;
 
-    using namespace std::chrono_literals;
-
     while (!state.finished()) {
         state.take_random_action();
         state.p();
+        state.to_canonical().p();
+        std::cout << std::endl;
     }
 
     return 0;

@@ -49,6 +49,18 @@ bfs no symm:
 11 36294
 12 208212
 
+bfs symm
+5 1
+6 3
+7 14
+8 60
+9 314
+10 1635
+11 9075
+12 51988
+13 293004
+14 1706701 
+
 w/o symmetry, ordering, etc:
 
 at 12 level - 800000 hours
@@ -104,11 +116,13 @@ uint64_t leaves = 0ull;
 uint64_t tt_hits[kLevels] = {0ull};
 uint64_t completions[kLevels] = {0ull};
 uint64_t cutoffs[kLevels] = {0ull};
+uint64_t evictions[kLevels] = {0ull};
 
 int32_t tt_max_level = 26;
 int32_t log_max_level = 15;
+int32_t canonical_max_level = 15;
 
-constexpr size_t tt_size = 1 << 20; 
+constexpr size_t tt_size = 1 << 23; 
 
 
 struct TTEntry {
@@ -116,12 +130,13 @@ struct TTEntry {
     score_t low, high;
 };
 
-std::array<TTEntry, tt_size> transposition_table[kLevels];
+std::vector<TTEntry> transposition_table[kLevels];
 
 auto start = std::chrono::steady_clock::now();
 
 void init_tt() {
     for (size_t i = 0; i < kLevels; i++) {
+        transposition_table[i].resize(tt_size);
         for (auto& p: transposition_table[i]) {
             p.state.board[0] = 0ull;
             p.state.board[1] = 0ull;
@@ -152,7 +167,11 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
             }
 
             alpha = std::max(alpha, transposition_table[depth][slot].low);
-            beta = std::min(alpha, transposition_table[depth][slot].high);
+            beta = std::min(beta, transposition_table[depth][slot].high);
+        } else {
+            if (!transposition_table[depth][slot].state.empty()) {
+                evictions[depth]++;
+            }
         }
     }
     auto alpha0 = alpha;
@@ -171,6 +190,10 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
                 if ((1ull << k) & moves) {
                     State new_state = state;
                     new_state.apply_move_no_check(k);
+                    if (depth + 1 < canonical_max_level) {
+                        new_state = new_state.to_canonical();
+                    }
+                    
                     value = std::max(value, alpha_beta(new_state, alpha, beta, false));
                     alpha = std::max(alpha, value);
                     if (value >= beta) {
@@ -193,6 +216,9 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
                 if ((1ull << k) & moves) {
                     State new_state = state;
                     new_state.apply_move_no_check(k);
+                    if (depth + 1 < canonical_max_level) {
+                        new_state = new_state.to_canonical();
+                    }
                     value = std::min(value, alpha_beta(new_state, alpha, beta, true));
                     beta = std::min(beta, value);
                     if (value <= alpha) {
@@ -226,11 +252,12 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
                 if (completions[d] == 0ull && tt_hits[d] == 0ull) {
                     continue;
                 }
-                std::cout << d << " tt_size "  << tt_size 
+                std::cout << d
                     << " tt_hits " << tt_hits[d] 
                     << " tt_rate " << 100.0 * tt_hits[d] / tt_size
                     << " completions " << completions[d]
                     << " cutoffs " << cutoffs[d]
+                    << " evictions " << evictions[d]
                     << std::endl;
             }
         }
@@ -238,9 +265,39 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
     return value;
 }
 
+struct StateHash {
+    std::size_t operator()(const State& s) const {
+        return s.hash();
+    }
+};
+
+void bfs() {
+    std::unordered_set<State, StateHash> curr, next;
+    State s;
+    curr.insert(s);
+    while (true) {
+        next.clear();
+        //std::cout << curr.size() << std::endl << "!";
+        for (auto state: curr) {
+            //std::cout << "11";
+            auto moves = state.valid_actions();
+            for (uint64_t k = 0; k < State::M * State::N; k++) {
+                if ((1ull << k) & moves) {
+                    State new_state = state;
+                    new_state.apply_move_no_check(k);
+                    next.insert(new_state.to_canonical());
+                }
+            }
+        }
+        std::cout << next.begin()->stones_played() << " " << next.size() << std::endl;
+        std::swap(next, curr);
+    }
+}
+
 int main() {
+    //bfs();
     init_tt();
     State s;
-    std::cout << alpha_beta(s, min_score, max_score, true) << std::endl;
+    std::cout << alpha_beta(s.to_canonical(), min_score, max_score, true) << std::endl;
     return 0;
 }
