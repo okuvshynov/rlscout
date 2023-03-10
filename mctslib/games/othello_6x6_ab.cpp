@@ -8,14 +8,19 @@
 
 /*
 
-TODO:
+* Faster symmetries
+* how to log training data?
+* store everything for first N layers
+* multithreading
+* profile/try running on cloud machine.
+* different template based implementation for last levels  
 - multithreading
-- symmetries
+- better hashing
 - log stats
-- better hash table
 - log training data from here?
 - get rid of duplicate checks, do CPU profile 
 - how can this work on GPU?
+- good logging 
 
 */
 
@@ -52,11 +57,11 @@ bfs no symm:
 bfs symm
 5 1
 6 3
-7 14
-8 60
-9 314
+7 14 ~ 3-5h each? 4 likely
+8 60 ~1.5h each?
+9 314 ~ 20-25 min each
 10 1635
-11 9075
+11 9075 ~ 2-3 min each
 12 51988
 13 293004
 14 1706701 
@@ -122,6 +127,7 @@ int32_t tt_max_level = 26;
 int32_t log_max_level = 15;
 int32_t canonical_max_level = 15;
 
+// use some prime number like 10009729
 constexpr size_t tt_size = 1 << 23; 
 
 
@@ -145,7 +151,7 @@ void init_tt() {
 }
 
 score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max) {
-    if (state.finished()) {
+    if (state.finished() || state.full()) {
         leaves++;
         return state.score(0);
     }
@@ -176,6 +182,7 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
     }
     auto alpha0 = alpha;
     auto beta0 = beta;
+    // TODO: last level can avoid this whole thing
     auto moves = state.valid_actions();
     score_t value;
     if (do_max) {

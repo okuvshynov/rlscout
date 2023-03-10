@@ -80,6 +80,19 @@ Immediate next steps:
 
 ## LIFO order notes
 
+
+### what do we do next?
+
+Optimize 6x6 othello ab search further, so that we can quickly run and experiment there
+1. multithreading
+2. faster symmetry/canonical board computation
+3. full transposition table for first N layers, no eviction
+4. better hashing to reduce collisions
+5. implement it with template and specialize the implementation for last few layers to avoid conditions etc.
+
+if we do everything right on 32 core machine we should get the entire thing done within 1-2 hours.
+
+
 ### how to use this with A/B search?
 
 First option is to just do both things 'independently' - first we get a strong model and then 
@@ -88,7 +101,7 @@ we use it in A/B search to identify the ordering.
 What if we try combining both? For example:
 1. instead of value model evaluation we can use transposition table data (if available)?
 2. let's think backwards - assume we have complete transposition table and already 'solved' the game.
-How can we use it to train the model to reduce the 
+How can we use it to train the model?
 
 ### need 4th process - baseline duel
 

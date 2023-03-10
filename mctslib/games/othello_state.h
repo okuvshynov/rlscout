@@ -32,6 +32,8 @@ struct OthelloState {
   uint64_t board[2] = {0b000000000000001000000100000000000000ull,
                        0b000000000000000100001000000000000000ull};
 
+  static constexpr uint64_t kFull = 0b111111111111111111111111111111111111ull;
+
   int32_t player = 0;   // 0 or 1
   int32_t winner = -1;  // -1 -- draw or not finished
   int32_t skipped = 0;  // if it becomes 2 the game is over
@@ -128,6 +130,10 @@ struct OthelloState {
   }
 
   bool finished() const { return skipped >= 2; }
+
+  bool full() const {
+    return (board[0] | board[1]) == kFull;
+  }
 
   void fill_boards(int32_t* boards) const {
     for (uint64_t i = 0; i < n * n; i++) {
