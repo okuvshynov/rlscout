@@ -22,38 +22,6 @@
 - how can this work on GPU?
 - good logging 
 
-*/
-
-
-/*
-
-Current, non-optimized version: 
-- 15 level ~5min 
-- no-symmetry is ~100m samples.
-- with symmetry - probably ~15m sample
-- 1 m hours? 
-- 
-
-
-27835.8 12 tt_size 3 tt_hits 0 tt_rate 0 completions 2
-27835.8 13 tt_size 14 tt_hits 0 tt_rate 0 completions 13
-27835.8 14 tt_size 48 tt_hits 0 tt_rate 0 completions 47
-27835.8 15 tt_size 225 tt_hits 3 tt_rate 1.33333 completions 224
-27835.8 16 tt_size 467 tt_hits 36 tt_rate 7.70878 completions 466
-27835.8 17 tt_size 2328 tt_hits 118 tt_rate 5.06873 completions 2328
-27835.8 18 tt_size 3999 tt_hits 327 tt_rate 8.17704 completions 3999
-
-bfs no symm: 
-
-5 4
-6 12
-7 54
-8 236
-9 1256
-10 6528
-11 36294
-12 208212
-
 bfs symm
 5 1
 6 3
@@ -64,48 +32,18 @@ bfs symm
 11 9075 ~ 2-3 min each
 12 51988
 13 293004
-14 1706701 
+14 1706701
 
-w/o symmetry, ordering, etc:
-
-at 12 level - 800000 hours
-
-w symmetries should be ~100000 hours
-29376.8 10 tt_size 2 tt_hits 0 tt_rate 0 completions 1 cutoffs 0
-29376.8 11 tt_size 9 tt_hits 0 tt_rate 0 completions 8 cutoffs 6
-29376.8 12 tt_size 20 tt_hits 0 tt_rate 0 completions 19 cutoffs 7
-29376.8 13 tt_size 81 tt_hits 2 tt_rate 2.46914 completions 80 cutoffs 51
-29376.8 14 tt_size 215 tt_hits 7 tt_rate 3.25581 completions 214 cutoffs 129
-29376.8 15 tt_size 768 tt_hits 19 tt_rate 2.47396 completions 767 cutoffs 534
-29376.8 16 tt_size 1705 tt_hits 90 tt_rate 5.27859 completions 1704 cutoffs 995
-29376.8 17 tt_size 6441 tt_hits 363 tt_rate 5.63577 completions 6440 cutoffs 5035
-29376.8 18 tt_size 12637 tt_hits 711 tt_rate 5.62634 completions 12637 cutoffs 6872
-29376.8 19 tt_size 46205 tt_hits 3218 tt_rate 6.96461 completions 0 cutoffs 37716
-29376.8 20 tt_size 85520 tt_hits 5605 tt_rate 6.55402 completions 0 cutoffs 45519
-29376.8 21 tt_size 288794 tt_hits 23863 tt_rate 8.26298 completions 0 cutoffs 237217
-29376.8 22 tt_size 522368 tt_hits 42999 tt_rate 8.23155 completions 0 cutoffs 282976
-29376.8 23 tt_size 1594969 tt_hits 160476 tt_rate 10.0614 completions 0 cutoffs 1298837
-29376.8 24 tt_size 2777743 tt_hits 291285 tt_rate 10.4864 completions 0 cutoffs 1541028
-
-
-501.801
-10 tt_size 1048576 tt_hits 0 tt_rate 0 completions 1 cutoffs 0
-11 tt_size 1048576 tt_hits 0 tt_rate 0 completions 7 cutoffs 6
-12 tt_size 1048576 tt_hits 0 tt_rate 0 completions 13 cutoffs 3
-13 tt_size 1048576 tt_hits 2 tt_rate 0.000190735 completions 50 cutoffs 35
-14 tt_size 1048576 tt_hits 0 tt_rate 0 completions 126 cutoffs 73
-15 tt_size 1048576 tt_hits 10 tt_rate 0.000953674 completions 423 cutoffs 298
-16 tt_size 1048576 tt_hits 47 tt_rate 0.00448227 completions 877 cutoffs 502
-17 tt_size 1048576 tt_hits 195 tt_rate 0.0185966 completions 3176 cutoffs 2474
-18 tt_size 1048576 tt_hits 359 tt_rate 0.0342369 completions 5921 cutoffs 3136
-19 tt_size 1048576 tt_hits 1454 tt_rate 0.138664 completions 21320 cutoffs 17550
-20 tt_size 1048576 tt_hits 2561 tt_rate 0.244236 completions 37438 cutoffs 19188
-21 tt_size 1048576 tt_hits 10259 tt_rate 0.978374 completions 130022 cutoffs 108821
-22 tt_size 1048576 tt_hits 18762 tt_rate 1.78928 completions 219991 cutoffs 111634
-23 tt_size 1048576 tt_hits 68205 tt_rate 6.50454 completions 707902 cutoffs 593158
-
-
-w/o symmetry, multithreading, ordereing -- probably ~2500 hours.
+196150
+6 tt_hits 0 tt_rate 0 completions 2 cutoffs 0 evictions 0
+7 tt_hits 0 tt_rate 0 completions 11 cutoffs 5 evictions 0
+8 tt_hits 1 tt_rate 1.19209e-05 completions 36 cutoffs 16 evictions 0
+9 tt_hits 0 tt_rate 0 completions 140 cutoffs 95 evictions 0
+10 tt_hits 6 tt_rate 7.15256e-05 completions 396 cutoffs 247 evictions 0
+11 tt_hits 45 tt_rate 0.000536442 completions 1301 cutoffs 912 evictions 0
+12 tt_hits 171 tt_rate 0.00203848 completions 3756 cutoffs 2529 evictions 0
+13 tt_hits 495 tt_rate 0.00590086 completions 11551 cutoffs 8116 evictions 6
+14 tt_hits 1611 tt_rate 0.0192046 completions 33764 cutoffs 23682 evictions 69
 
 */
 
@@ -193,19 +131,26 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
             new_state.apply_skip();
             value = std::max(value, alpha_beta(new_state, alpha, beta, false));
         } else {
-            for (uint64_t k = 0; k < State::M * State::N; k++) {
-                if ((1ull << k) & moves) {
-                    State new_state = state;
-                    new_state.apply_move_no_check(k);
-                    if (depth + 1 < canonical_max_level) {
-                        new_state = new_state.to_canonical();
-                    }
-                    
-                    value = std::max(value, alpha_beta(new_state, alpha, beta, false));
-                    alpha = std::max(alpha, value);
-                    if (value >= beta) {
-                        cutoffs[depth]++;
-                        break;
+            // we have one space only
+            if (depth + 1 == State::M * State::N) {
+                State new_state = state;
+                new_state.apply_move_mask(moves);
+                return new_state.score(0);
+            } else {
+                for (uint64_t k = 0; k < State::M * State::N; k++) {
+                    if ((1ull << k) & moves) {
+                        State new_state = state;
+                        new_state.apply_move_no_check(k);
+                        if (depth + 1 < canonical_max_level) {
+                            new_state = new_state.to_canonical();
+                        }
+                        
+                        value = std::max(value, alpha_beta(new_state, alpha, beta, false));
+                        alpha = std::max(alpha, value);
+                        if (value >= beta) {
+                            cutoffs[depth]++;
+                            break;
+                        }
                     }
                 }
             }
@@ -219,21 +164,27 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
             new_state.apply_skip();
             value = std::min(value, alpha_beta(new_state, alpha, beta, true));
         } else {
-            for (uint64_t k = 0; k < State::M * State::N; k++) {
-                if ((1ull << k) & moves) {
-                    State new_state = state;
-                    new_state.apply_move_no_check(k);
-                    if (depth + 1 < canonical_max_level) {
-                        new_state = new_state.to_canonical();
-                    }
-                    value = std::min(value, alpha_beta(new_state, alpha, beta, true));
-                    beta = std::min(beta, value);
-                    if (value <= alpha) {
-                        cutoffs[depth]++;
-                        break;
+            if (depth + 1 == State::M * State::N) {
+                State new_state = state;
+                new_state.apply_move_mask(moves);
+                return new_state.score(0);
+            } else {
+                for (uint64_t k = 0; k < State::M * State::N; k++) {
+                    if ((1ull << k) & moves) {
+                        State new_state = state;
+                        new_state.apply_move_no_check(k);
+                        if (depth + 1 < canonical_max_level) {
+                            new_state = new_state.to_canonical();
+                        }
+                        value = std::min(value, alpha_beta(new_state, alpha, beta, true));
+                        beta = std::min(beta, value);
+                        if (value <= alpha) {
+                            cutoffs[depth]++;
+                            break;
+                        }
                     }
                 }
-            }
+            } 
         }
     }
     completions[depth]++;
@@ -284,9 +235,7 @@ void bfs() {
     curr.insert(s);
     while (true) {
         next.clear();
-        //std::cout << curr.size() << std::endl << "!";
         for (auto state: curr) {
-            //std::cout << "11";
             auto moves = state.valid_actions();
             for (uint64_t k = 0; k < State::M * State::N; k++) {
                 if ((1ull << k) & moves) {

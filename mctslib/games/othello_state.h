@@ -113,6 +113,20 @@ struct OthelloState {
     return true;
   }
 
+  bool apply_move_mask(uint64_t m) {
+    skipped = 0;
+
+    auto to_flip = OthelloDumb7Fill6x6::to_flip(m, board[player],
+                                                board[1 - player]);
+
+    board[player] |= m;
+    board[player] |= to_flip;
+    board[1 - player] ^= to_flip;
+
+    player = 1 - player;
+    return true;
+  }
+
   bool apply_move_no_check(uint64_t index) {
     auto m = mask(index);
 
