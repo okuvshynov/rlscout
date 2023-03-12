@@ -65,7 +65,6 @@ int32_t tt_max_level = 26;
 int32_t log_max_level = 15;
 int32_t canonical_max_level = 15;
 
-// use some prime number like 10009729
 constexpr size_t tt_size = 1 << 23; 
 
 
@@ -88,15 +87,18 @@ void init_tt() {
     }
 }
 
-score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max) {
+score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
     if (state.finished() || state.full()) {
         leaves++;
         return state.score(0);
     }
+
+    // TODO: we should make this template param 
     auto depth = state.stones_played();
 
     size_t slot = 0;
 
+    // TODO this becomes if constexpr 
     if (depth < tt_max_level) {
         slot = state.hash() % tt_size;
 
@@ -130,13 +132,33 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
             State new_state = state;
             new_state.apply_skip();
             value = std::max(value, alpha_beta(new_state, alpha, beta, false));
-        } else {
+       } else {
             // we have one space only
+            // TODO: static if
             if (depth + 1 == State::M * State::N) {
                 State new_state = state;
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
             } else {
+                while (moves) {
+                    uint64_t other_moves = (moves & (moves - 1));
+                    uint64_t move = moves ^ other_moves;
+                    State new_state = state;
+                    new_state.apply_move_mask(move);
+                    if (depth + 1 < canonical_max_level) {
+                        new_state = new_state.to_canonical();
+                    }
+                    
+                    value = std::max(value, alpha_beta(new_state, alpha, beta, false));
+                    alpha = std::max(alpha, value);
+                    if (value >= beta) {
+                        cutoffs[depth]++;
+                        break;
+                    }
+                    moves = other_moves;
+                }
+
+/*
                 for (uint64_t k = 0; k < State::M * State::N; k++) {
                     if ((1ull << k) & moves) {
                         State new_state = state;
@@ -152,7 +174,7 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
                             break;
                         }
                     }
-                }
+                } */
             }
         }
 
@@ -169,6 +191,24 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
             } else {
+                while (moves) {
+                    uint64_t other_moves = (moves & (moves - 1));
+                    uint64_t move = moves ^ other_moves;
+                    State new_state = state;
+                    new_state.apply_move_mask(move);
+                    if (depth + 1 < canonical_max_level) {
+                        new_state = new_state.to_canonical();
+                    }
+                    
+                    value = std::min(value, alpha_beta(new_state, alpha, beta, true));
+                    beta = std::min(beta, value);
+                    if (value <= alpha) {
+                        cutoffs[depth]++;
+                        break;
+                    }
+                    moves = other_moves;
+                }
+                /*
                 for (uint64_t k = 0; k < State::M * State::N; k++) {
                     if ((1ull << k) & moves) {
                         State new_state = state;
@@ -184,6 +224,7 @@ score_t alpha_beta(const State& state, score_t alpha, score_t beta, bool do_max)
                         }
                     }
                 }
+                */
             } 
         }
     }
