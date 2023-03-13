@@ -61,8 +61,8 @@ uint64_t completions[kLevels] = {0ull};
 uint64_t cutoffs[kLevels] = {0ull};
 uint64_t evictions[kLevels] = {0ull};
 
-int32_t tt_max_level = 26;
-int32_t log_max_level = 15;
+int32_t tt_max_level = 32;
+int32_t log_max_level = 14;
 int32_t canonical_max_level = 15;
 
 constexpr size_t tt_size = 1 << 23; 
@@ -117,7 +117,10 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
         } else {
             if (!transposition_table[depth][slot].state.empty()) {
                 evictions[depth]++;
-            }
+            } 
+            // override / init slot
+            transposition_table[depth][slot].low = min_score;
+            transposition_table[depth][slot].high = max_score;
         }
     }
     auto alpha0 = alpha;
@@ -157,24 +160,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
                     }
                     moves = other_moves;
                 }
-
-/*
-                for (uint64_t k = 0; k < State::M * State::N; k++) {
-                    if ((1ull << k) & moves) {
-                        State new_state = state;
-                        new_state.apply_move_no_check(k);
-                        if (depth + 1 < canonical_max_level) {
-                            new_state = new_state.to_canonical();
-                        }
-                        
-                        value = std::max(value, alpha_beta(new_state, alpha, beta, false));
-                        alpha = std::max(alpha, value);
-                        if (value >= beta) {
-                            cutoffs[depth]++;
-                            break;
-                        }
-                    }
-                } */
             }
         }
 
@@ -208,23 +193,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
                     }
                     moves = other_moves;
                 }
-                /*
-                for (uint64_t k = 0; k < State::M * State::N; k++) {
-                    if ((1ull << k) & moves) {
-                        State new_state = state;
-                        new_state.apply_move_no_check(k);
-                        if (depth + 1 < canonical_max_level) {
-                            new_state = new_state.to_canonical();
-                        }
-                        value = std::min(value, alpha_beta(new_state, alpha, beta, true));
-                        beta = std::min(beta, value);
-                        if (value <= alpha) {
-                            cutoffs[depth]++;
-                            break;
-                        }
-                    }
-                }
-                */
             } 
         }
     }
