@@ -80,6 +80,49 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### some improvements
+
+After making some improvements, we get 6x6 solved (answer is -4, which looks correct) in 70519.7s on a single core.
+Need to optimize further so that we can iterate on it easily.
+
+Final stats:
+```
+70519.7
+4 tt_hits 0 tt_rate 0 completions 1 cutoffs 0 evictions 0
+5 tt_hits 3 tt_rate 3.57628e-05 completions 1 cutoffs 0 evictions 0
+6 tt_hits 0 tt_rate 0 completions 3 cutoffs 0 evictions 0
+7 tt_hits 0 tt_rate 0 completions 14 cutoffs 8 evictions 0
+8 tt_hits 1 tt_rate 1.19209e-05 completions 39 cutoffs 17 evictions 0
+9 tt_hits 0 tt_rate 0 completions 146 cutoffs 104 evictions 0
+10 tt_hits 5 tt_rate 5.96046e-05 completions 419 cutoffs 254 evictions 0
+11 tt_hits 43 tt_rate 0.0005126 completions 1383 cutoffs 971 evictions 0
+12 tt_hits 163 tt_rate 0.00194311 completions 4129 cutoffs 2768 evictions 1
+13 tt_hits 564 tt_rate 0.0067234 completions 12778 cutoffs 9053 evictions 7
+14 tt_hits 1785 tt_rate 0.0212789 completions 37210 cutoffs 26011 evictions 62
+15 tt_hits 4811 tt_rate 0.0573516 completions 109107 cutoffs 78145 evictions 711
+16 tt_hits 14153 tt_rate 0.168717 completions 307510 cutoffs 218211 evictions 5324
+17 tt_hits 49957 tt_rate 0.595534 completions 847320 cutoffs 606579 evictions 38871
+18 tt_hits 147879 tt_rate 1.76286 completions 2265280 cutoffs 1613543 evictions 262592
+19 tt_hits 439906 tt_rate 5.24409 completions 5921716 cutoffs 4237403 evictions 1567997
+20 tt_hits 1167546 tt_rate 13.9182 completions 15057674 cutoffs 10696030 evictions 7620272
+21 tt_hits 3239774 tt_rate 38.6211 completions 37622918 cutoffs 26837174 evictions 27977699
+22 tt_hits 7945389 tt_rate 94.7164 completions 91280323 cutoffs 64471994 evictions 79943487
+23 tt_hits 21033442 tt_rate 250.738 completions 217852347 cutoffs 154468801 evictions 202983733
+24 tt_hits 49622757 tt_rate 591.549 completions 503810783 cutoffs 353087195 evictions 481906086
+25 tt_hits 123992980 tt_rate 1478.11 completions 1146130500 cutoffs 806680704 evictions 1109379499
+26 tt_hits 281475146 tt_rate 3355.45 completions 2521680790 cutoffs 1750496533 evictions 2456207930
+27 tt_hits 664293999 tt_rate 7919 completions 5443457117 cutoffs 3794768589 evictions 5322209178
+28 tt_hits 1447751564 tt_rate 17258.5 completions 11288243009 cutoffs 7726724761 evictions 11066453700
+29 tt_hits 3209015231 tt_rate 38254.4 completions 22746533889 cutoffs 15606699484 evictions 22349627869
+30 tt_hits 6574243171 tt_rate 78371.1 completions 43264118111 cutoffs 28851259953 evictions 42581001318
+31 tt_hits 13380814750 tt_rate 159512 completions 78141312098 cutoffs 51950247817 evictions 77010315654
+32 tt_hits 0 tt_rate 0 completions 153628743984 cutoffs 96903708734 evictions 0
+33 tt_hits 0 tt_rate 0 completions 282700470773 cutoffs 173232316425 evictions 0
+34 tt_hits 0 tt_rate 0 completions 461245124973 cutoffs 244834041118 evictions 0
+35 tt_hits 0 tt_rate 0 completions 141986948226 cutoffs 0 evictions 0
+-4
+```
+
 
 ### what do we do next?
 
