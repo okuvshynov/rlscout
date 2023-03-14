@@ -7,7 +7,6 @@
 
 #include "othello_dumb7.h"
 
-
 uint64_t flip_v_6x6(uint64_t v) {
   return
   ((v & 0b111111000000000000000000000000000000ull) >> 30) |
@@ -17,9 +16,6 @@ uint64_t flip_v_6x6(uint64_t v) {
   ((v & 0b111111000000ull) << 18) |
   ((v & 0b111111ull) << 30);
 }
-
-
-
 
 template <uint8_t n>
 struct OthelloState {
@@ -35,7 +31,7 @@ struct OthelloState {
   static constexpr uint64_t kFull = 0b111111111111111111111111111111111111ull;
 
   int32_t player = 0;   // 0 or 1
-  int32_t winner = -1;  // -1 -- draw or not finished
+  //int32_t winner = -1;  // -1 -- draw or not finished
   int32_t skipped = 0;  // if it becomes 2 the game is over
 
   uint64_t mask(uint64_t index) const { return (1ull << index); }
@@ -44,7 +40,7 @@ struct OthelloState {
 
   bool operator==(const Self& other) const {
     return board[0] == other.board[0] && board[1] == other.board[1] &&
-           player == other.player && winner == other.winner &&
+           player == other.player && //winner == other.winner &&
            skipped == other.skipped;
   }
 
@@ -78,16 +74,6 @@ struct OthelloState {
 
   void apply_skip() {
     skipped++;
-    if (skipped == 2) {
-      auto a = std::popcount(board[player]);
-      auto b = std::popcount(board[1 - player]);
-      if (a > b) {
-        winner = player;
-      }
-      if (a < b) {
-        winner = 1 - player;
-      }
-    }
     player = 1 - player;
   }
 

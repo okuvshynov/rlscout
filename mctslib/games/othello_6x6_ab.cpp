@@ -6,48 +6,6 @@
 #include <array>
 #include <chrono>
 
-/*
-
-* Faster symmetries
-* how to log training data?
-* store everything for first N layers
-* multithreading
-* profile/try running on cloud machine.
-* different template based implementation for last levels  
-- multithreading
-- better hashing
-- log stats
-- log training data from here?
-- get rid of duplicate checks, do CPU profile 
-- how can this work on GPU?
-- good logging 
-
-bfs symm
-5 1
-6 3
-7 14 ~ 3-5h each? 4 likely
-8 60 ~1.5h each?
-9 314 ~ 20-25 min each
-10 1635
-11 9075 ~ 2-3 min each
-12 51988
-13 293004
-14 1706701
-
-196150
-6 tt_hits 0 tt_rate 0 completions 2 cutoffs 0 evictions 0
-7 tt_hits 0 tt_rate 0 completions 11 cutoffs 5 evictions 0
-8 tt_hits 1 tt_rate 1.19209e-05 completions 36 cutoffs 16 evictions 0
-9 tt_hits 0 tt_rate 0 completions 140 cutoffs 95 evictions 0
-10 tt_hits 6 tt_rate 7.15256e-05 completions 396 cutoffs 247 evictions 0
-11 tt_hits 45 tt_rate 0.000536442 completions 1301 cutoffs 912 evictions 0
-12 tt_hits 171 tt_rate 0.00203848 completions 3756 cutoffs 2529 evictions 0
-13 tt_hits 495 tt_rate 0.00590086 completions 11551 cutoffs 8116 evictions 6
-14 tt_hits 1611 tt_rate 0.0192046 completions 33764 cutoffs 23682 evictions 69
-
-*/
-
-
 using State = OthelloState<6>;
 using score_t = int32_t;
 const auto min_score = std::numeric_limits<score_t>::min();
@@ -61,12 +19,11 @@ uint64_t completions[kLevels] = {0ull};
 uint64_t cutoffs[kLevels] = {0ull};
 uint64_t evictions[kLevels] = {0ull};
 
-int32_t tt_max_level = 32;
-int32_t log_max_level = 14;
-int32_t canonical_max_level = 15;
+constexpr int32_t tt_max_level = 32;
+constexpr int32_t log_max_level = 14;
+constexpr int32_t canonical_max_level = 15;
 
 constexpr size_t tt_size = 1 << 23; 
-
 
 struct TTEntry {
     State state;
@@ -87,58 +44,53 @@ void init_tt() {
     }
 }
 
-score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
+template<uint32_t stones, bool do_max>
+score_t alpha_beta(State state, score_t alpha, score_t beta) {
     if (state.finished() || state.full()) {
         leaves++;
         return state.score(0);
     }
 
-    // TODO: we should make this template param 
-    auto depth = state.stones_played();
-
     size_t slot = 0;
 
     // TODO this becomes if constexpr 
-    if (depth < tt_max_level) {
+    if constexpr(stones < tt_max_level) {
         slot = state.hash() % tt_size;
 
-        if (transposition_table[depth][slot].state == state) {
-            if (transposition_table[depth][slot].low >= beta) {
-                tt_hits[depth]++;
-                return transposition_table[depth][slot].low;
+        if (transposition_table[stones][slot].state == state) {
+            if (transposition_table[stones][slot].low >= beta) {
+                tt_hits[stones]++;
+                return transposition_table[stones][slot].low;
             }
-            if (transposition_table[depth][slot].high <= alpha) {
-                tt_hits[depth]++;
-                return transposition_table[depth][slot].high;
+            if (transposition_table[stones][slot].high <= alpha) {
+                tt_hits[stones]++;
+                return transposition_table[stones][slot].high;
             }
 
-            alpha = std::max(alpha, transposition_table[depth][slot].low);
-            beta = std::min(beta, transposition_table[depth][slot].high);
+            alpha = std::max(alpha, transposition_table[stones][slot].low);
+            beta = std::min(beta, transposition_table[stones][slot].high);
         } else {
-            if (!transposition_table[depth][slot].state.empty()) {
-                evictions[depth]++;
+            if (!transposition_table[stones][slot].state.empty()) {
+                evictions[stones]++;
             } 
             // override / init slot
-            transposition_table[depth][slot].low = min_score;
-            transposition_table[depth][slot].high = max_score;
+            transposition_table[stones][slot].low = min_score;
+            transposition_table[stones][slot].high = max_score;
         }
     }
     auto alpha0 = alpha;
     auto beta0 = beta;
-    // TODO: last level can avoid this whole thing
     auto moves = state.valid_actions();
     score_t value;
-    if (do_max) {
+    if constexpr(do_max) {
         value = min_score;
 
         if (moves == 0ull) {
             State new_state = state;
             new_state.apply_skip();
-            value = std::max(value, alpha_beta(new_state, alpha, beta, false));
-       } else {
-            // we have one space only
-            // TODO: static if
-            if (depth + 1 == State::M * State::N) {
+            value = std::max(value, alpha_beta<stones, false>(new_state, alpha, beta));
+        } else {
+            if constexpr(stones + 1 == State::M * State::N) {
                 State new_state = state;
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
@@ -148,14 +100,14 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
                     uint64_t move = moves ^ other_moves;
                     State new_state = state;
                     new_state.apply_move_mask(move);
-                    if (depth + 1 < canonical_max_level) {
+                    if constexpr(stones + 1 < canonical_max_level) {
                         new_state = new_state.to_canonical();
                     }
                     
-                    value = std::max(value, alpha_beta(new_state, alpha, beta, false));
+                    value = std::max(value, alpha_beta<stones + 1, false>(new_state, alpha, beta));
                     alpha = std::max(alpha, value);
                     if (value >= beta) {
-                        cutoffs[depth]++;
+                        cutoffs[stones]++;
                         break;
                     }
                     moves = other_moves;
@@ -169,9 +121,9 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
         if (moves == 0ull) {
             State new_state = state;
             new_state.apply_skip();
-            value = std::min(value, alpha_beta(new_state, alpha, beta, true));
+            value = std::min(value, alpha_beta<stones, true>(new_state, alpha, beta));
         } else {
-            if (depth + 1 == State::M * State::N) {
+            if constexpr(stones + 1 == State::M * State::N) {
                 State new_state = state;
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
@@ -181,14 +133,14 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
                     uint64_t move = moves ^ other_moves;
                     State new_state = state;
                     new_state.apply_move_mask(move);
-                    if (depth + 1 < canonical_max_level) {
+                    if constexpr(stones + 1 < canonical_max_level) {
                         new_state = new_state.to_canonical();
                     }
                     
-                    value = std::min(value, alpha_beta(new_state, alpha, beta, true));
+                    value = std::min(value, alpha_beta<stones + 1, true>(new_state, alpha, beta));
                     beta = std::min(beta, value);
                     if (value <= alpha) {
-                        cutoffs[depth]++;
+                        cutoffs[stones]++;
                         break;
                     }
                     moves = other_moves;
@@ -196,21 +148,21 @@ score_t alpha_beta(State state, score_t alpha, score_t beta, bool do_max) {
             } 
         }
     }
-    completions[depth]++;
-    if (depth < tt_max_level) {
-        transposition_table[depth][slot].state = state;
+    completions[stones]++;
+    if constexpr(stones < tt_max_level) {
+        transposition_table[stones][slot].state = state;
         
         if (value <= alpha0) {
-            transposition_table[depth][slot].high = value;
+            transposition_table[stones][slot].high = value;
         }
         if (value >= beta0){
-            transposition_table[depth][slot].low = value;
+            transposition_table[stones][slot].low = value;
         } 
         if (value > alpha0 && value < beta0) {
-            transposition_table[depth][slot].high = value;
-            transposition_table[depth][slot].low = value;
+            transposition_table[stones][slot].high = value;
+            transposition_table[stones][slot].low = value;
         }
-        if (depth < log_max_level) {
+        if (stones < log_max_level) {
             auto curr = std::chrono::steady_clock::now();
             std::chrono::duration<double> diff = curr - start;
             std::cout << diff.count() << std::endl;
@@ -260,9 +212,8 @@ void bfs() {
 }
 
 int main() {
-    //bfs();
     init_tt();
     State s;
-    std::cout << alpha_beta(s.to_canonical(), min_score, max_score, true) << std::endl;
+    std::cout << alpha_beta<4, true>(s.to_canonical(), min_score, max_score) << std::endl;
     return 0;
 }
