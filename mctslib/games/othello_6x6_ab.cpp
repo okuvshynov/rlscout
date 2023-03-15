@@ -19,7 +19,7 @@ uint64_t completions[kLevels] = {0ull};
 uint64_t cutoffs[kLevels] = {0ull};
 uint64_t evictions[kLevels] = {0ull};
 
-constexpr int32_t tt_max_level = 32;
+constexpr int32_t tt_max_level = 33;
 constexpr int32_t log_max_level = 14;
 constexpr int32_t canonical_max_level = 15;
 
@@ -72,7 +72,7 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
         } else {
             if (!transposition_table[stones][slot].state.empty()) {
                 evictions[stones]++;
-            } 
+            }
             // override / init slot
             transposition_table[stones][slot].low = min_score;
             transposition_table[stones][slot].high = max_score;
@@ -157,12 +157,12 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
         }
         if (value >= beta0){
             transposition_table[stones][slot].low = value;
-        } 
+        }
         if (value > alpha0 && value < beta0) {
             transposition_table[stones][slot].high = value;
             transposition_table[stones][slot].low = value;
         }
-        if (stones < log_max_level) {
+        if constexpr (stones < log_max_level) {
             auto curr = std::chrono::steady_clock::now();
             std::chrono::duration<double> diff = curr - start;
             std::cout << diff.count() << std::endl;
@@ -213,6 +213,9 @@ void bfs() {
 
 int main() {
     init_tt();
+    auto curr = std::chrono::steady_clock::now();
+            std::chrono::duration<double> diff = curr - start;
+            std::cout << "init done at " << diff.count() << std::endl;
     State s;
     std::cout << alpha_beta<4, true>(s.to_canonical(), min_score, max_score) << std::endl;
     return 0;
