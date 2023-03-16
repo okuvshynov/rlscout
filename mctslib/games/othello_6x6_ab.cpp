@@ -20,10 +20,10 @@ uint64_t cutoffs[kLevels] = {0ull};
 uint64_t evictions[kLevels] = {0ull};
 
 constexpr int32_t tt_max_level = 33;
-constexpr int32_t log_max_level = 14;
+constexpr int32_t log_max_level = 11;
 constexpr int32_t canonical_max_level = 15;
 
-constexpr size_t tt_size = 1 << 23; 
+constexpr size_t tt_size = 1 << 24; 
 
 struct TTEntry {
     State state;
@@ -53,7 +53,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
 
     size_t slot = 0;
 
-    // TODO this becomes if constexpr 
     if constexpr(stones < tt_max_level) {
         slot = state.hash() % tt_size;
 
@@ -217,7 +216,6 @@ int main() {
             std::chrono::duration<double> diff = curr - start;
             std::cout << "init done at " << diff.count() << std::endl;
     State s;
-    std::cout << alpha_beta<4, true>(s.to_canonical(), -4, -3) << std::endl;
-    std::cout << alpha_beta<4, true>(s.to_canonical(), -5, -4) << std::endl;
+    std::cout << alpha_beta<4, true>(s.to_canonical(), -5, -3) << std::endl;
     return 0;
 }

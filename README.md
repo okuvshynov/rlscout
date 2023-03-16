@@ -80,6 +80,58 @@ Immediate next steps:
 
 ## LIFO order notes
 
+
+### search with [-5; -3] window
+
+13642.4
+4 tt_hits 0 tt_rate 0 completions 1 cutoffs 0 evictions 0
+5 tt_hits 3 tt_rate 1.78814e-05 completions 1 cutoffs 0 evictions 0
+6 tt_hits 0 tt_rate 0 completions 3 cutoffs 2 evictions 0
+7 tt_hits 0 tt_rate 0 completions 10 cutoffs 7 evictions 0
+8 tt_hits 1 tt_rate 5.96046e-06 completions 23 cutoffs 14 evictions 0
+9 tt_hits 0 tt_rate 0 completions 66 cutoffs 49 evictions 0
+10 tt_hits 3 tt_rate 1.78814e-05 completions 193 cutoffs 138 evictions 0
+11 tt_hits 13 tt_rate 7.7486e-05 completions 539 cutoffs 392 evictions 0
+12 tt_hits 55 tt_rate 0.000327826 completions 1520 cutoffs 1111 evictions 0
+13 tt_hits 124 tt_rate 0.000739098 completions 4142 cutoffs 2988 evictions 1
+14 tt_hits 470 tt_rate 0.00280142 completions 11568 cutoffs 8539 evictions 2
+15 tt_hits 1088 tt_rate 0.00648499 completions 30466 cutoffs 21860 evictions 29
+16 tt_hits 3011 tt_rate 0.017947 completions 84380 cutoffs 62523 evictions 229
+17 tt_hits 10318 tt_rate 0.0615001 completions 213469 cutoffs 151141 evictions 1375
+18 tt_hits 33628 tt_rate 0.200438 completions 574588 cutoffs 426005 evictions 9581
+19 tt_hits 89202 tt_rate 0.531685 completions 1393156 cutoffs 976931 evictions 55988
+20 tt_hits 260529 tt_rate 1.55287 completions 3633662 cutoffs 2689438 evictions 361995
+21 tt_hits 678954 tt_rate 4.04688 completions 8397248 cutoffs 5820322 evictions 1767276
+22 tt_hits 1871909 tt_rate 11.1574 completions 21017543 cutoffs 15497151 evictions 8894480
+23 tt_hits 4499267 tt_rate 26.8177 completions 46193515 cutoffs 31641859 evictions 30071943
+24 tt_hits 11334792 tt_rate 67.5606 completions 110945952 cutoffs 81363209 evictions 93093143
+25 tt_hits 25377637 tt_rate 151.263 completions 233104585 cutoffs 157805403 evictions 214342031
+26 tt_hits 60900192 tt_rate 362.993 completions 537378262 cutoffs 391821227 evictions 516610408
+27 tt_hits 130866422 tt_rate 780.025 completions 1074398821 cutoffs 717272615 evictions 1050240589
+28 tt_hits 304276264 tt_rate 1813.63 completions 2351785038 cutoffs 1701372771 evictions 2320896084
+29 tt_hits 618698674 tt_rate 3687.73 completions 4387973864 cutoffs 2868387837 evictions 4346080898
+30 tt_hits 1363792613 tt_rate 8128.84 completions 8826417341 cutoffs 6281828507 evictions 8765577950
+31 tt_hits 2545331413 tt_rate 15171.4 completions 14705204542 cutoffs 9268854810 evictions 14615223277
+32 tt_hits 5062741655 tt_rate 30176.3 completions 25261539773 cutoffs 17267549504 evictions 25127107867
+33 tt_hits 0 tt_rate 0 completions 43022788550 cutoffs 25216523916 evictions 0
+34 tt_hits 0 tt_rate 0 completions 73346540868 cutoffs 43505036727 evictions 0
+35 tt_hits 0 tt_rate 0 completions 19386296042 cutoffs 0 evictions 0
+-4
+
+### more improvements + narrowing a/b window
+
+Narrowing a/b search window has quite a few advantages. If we want to prove that score is 0, just search in [-1, 1] range. This way more things will be cut off. 
+
+Currently we can already get the result in reduced range in a few hours for 6x6 board.
+
+Before we get to 8x8 board, we need the following:
+1. Multithreading. How would batching for inference work here? 
+2. Actually training/applying the model
+3. Other smaller optimizations.
+
+Is multithreading easier with zero-window? Seems like we only need to pass a tiny piece of info.
+
+
 ### some improvements
 
 After making some improvements, we get 6x6 solved (answer is -4, which looks correct) in 70519.7s on a single core.
