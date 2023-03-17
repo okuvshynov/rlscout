@@ -21,7 +21,7 @@ uint64_t evictions[kLevels] = {0ull};
 
 constexpr int32_t tt_max_level = 33;
 constexpr int32_t log_max_level = 11;
-constexpr int32_t canonical_max_level = 25;
+constexpr int32_t canonical_max_level = 30;
 
 constexpr size_t tt_size = 1 << 24; 
 
@@ -32,11 +32,19 @@ struct TTEntry {
 
 std::vector<TTEntry> transposition_table[kLevels];
 
+constexpr size_t tt_sizes[kLevels] = {
+    17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, // 0-10
+    tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, // 11-20
+    tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size * 2, // 21-30
+    tt_size * 2, tt_size * 2, tt_size * 2, // 31-33
+    17, 17, 17
+};
+
 auto start = std::chrono::steady_clock::now();
 
 void init_tt() {
     for (size_t i = 0; i < kLevels; i++) {
-        transposition_table[i].resize(tt_size);
+        transposition_table[i].resize(tt_sizes[i]);
         for (auto& p: transposition_table[i]) {
             p.state.board[0] = 0ull;
             p.state.board[1] = 0ull;
@@ -54,7 +62,7 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
     size_t slot = 0;
 
     if constexpr(stones < tt_max_level) {
-        slot = state.hash() % tt_size;
+        slot = state.hash() % tt_sizes[stones];
 
         if (transposition_table[stones][slot].state == state) {
             if (transposition_table[stones][slot].low >= beta) {
@@ -171,7 +179,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
                 }
                 std::cout << d
                     << " tt_hits " << tt_hits[d] 
-                    << " tt_rate " << 100.0 * tt_hits[d] / tt_size
                     << " completions " << completions[d]
                     << " cutoffs " << cutoffs[d]
                     << " evictions " << evictions[d]

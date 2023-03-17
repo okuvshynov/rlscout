@@ -80,6 +80,11 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### how to do multithreading?
+
+Seems non-trivial. Maybe a specifically zero-window would be easier?
+
+
 ### implementing symmetries with delta swaps
 
 Idea comes from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal, but different 
