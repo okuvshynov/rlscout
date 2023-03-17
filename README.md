@@ -80,6 +80,46 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### even larger symmetry window + variable tt size
+
+another 10% faster.
+
+8962.58
+4 tt_hits 0 completions 1 cutoffs 0 evictions 0
+5 tt_hits 3 completions 1 cutoffs 0 evictions 0
+6 tt_hits 0 completions 3 cutoffs 2 evictions 0
+7 tt_hits 0 completions 10 cutoffs 7 evictions 2
+8 tt_hits 1 completions 23 cutoffs 14 evictions 12
+9 tt_hits 0 completions 66 cutoffs 49 evictions 49
+10 tt_hits 2 completions 194 cutoffs 139 evictions 177
+11 tt_hits 16 completions 539 cutoffs 392 evictions 0
+12 tt_hits 55 completions 1520 cutoffs 1111 evictions 0
+13 tt_hits 124 completions 4142 cutoffs 2988 evictions 1
+14 tt_hits 470 completions 11568 cutoffs 8539 evictions 2
+15 tt_hits 1240 completions 30314 cutoffs 21718 evictions 27
+16 tt_hits 3641 completions 83397 cutoffs 61787 evictions 221
+17 tt_hits 10279 completions 211156 cutoffs 149828 evictions 1319
+18 tt_hits 31861 completions 568229 cutoffs 421242 evictions 9417
+19 tt_hits 84861 completions 1378207 cutoffs 967321 evictions 54713
+20 tt_hits 245162 completions 3581169 cutoffs 2647861 evictions 351778
+21 tt_hits 644882 completions 8231377 cutoffs 5703665 evictions 1704513
+22 tt_hits 1756508 completions 20367151 cutoffs 14978020 evictions 8437724
+23 tt_hits 4236203 completions 44110268 cutoffs 30122178 evictions 28124880
+24 tt_hits 10385110 completions 103646561 cutoffs 75650516 evictions 85779048
+25 tt_hits 22801895 completions 211877839 cutoffs 142295466 evictions 193077454
+26 tt_hits 52126345 completions 471711323 cutoffs 341309405 evictions 451071953
+27 tt_hits 108211790 completions 904699793 cutoffs 595612418 evictions 881040070
+28 tt_hits 235036158 completions 1888115516 cutoffs 1351367280 evictions 1859060936
+29 tt_hits 456596090 completions 3347414167 cutoffs 2147739350 evictions 3309753502
+30 tt_hits 1028316700 completions 6288962748 cutoffs 4444923170 evictions 6212154026
+31 tt_hits 1670963701 completions 9990691747 cutoffs 6184370117 evictions 9891207090
+32 tt_hits 3237618552 completions 16526272765 cutoffs 11204629761 evictions 16393132001
+33 tt_hits 0 completions 27556864136 cutoffs 15977259843 evictions 0
+34 tt_hits 0 completions 46325823889 cutoffs 27252091508 evictions 0
+35 tt_hits 0 completions 11501629050 cutoffs 0 evictions 0
+-4
+
+
 ### how to do multithreading?
 
 Seems non-trivial. Maybe a specifically zero-window would be easier?
