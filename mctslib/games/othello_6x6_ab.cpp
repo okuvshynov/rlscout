@@ -21,7 +21,7 @@ uint64_t evictions[kLevels] = {0ull};
 
 constexpr int32_t tt_max_level = 33;
 constexpr int32_t log_max_level = 11;
-constexpr int32_t canonical_max_level = 15;
+constexpr int32_t canonical_max_level = 25;
 
 constexpr size_t tt_size = 1 << 24; 
 
@@ -113,7 +113,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
                 }
             }
         }
-
     } else {
         value = max_score;
 
