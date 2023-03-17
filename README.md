@@ -80,9 +80,85 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### implementing symmetries with delta swaps
+
+Idea comes from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal, but different 
+masks/shifts for 6x6 board.
+
+We also do that in 3 shifts:
+1. swap 3x3 squares with mask
+```
+000000
+000000
+000000
+111000
+111000
+111000
+``` 
+
+2. swap 8 pairs with mask:
+```
+000000
+100100
+010010
+000000
+100100
+010010
+```
+
+3. swap 4 one more pairs with 
+```
+000000
+000000
+100100
+000000
+000000
+100100
+
+```
+
+After this we can find canonical representation at a higher levels efficiently, here's a test for 25 (same -3; -5 window):
+
+```
+9833.64
+4 tt_hits 0 tt_rate 0 completions 1 cutoffs 0 evictions 0
+5 tt_hits 3 tt_rate 1.78814e-05 completions 1 cutoffs 0 evictions 0
+6 tt_hits 0 tt_rate 0 completions 3 cutoffs 2 evictions 0
+7 tt_hits 0 tt_rate 0 completions 10 cutoffs 7 evictions 0
+8 tt_hits 1 tt_rate 5.96046e-06 completions 23 cutoffs 14 evictions 0
+9 tt_hits 0 tt_rate 0 completions 66 cutoffs 49 evictions 0
+10 tt_hits 3 tt_rate 1.78814e-05 completions 193 cutoffs 138 evictions 0
+11 tt_hits 13 tt_rate 7.7486e-05 completions 539 cutoffs 392 evictions 0
+12 tt_hits 55 tt_rate 0.000327826 completions 1520 cutoffs 1111 evictions 0
+13 tt_hits 124 tt_rate 0.000739098 completions 4142 cutoffs 2988 evictions 1
+14 tt_hits 470 tt_rate 0.00280142 completions 11568 cutoffs 8539 evictions 2
+15 tt_hits 1240 tt_rate 0.00739098 completions 30314 cutoffs 21718 evictions 27
+16 tt_hits 3641 tt_rate 0.0217021 completions 83400 cutoffs 61790 evictions 221
+17 tt_hits 10274 tt_rate 0.0612378 completions 211162 cutoffs 149831 evictions 1319
+18 tt_hits 31856 tt_rate 0.189877 completions 568273 cutoffs 421285 evictions 9420
+19 tt_hits 84814 tt_rate 0.505531 completions 1378329 cutoffs 967415 evictions 54715
+20 tt_hits 245053 tt_rate 1.46063 completions 3581596 cutoffs 2648185 evictions 351832
+21 tt_hits 644457 tt_rate 3.84126 completions 8232712 cutoffs 5704678 evictions 1704724
+22 tt_hits 1755284 tt_rate 10.4623 completions 20371537 cutoffs 14981124 evictions 8438926
+23 tt_hits 4234079 tt_rate 25.2371 completions 44121533 cutoffs 30129966 evictions 28128572
+24 tt_hits 10381883 tt_rate 61.8808 completions 103674239 cutoffs 75668760 evictions 85790256
+25 tt_hits 20406283 tt_rate 121.631 completions 214330701 cutoffs 144623407 evictions 195520648
+26 tt_hits 44969949 tt_rate 268.042 completions 483541784 cutoffs 349543310 evictions 462924020
+27 tt_hits 106610517 tt_rate 635.448 completions 934321669 cutoffs 613812724 evictions 910685953
+28 tt_hits 236883686 tt_rate 1411.94 completions 1970929745 cutoffs 1412987991 evictions 1941741045
+29 tt_hits 459561574 tt_rate 2739.2 completions 3547857290 cutoffs 2278670097 evictions 3509826700
+30 tt_hits 955832329 tt_rate 5697.2 completions 6929345764 cutoffs 4889941367 evictions 6876734793
+31 tt_hits 1708935701 tt_rate 10186.1 completions 11372841742 cutoffs 7078491053 evictions 11298241282
+32 tt_hits 3255945757 tt_rate 19406.9 completions 19547282179 cutoffs 13268925850 evictions 19440230445
+33 tt_hits 0 tt_rate 0 completions 32902336691 cutoffs 19171425961 evictions 0
+34 tt_hits 0 tt_rate 0 completions 55536191497 cutoffs 32643799862 evictions 0
+35 tt_hits 0 tt_rate 0 completions 14050239757 cutoffs 0 evictions 0
+-4
+```
 
 ### search with [-5; -3] window
 
+```
 13642.4
 4 tt_hits 0 tt_rate 0 completions 1 cutoffs 0 evictions 0
 5 tt_hits 3 tt_rate 1.78814e-05 completions 1 cutoffs 0 evictions 0
@@ -117,6 +193,8 @@ Immediate next steps:
 34 tt_hits 0 tt_rate 0 completions 73346540868 cutoffs 43505036727 evictions 0
 35 tt_hits 0 tt_rate 0 completions 19386296042 cutoffs 0 evictions 0
 -4
+```
+
 
 ### more improvements + narrowing a/b window
 
