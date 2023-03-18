@@ -59,19 +59,6 @@ struct OthelloState {
     return board[0] == 0ull && board[1] == 0ull;
   }
 
-  // just to test
-  uint64_t flip_diag_6x6_slow(uint64_t v) const {
-    uint64_t res = 0ull;
-    for (int i = 0; i < 6; i++) {
-      for (int j = 0; j < 6; j++) {
-        if (v & mask(index(i, j))) {
-          res |= mask(index(j, i));
-        }
-      }
-    }
-    return res;
-  }
-
   // idea from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal
   // reimplemented for 6x6 board with 3 other masks / delta swaps
   uint64_t flip_diag_6x6(uint64_t x) const {

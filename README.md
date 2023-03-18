@@ -80,10 +80,32 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Profiliing - what's expensive
+
+Looks like flood fill (get moves/apply move) is most expensive still.
+
+
+### what boundary do we search at?
+
+option 1: [-1; 1]. We'll know if it is a draw or not.
+option 2: [-1; 0] or [0; 1]. Or both sequentially reusing transposition table.
+
+Is there any implementation improvement (being faster, clearer, etc) in having 0 window?
+
+
+### need to do hashing right
+
+How to do that with rotation/canonical? Do we store all rotations and their hashes?
+Do we compute it on the fly? (seems expensive?)
+Or do we do that by level as well:
+1. up to level X we use rotation and compute on the fly
+2. after that we don't use rotation anyway and can store hash in the state (and update as we apply moves).
+
+
 ### even larger symmetry window + variable tt size
 
 another 10% faster.
-
+```
 8962.58
 4 tt_hits 0 completions 1 cutoffs 0 evictions 0
 5 tt_hits 3 completions 1 cutoffs 0 evictions 0
@@ -118,11 +140,17 @@ another 10% faster.
 34 tt_hits 0 completions 46325823889 cutoffs 27252091508 evictions 0
 35 tt_hits 0 completions 11501629050 cutoffs 0 evictions 0
 -4
-
+```
 
 ### how to do multithreading?
 
 Seems non-trivial. Maybe a specifically zero-window would be easier?
+
+Well-known options are described in https://www.chessprogramming.org/Parallel_Search
+
+One option which is similar to SMP is to run multiple MCTS games to get to 'promising' positions at somewhat lower levels, run full search from there and save it into transposition table. Full search from those 'good' positions can be parallelized. 
+
+
 
 
 ### implementing symmetries with delta swaps
