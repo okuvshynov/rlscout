@@ -92,7 +92,7 @@ struct GameSlot {
     if (state.finished()) {
       if (log_game_done_cb != nullptr) {
         // do we need to play another game in this slot?
-        slot_active = log_game_done_cb(state.winner);
+        slot_active = log_game_done_cb(state.winner());
       }
     }
   }

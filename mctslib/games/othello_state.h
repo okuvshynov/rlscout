@@ -150,6 +150,19 @@ struct OthelloState {
 
   bool finished() const { return skipped >= 2; }
 
+  int32_t winner() const {
+    if (finished()) {
+      auto score0 = score(0);
+      if (score0 > 0) {
+        return 0;
+      } 
+      if (score0 < 0) {
+        return 1;
+      }
+    }
+    return -1;
+  }
+
   bool full() const {
     return (board[0] | board[1]) == kFull;
   }
@@ -227,10 +240,6 @@ struct OthelloState {
       apply_skip();
       return;
     }
-
-    auto actions_size = std::popcount(actions);
-
-    auto bit = rand() % actions_size;
 
     while (true) {
       uint64_t index = rand() % (n * n);
