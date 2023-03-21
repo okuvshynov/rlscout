@@ -17,6 +17,10 @@ uint64_t flip_v_6x6(uint64_t v) {
   ((v & 0b111111ull) << 30);
 }
 
+const uint64_t kCorners = 0b100001000000000000000000000000100001ull;
+const uint64_t kBorder = 0b111111100001100001100001100001111111ull;
+
+
 template <uint8_t n>
 struct OthelloState {
   using Self = OthelloState<n>;
@@ -115,6 +119,18 @@ struct OthelloState {
     player = 1 - player;
     return true;
   }
+
+  int32_t max_flip_score() const {
+    auto b = board[0] | board[1];
+    if ((b & kCorners) != kCorners) {
+      return 13;
+    }
+    if ((b & kBorder) != kBorder) {
+      return 11;
+    }
+    return 10;
+  }
+
 
   bool apply_move_no_check(uint64_t index) {
     auto m = mask(index);

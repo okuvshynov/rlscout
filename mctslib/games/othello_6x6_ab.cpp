@@ -19,6 +19,7 @@ uint64_t completions[kLevels] = {0ull};
 uint64_t cutoffs[kLevels] = {0ull};
 uint64_t evictions[kLevels] = {0ull};
 
+uint64_t llskip[4] = {0ull};
 constexpr int32_t tt_max_level = 33;
 constexpr int32_t log_max_level = 11;
 constexpr int32_t canonical_max_level = 30;
@@ -50,6 +51,29 @@ void init_tt() {
             p.state.board[1] = 0ull;
         }
     }
+}
+
+void log_stats_by_depth() {
+    auto curr = std::chrono::steady_clock::now();
+    std::chrono::duration<double> diff = curr - start;
+    std::cout << diff.count() << std::endl;
+    for (size_t d = 0; d < kLevels; d++) {
+        if (completions[d] == 0ull && tt_hits[d] == 0ull) {
+            continue;
+        }
+        std::cout << d
+            << " tt_hits " << tt_hits[d] 
+            << " completions " << completions[d]
+            << " cutoffs " << cutoffs[d]
+            << " evictions " << evictions[d]
+            << std::endl;
+    }
+    std::cout << "ll skip: " 
+        << llskip[0] << " " 
+        << llskip[1] << " " 
+        << llskip[2] << " " 
+        << llskip[3] << " " 
+        << std::endl;
 }
 
 template<uint32_t stones, bool do_max>
@@ -97,7 +121,21 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
             new_state.apply_skip();
             value = std::max(value, alpha_beta<stones, false>(new_state, alpha, beta));
         } else {
+            // we have one move left
             if constexpr(stones + 1 == State::M * State::N) {
+                // TODO: 13 -- max possible flip
+                // maximizing branch. This is done to avoid applying move which
+                // is expensive.
+                auto score = state.score(0);
+                if (score + 2 >= beta) {
+                    //llskip[0]++;
+                    return beta;
+                }
+                if (score + state.max_flip_score() <= alpha) {
+                    //llskip[1]++;
+                    return alpha;
+                }
+
                 State new_state = state;
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
@@ -130,6 +168,19 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
             value = std::min(value, alpha_beta<stones, true>(new_state, alpha, beta));
         } else {
             if constexpr(stones + 1 == State::M * State::N) {
+                auto score = state.score(0);
+                // if we have a valid move we al least
+                //  - add one more stone 
+                //  - flip one more stone
+                // thus, increasing the score by 2
+                if (score - 2 <= alpha) {
+                    //llskip[2]++;
+                    return alpha;
+                }
+                if (score - state.max_flip_score() >= beta) {
+                    //llskip[3]++;
+                    return beta;
+                }
                 State new_state = state;
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
@@ -169,21 +220,7 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
             transposition_table[stones][slot].low = value;
         }
         if constexpr (stones < log_max_level) {
-            auto curr = std::chrono::steady_clock::now();
-            std::chrono::duration<double> diff = curr - start;
-            std::cout << diff.count() << std::endl;
-            for (size_t d = 0; d < kLevels; d++) {
-                //const auto& tt = transposition_table[d];
-                if (completions[d] == 0ull && tt_hits[d] == 0ull) {
-                    continue;
-                }
-                std::cout << d
-                    << " tt_hits " << tt_hits[d] 
-                    << " completions " << completions[d]
-                    << " cutoffs " << cutoffs[d]
-                    << " evictions " << evictions[d]
-                    << std::endl;
-            }
+            log_stats_by_depth();
         }
     }
     return value;

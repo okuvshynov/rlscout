@@ -80,9 +80,120 @@ Immediate next steps:
 
 ## LIFO order notes
 
-### Profiliing - what's expensive
+### distributed version: utilize MCTS
 
-Looks like flood fill (get moves/apply move) is most expensive still.
+Parallelizing/distributing a/b search is not trivial, because the entire idea of the search 
+procedure is to cut off branches (which we might have started in parallel).
+
+Still, there are different approaches here. One thing we could do is:
+
+First, we train a decent model through regular self-play. 
+Next we start another slightly different self-play procedure: instead of collecting training data after level L we start full search and save result to global transposition table. 
+Idea is to find nodes which are 'good enough' according to our model so that we might encounter them in full search.
+
+We can start different instances and add some sampling for first N moves as usual.
+
+Then we start actual full search (in a single thread) which uses same transposition table.
+
+Part of the transposition table is global and shared across all nodes. Other part is local only (as communication/storage cost will be too high).
+
+We can keep improving the model.
+
+For example, in 6x6 case we complete 13-14 stones position in 1-2 seconds. This is ~22 levels remaining. Let's say for 8x8 case we'll do the same:
+start full search at, say, 40 stones.
+
+Maybe we should enqueue earlier to make each task larger? In 6x6 case at level 10 we spend ~30 seconds for each node. 
+
+So we start N MCTS self-play processes, which stops game at 40 stones and passes the encountered position to full search queue. We do some exploration/sampling for first, say, 10-15 stones.
+Gradually we can start full search at lower positions? 
+
+Enqueue checks that such state is not in the queue yet.
+
+TT service.
+
+TT consists of two parts:
+* library. 
+* remote service for sync
+
+Library stores part globally (syncs to service) and other part locally (shared among threads but not among computation nodes).
+
+We can configure:
+* which layers are fully cached (no evictions)
+* which layers are distributed
+* which layers are cached locally
+* some layers (e.g. last few) are not cached at all.
+
+Generate even better data?
+When we have this whole thing running we can also keep collecting training data.
+For example, self-play which uses the transposition table we have in addition to the model? Or even full a/b search at some level?
+
+Seems like we need to just reimplement everything in C++, except model training and maybe logging?
+
+AB search - batching?
+
+Let's say this takes a few years - are we ok with that?
+
+How can we easily get help/add nodes?
+
+Get new full search tasks, have access to shared transposition table, read/write? 
+
+### ordering and TT
+
+Now we don't do any smart ordering at all.
+However, what we can easily do without using any extimates is to first check children in TT?
+
+Not that many matches.
+
+### Can we get bounds on how much the score could change in the last 1-2 moves?
+
+For example, if we have 1 place left, the score can only change by 13 max (on 6x6 board)?
+Therefore, if current score is too large/too small, we can skip applying last move.
+
+13 is only for the corner. 
+Any on the border is 11
+Any in the interior is 10
+
+Looks like it's working. What about next level:
+
+For example, we have 2 free slots and know that there's at least one move. If player A makes the move, it will get at least 2 more points. After that, player B can make a move and can get up to 13 more points. So, player B can get at most 'now + 11'. We can check if that's guaranteed to be outside of alpha/beta.
+What if we have 2 slots and both are valid moves? Can we get stricter limits? 
+
+Can we get quick and stricter bound on the score increase?
+
+
+What if we look 3 stones ahead? This time seems harder as each player might skip?
+
+Some stats for 1 lookahead:
+~12M samples at the level with 1 empty cell
+
+```
+format: 
+count is_maximizing alpha beta score has_move 
+
+486840 0 -5 -4 1 1
+480261 0 -5 -4 3 1
+437344 0 -5 -4 -1 1
+426246 0 -5 -4 5 1
+381894 0 -4 -3 3 1
+361974 0 -4 -3 1 1
+357977 0 -4 -3 5 1
+354618 0 -5 -4 -3 1 # this is one example where we can skip applying move - any legal move will reduce the score by 2 or more
+344732 0 -5 -4 7 1 # here depending on which cell is it, we might never get enough score to reach -5.
+300374 0 -4 -3 7 1
+300215 0 -4 -3 -1 1
+259435 0 -5 -4 -5 1
+256133 0 -5 -4 9 1
+235978 0 -4 -3 9 1
+222993 0 -4 -3 -3 1
+176292 0 -5 -4 11 1
+173923 0 -5 -4 -7 1
+167930 0 -4 -3 11 1
+150814 0 -4 -3 -5 1
+...
+```
+
+
+
 
 
 ### what boundary do we search at?
