@@ -80,6 +80,15 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Individual components for entire thing:
+
+1. Game Server/Database
+2. Self-play loop
+3. Evaluation/Duel loop
+4. Model training loop
+5. MCTS-AB Self-play loop
+6. TT Library+Service+Backup
+
 ### distributed version: utilize MCTS
 
 Parallelizing/distributing a/b search is not trivial, because the entire idea of the search 
@@ -105,7 +114,8 @@ start full search at, say, 40 stones.
 Maybe we should enqueue earlier to make each task larger? In 6x6 case at level 10 we spend ~30 seconds for each node. 
 
 So we start N MCTS self-play processes, which stops game at 40 stones and passes the encountered position to full search queue. We do some exploration/sampling for first, say, 10-15 stones.
-Gradually we can start full search at lower positions? 
+Gradually we can start full search at lower positions? We can do that right away? As long as we keep pushing data to shared TT. 
+No, seems like we need to increase it gradually. Otherwise it is too hard to distribute and there'll be too much duplication? Still can be high enough, say, each task is 30 minutes? (level 6-7 for 6x6, should be fine for 35 for 8x8)
 
 Enqueue checks that such state is not in the queue yet.
 
@@ -122,6 +132,15 @@ We can configure:
 * which layers are distributed
 * which layers are cached locally
 * some layers (e.g. last few) are not cached at all.
+
+Example config:
+1. Everything from 0..40 is fully cached and distributed. How much data is it? Likely terabytes.
+2. At 35 we start full AB searches with small window.
+3. 40-60 are cached locally.
+
+If we start getting only a few new entries at level 35, start going to 34. Then, go to 33, etc?
+Why do we need that if we still share TT? Do we get more/less duplication this way?
+
 
 Generate even better data?
 When we have this whole thing running we can also keep collecting training data.
@@ -145,6 +164,44 @@ However, what we can easily do without using any extimates is to first check chi
 Not that many matches.
 
 ### Can we get bounds on how much the score could change in the last 1-2 moves?
+
+```
+8760.11
+4 tt_hits 0 completions 1 cutoffs 0 evictions 0
+5 tt_hits 3 completions 1 cutoffs 0 evictions 0
+6 tt_hits 0 completions 3 cutoffs 2 evictions 0
+7 tt_hits 0 completions 10 cutoffs 7 evictions 2
+8 tt_hits 1 completions 23 cutoffs 14 evictions 12
+9 tt_hits 0 completions 66 cutoffs 49 evictions 49
+10 tt_hits 2 completions 194 cutoffs 139 evictions 177
+11 tt_hits 16 completions 539 cutoffs 392 evictions 0
+12 tt_hits 53 completions 1543 cutoffs 1135 evictions 0
+13 tt_hits 136 completions 4154 cutoffs 2986 evictions 1
+14 tt_hits 467 completions 11608 cutoffs 8587 evictions 2
+15 tt_hits 1240 completions 30237 cutoffs 21622 evictions 27
+16 tt_hits 3616 completions 83234 cutoffs 61781 evictions 220
+17 tt_hits 10225 completions 209723 cutoffs 148579 evictions 1274
+18 tt_hits 31421 completions 564169 cutoffs 418764 evictions 9351
+19 tt_hits 83817 completions 1362264 cutoffs 955037 evictions 53491
+20 tt_hits 238814 completions 3541440 cutoffs 2622360 evictions 344403
+21 tt_hits 631009 completions 8100873 cutoffs 5604111 evictions 1653539
+22 tt_hits 1697174 completions 20082961 cutoffs 14799625 evictions 8226528
+23 tt_hits 4107851 completions 43276912 cutoffs 29475751 evictions 27315567
+24 tt_hits 10014344 completions 102008512 cutoffs 74661344 evictions 83941809
+25 tt_hits 22027528 completions 207367459 cutoffs 138754009 evictions 188182688
+26 tt_hits 50358672 completions 463352577 cutoffs 336390752 evictions 441565793
+27 tt_hits 104467393 completions 883555888 cutoffs 579243454 evictions 857574131
+28 tt_hits 226774608 completions 1851753211 cutoffs 1330363650 evictions 1816206262
+29 tt_hits 439859050 completions 3266311120 cutoffs 2085288119 evictions 3214931776
+30 tt_hits 983365162 completions 6179288001 cutoffs 4386629128 evictions 6057265147
+31 tt_hits 1600719362 completions 9785681504 cutoffs 6016289026 evictions 9599516612
+32 tt_hits 3092104624 completions 16341646240 cutoffs 11143813367 evictions 16005662179
+33 tt_hits 0 completions 27073774256 cutoffs 15580316417 evictions 0
+34 tt_hits 0 completions 45652571509 cutoffs 27046025443 evictions 0
+35 tt_hits 0 completions 11273103535 cutoffs 0 evictions 0
+ll skip: 0 0 0 0
+-4
+```
 
 For example, if we have 1 place left, the score can only change by 13 max (on 6x6 board)?
 Therefore, if current score is too large/too small, we can skip applying last move.
