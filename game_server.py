@@ -5,7 +5,7 @@ import zmq
 from game_db import GameDB
 
 port = 8888
-db_filename = './db/othello6x6_v2.db'
+db_filename = './db/othello6x6_v3.db'
 #db_filename = ':memory:'
 
 context = zmq.Context()
@@ -50,6 +50,9 @@ while True:
 
     if req['method'] == 'get_model':
         res['data'] = db.get_model(req['id'])
+
+    if req['method'] == 'stats':
+        res['data'] = db.get_stats()
 
     # write
     if req['method'] == 'append_sample':

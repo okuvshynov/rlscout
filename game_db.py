@@ -161,6 +161,10 @@ class GameDB:
         with closing(self.conn.cursor()) as cursor:
             cursor.execute(remove_old_samples, (samples_to_keep, ))
             self.conn.commit()
+
+    def get_stats(self):
+        with closing(self.conn.cursor()) as cursor:
+            return cursor.execute("select produced_by_model, sum(1) from samples group by produced_by_model;").fetchall()
     
     def _setup_tables(self):
         with closing(self.conn.cursor()) as cursor:
