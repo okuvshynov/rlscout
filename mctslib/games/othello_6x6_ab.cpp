@@ -16,7 +16,7 @@ constexpr size_t kLevels = 37;
 uint64_t leaves = 0ull;
 uint64_t tt_hits[kLevels] = {0ull};
 uint64_t completions[kLevels] = {0ull};
-uint64_t cutoffs[kLevels] = {0ull};
+uint64_t cutoffs[kLevels][kLevels] = {{0ull}};
 uint64_t evictions[kLevels] = {0ull};
 
 uint64_t llskip[4] = {0ull};
@@ -64,7 +64,6 @@ void log_stats_by_depth() {
         std::cout << d
             << " tt_hits " << tt_hits[d] 
             << " completions " << completions[d]
-            << " cutoffs " << cutoffs[d]
             << " evictions " << evictions[d]
             << std::endl;
     }
@@ -74,6 +73,16 @@ void log_stats_by_depth() {
         << llskip[2] << " " 
         << llskip[3] << " " 
         << std::endl;
+
+    std::cout << "cutoff idxs " << std::endl;
+    for (size_t d = 0; d < kLevels; d++) {
+      std::cout << d << ": "; 
+      for (size_t l = 0; l < kLevels; l++) {
+        std::cout << cutoffs[d][l] << " ";
+      }
+      std::cout << std::endl;
+    }
+
 }
 
 template<uint32_t stones, bool do_max>
@@ -140,6 +149,7 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
             } else {
+                int32_t move_idx = 0;
                 while (moves) {
                     uint64_t other_moves = (moves & (moves - 1));
                     uint64_t move = moves ^ other_moves;
@@ -152,10 +162,11 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
                     value = std::max(value, alpha_beta<stones + 1, false>(new_state, alpha, beta));
                     alpha = std::max(alpha, value);
                     if (value >= beta) {
-                        cutoffs[stones]++;
+                        cutoffs[stones][move_idx]++;
                         break;
                     }
                     moves = other_moves;
+                    move_idx++;
                 }
             }
         }
@@ -185,6 +196,7 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
                 new_state.apply_move_mask(moves);
                 return new_state.score(0);
             } else {
+                int32_t move_idx = 0;
                 while (moves) {
                     uint64_t other_moves = (moves & (moves - 1));
                     uint64_t move = moves ^ other_moves;
@@ -197,10 +209,11 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
                     value = std::min(value, alpha_beta<stones + 1, true>(new_state, alpha, beta));
                     beta = std::min(beta, value);
                     if (value <= alpha) {
-                        cutoffs[stones]++;
+                        cutoffs[stones][move_idx]++;
                         break;
                     }
                     moves = other_moves;
+                    move_idx++;
                 }
             } 
         }
