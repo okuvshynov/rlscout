@@ -239,32 +239,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
     return value;
 }
 
-struct StateHash {
-    std::size_t operator()(const State& s) const {
-        return s.hash();
-    }
-};
-
-void bfs() {
-    std::unordered_set<State, StateHash> curr, next;
-    State s;
-    curr.insert(s);
-    while (true) {
-        next.clear();
-        for (auto state: curr) {
-            auto moves = state.valid_actions();
-            for (uint64_t k = 0; k < State::M * State::N; k++) {
-                if ((1ull << k) & moves) {
-                    State new_state = state;
-                    new_state.apply_move_no_check(k);
-                    next.insert(new_state.to_canonical());
-                }
-            }
-        }
-        std::cout << next.begin()->stones_played() << " " << next.size() << std::endl;
-        std::swap(next, curr);
-    }
-}
 
 int main() {
     init_tt();

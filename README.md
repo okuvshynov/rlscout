@@ -80,6 +80,49 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### For better experimenting, we can do the following:
+1. Have separate 'player' just for 1:1 games and visualizations. It won't be used for self-play generation, etc.
+2. Implementations should be: full a/b, pure mcts, pure model, model mcts, etc.
+3. Easy to see what each player thinks the next move should be
+
+To do that we need to actually pick the best move? Current search procedure just assigns score.
+Let's save first N layers of TT? 
+
+We need to refactor A/B search so that it's more extensible and can be actual 'player'.
+
+### Comparing M1 vs M2
+
+Training:
+
+M2
+```
+% python train_loop.py
+loading last snapshot from DB: id=0
+training on device mps
+training on 1480640 recent samples
+training loss: 3.598
+validation loss: 3.598
+.......... | 11.4 seconds | epoch 0: training loss: 3.426, validation loss: 3.425
+.......... | 11.2 seconds | epoch 1: training loss: 3.273, validation loss: 3.275
+.......... | 11.3 seconds | epoch 2: training loss: 3.115, validation loss: 3.115
+.......... | 11.3 seconds | epoch 3: training loss: 2.942, validation loss: 2.941
+```
+
+M1
+```
+% python train_loop.py
+loading last snapshot from DB: id=0
+training on device mps
+training on 1480640 recent samples
+training loss: 3.609
+validation loss: 3.615
+.......... | 16.6 seconds | epoch 0: training loss: 3.402, validation loss: 3.398
+.......... | 15.8 seconds | epoch 1: training loss: 3.267, validation loss: 3.261
+.......... | 15.8 seconds | epoch 2: training loss: 3.147, validation loss: 3.146
+.......... | 15.8 seconds | epoch 3: training loss: 3.031, validation loss: 3.026
+```
+
+
 ### Individual components for entire thing:
 
 1. Game Server/Database
@@ -804,7 +847,7 @@ It can still be improved, of course, but it was good enough
 
 After generating first training data, we split it into training and validation sets and train our first model with Pytorch. Some notes:
 1. We use residual tower similar to AlphaGoZero, but with only a few layers (for now) and predicting only probabilities for the next move, no value estimates.
-2. I trained it on macbook air with M2 chip using "mps" device, which is short for 'metal pixel shaders' and makes it run on GPU.
+2. I trained it on macbook air with M2 chip using "mps" device, which is short for 'metal performance shaders' and makes it run on GPU.
 
 ### Using the model
 After we get the model, we need to use it. The place to use it is within search procedure (which is written at C++ at this point). For experimentation flexibility and visualization we apply model from Python, thus, we needed to make callback from C++ back to Python. 
