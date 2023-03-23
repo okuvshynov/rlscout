@@ -82,7 +82,6 @@ void log_stats_by_depth() {
       }
       std::cout << std::endl;
     }
-
 }
 
 template<uint32_t stones, bool do_max>
@@ -122,102 +121,66 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
     auto beta0 = beta;
     auto moves = state.valid_actions();
     score_t value;
-    if constexpr(do_max) {
-        value = min_score;
-
-        if (moves == 0ull) {
-            State new_state = state;
-            new_state.apply_skip();
-            value = std::max(value, alpha_beta<stones, false>(new_state, alpha, beta));
+    if (moves == 0ull) {
+        State new_state = state;
+        new_state.apply_skip();
+        value = alpha_beta<stones, !do_max>(new_state, alpha, beta);
+    } else 
+    if constexpr(stones + 1 == State::M * State::N) {
+        auto score = state.score(0);
+        if constexpr(do_max) {
+            if (score + 2 >= beta) {
+                return beta;
+            }
+            if (score + state.max_flip_score() <= alpha) {
+                return alpha;
+            }
         } else {
-            // we have one move left
-            if constexpr(stones + 1 == State::M * State::N) {
-                // TODO: 13 -- max possible flip
-                // maximizing branch. This is done to avoid applying move which
-                // is expensive.
-                auto score = state.score(0);
-                if (score + 2 >= beta) {
-                    //llskip[0]++;
-                    return beta;
-                }
-                if (score + state.max_flip_score() <= alpha) {
-                    //llskip[1]++;
-                    return alpha;
-                }
-
-                State new_state = state;
-                new_state.apply_move_mask(moves);
-                return new_state.score(0);
-            } else {
-                int32_t move_idx = 0;
-                while (moves) {
-                    uint64_t other_moves = (moves & (moves - 1));
-                    uint64_t move = moves ^ other_moves;
-                    State new_state = state;
-                    new_state.apply_move_mask(move);
-                    if constexpr(stones + 1 < canonical_max_level) {
-                        new_state = new_state.to_canonical();
-                    }
-                    
-                    value = std::max(value, alpha_beta<stones + 1, false>(new_state, alpha, beta));
-                    alpha = std::max(alpha, value);
-                    if (value >= beta) {
-                        cutoffs[stones][move_idx]++;
-                        break;
-                    }
-                    moves = other_moves;
-                    move_idx++;
-                }
+            if (score - 2 <= alpha) {
+                return alpha;
+            }
+            if (score - state.max_flip_score() >= beta) {
+                return beta;
             }
         }
+        State new_state = state;
+        new_state.apply_move_mask(moves);
+        return new_state.score(0);
     } else {
-        value = max_score;
-
-        if (moves == 0ull) {
+        value = do_max ? min_score : max_score;
+        int32_t move_idx = 0;
+        while (moves) {
+            uint64_t other_moves = (moves & (moves - 1));
+            uint64_t move = moves ^ other_moves;
             State new_state = state;
-            new_state.apply_skip();
-            value = std::min(value, alpha_beta<stones, true>(new_state, alpha, beta));
-        } else {
-            if constexpr(stones + 1 == State::M * State::N) {
-                auto score = state.score(0);
-                // if we have a valid move we al least
-                //  - add one more stone 
-                //  - flip one more stone
-                // thus, increasing the score by 2
-                if (score - 2 <= alpha) {
-                    //llskip[2]++;
-                    return alpha;
+            new_state.apply_move_mask(move);
+            if constexpr(stones + 1 < canonical_max_level) {
+                new_state = new_state.to_canonical();
+            }
+            
+            auto new_value = alpha_beta<stones + 1, !do_max>(new_state, alpha, beta);
+
+            if constexpr (do_max) {
+                value = std::max(value, new_value);
+                alpha = std::max(alpha, value);
+                if (value >= beta) {
+                    cutoffs[stones][move_idx]++;
+                    break;
                 }
-                if (score - state.max_flip_score() >= beta) {
-                    //llskip[3]++;
-                    return beta;
-                }
-                State new_state = state;
-                new_state.apply_move_mask(moves);
-                return new_state.score(0);
             } else {
-                int32_t move_idx = 0;
-                while (moves) {
-                    uint64_t other_moves = (moves & (moves - 1));
-                    uint64_t move = moves ^ other_moves;
-                    State new_state = state;
-                    new_state.apply_move_mask(move);
-                    if constexpr(stones + 1 < canonical_max_level) {
-                        new_state = new_state.to_canonical();
-                    }
-                    
-                    value = std::min(value, alpha_beta<stones + 1, true>(new_state, alpha, beta));
-                    beta = std::min(beta, value);
-                    if (value <= alpha) {
-                        cutoffs[stones][move_idx]++;
-                        break;
-                    }
-                    moves = other_moves;
-                    move_idx++;
+                value = std::min(value, new_value);
+                beta = std::min(beta, value);
+                if (value <= alpha) {
+                    cutoffs[stones][move_idx]++;
+                    break;
                 }
-            } 
+            }
+
+            moves = other_moves;
+            move_idx++;
         }
     }
+
     completions[stones]++;
     if constexpr(stones < tt_max_level) {
         transposition_table[stones][slot].state = state;
