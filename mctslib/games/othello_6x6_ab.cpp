@@ -202,7 +202,6 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
     return value;
 }
 
-
 int main() {
     init_tt();
     auto curr = std::chrono::steady_clock::now();

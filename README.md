@@ -80,6 +80,30 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### what to do next and in what order?
+For 6x6
+1. Distributed/Serializable TT
+2. A/B player to play against model/mcts/etc.
+3. Introduce reading from TT to MCTS rollouts
+4. Train a good model and use it for ordering in A/B
+5. web UI to visualize games and pplayer thoughts
+
+### How to make distributed TT?
+
+1. For each entry we at a minimum need to store:
+- State itself (128 bit if silly)
+- current player (1 bit)
+- if there was a skip before (1 bit?) maybe have to be 2 bits to indicate end of game?
+- alpha/beta. (4 bit each? depends on bounds we set)
+
+2. We need a part of the table to be fully stored and distributed and other part can be just simple basic replacement local thing
+
+3. How to compress/hash the board the most compact way? Othello has some properties, e.g. it is all connected in 2d.
+
+4. Actual compression doesn't matter for now. 
+
+
+
 ### For better experimenting, we can do the following:
 1. Have separate 'player' just for 1:1 games and visualizations. It won't be used for self-play generation, etc.
 2. Implementations should be: full a/b, pure mcts, pure model, model mcts, etc.
