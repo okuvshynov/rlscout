@@ -1,4 +1,5 @@
 #include "othello_state.h"
+#include "tt.h"
 
 #include <unordered_map>
 #include <vector>
@@ -35,8 +36,9 @@ std::vector<TTEntry> transposition_table[kLevels];
 
 constexpr size_t tt_sizes[kLevels] = {
     17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, // 0-10
-    tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, // 11-20
-    tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size, tt_size * 2, // 21-30
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 11-20
+    1, 1, 1, tt_size, tt_size, // 21 - 25
+    tt_size, tt_size, tt_size, tt_size, tt_size * 2, // 26-30
     tt_size * 2, tt_size * 2, tt_size * 2, // 31-33
     17, 17, 17
 };
@@ -84,6 +86,9 @@ void log_stats_by_depth() {
     }
 }
 
+TT<State, score_t> full_tt(27);
+constexpr uint32_t tt_full_level = 24;
+
 template<uint32_t stones, bool do_max>
 score_t alpha_beta(State state, score_t alpha, score_t beta) {
     if (state.finished() || state.full()) {
@@ -93,6 +98,26 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
 
     size_t slot = 0;
 
+    if constexpr(stones < tt_full_level) {
+        slot = full_tt.find_slot(state);
+        auto& entry = full_tt.data[slot];
+        if (!entry.free) {
+            if (entry.low >= beta) {
+                tt_hits[stones]++;
+                return entry.low;
+            }
+            if (entry.high <= alpha) {
+                tt_hits[stones]++;
+                return entry.high;
+            }
+            alpha = std::max(alpha, entry.low);
+            beta = std::min(beta, entry.high);
+        } else {
+            entry.low = min_score;
+            entry.high = max_score;
+        }
+    }
+    else
     if constexpr(stones < tt_max_level) {
         slot = state.hash() % tt_sizes[stones];
 
@@ -182,6 +207,24 @@ score_t alpha_beta(State state, score_t alpha, score_t beta) {
     }
 
     completions[stones]++;
+    if constexpr(stones < tt_full_level) {
+        auto& entry = full_tt.data[slot];
+        entry.free = false;
+        entry.state = state;
+        if (value <= alpha0) {
+            entry.high = value;
+        }
+        if (value >= beta0){
+            entry.low = value;
+        }
+        if (value > alpha0 && value < beta0) {
+            entry.high = value;
+            entry.low = value;
+        }
+        if constexpr (stones < log_max_level) {
+            log_stats_by_depth();
+        }
+    } else
     if constexpr(stones < tt_max_level) {
         transposition_table[stones][slot].state = state;
         
