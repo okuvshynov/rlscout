@@ -251,6 +251,6 @@ int main() {
             std::chrono::duration<double> diff = curr - start;
             std::cout << "init done at " << diff.count() << std::endl;
     State s;
-    std::cout << alpha_beta<4, true>(s.to_canonical(), -5, -3) << std::endl;
+    std::cout << alpha_beta<4, true>(s.to_canonical(), -4, -3) << std::endl;
     return 0;
 }

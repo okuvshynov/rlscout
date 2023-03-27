@@ -80,6 +80,12 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### null-window A/B search
+
+Let's plan on making 0-window search. That will simplify things a little + we'll need to store less data.
+If we can run it once, we can run it twice as well.
+
+
 ### what to do next and in what order?
 For 6x6
 1. Distributed/Serializable TT
