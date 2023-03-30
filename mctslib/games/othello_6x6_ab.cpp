@@ -86,7 +86,7 @@ void log_stats_by_depth() {
     }
 }
 
-TT<State, score_t> full_tt(27);
+TT<State, score_t> full_tt = TT<State, score_t>::load_from("_build/tt_full.txt");;
 constexpr uint32_t tt_full_level = 24;
 
 template<uint32_t stones, bool do_max>
@@ -252,5 +252,6 @@ int main() {
             std::cout << "init done at " << diff.count() << std::endl;
     State s;
     std::cout << alpha_beta<4, true>(s.to_canonical(), -4, -3) << std::endl;
+    full_tt.save_to("_build/tt_full1.txt");
     return 0;
 }

@@ -80,6 +80,58 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### applying model from A/B
+
+We need to do that anyway, let's check how this could work.
+
+We need to apply model:
+1. for self-play to generate training data
+2. for a/b search to get ordering
+3. for duel to evaluate the model
+
+Also, we'd like to do that:
+1. on machines with nVidia cards, using TensorRT
+2. on Apple M* using CoreML
+
+The source of model is in pytorch.
+
+
+
+
+### how to store TT?
+
+```
+    // for 0 window search we can further reduce size
+    // for interval [a; a + 1] entry can be in 3 states:
+    // [a; a] [a; a + 1], [a + 1, a + 1], so we need 2 bits for that
+    // board itself is much larger space consumer though
+    // naive way to save 4 bits would be to have bitboards be like this:
+    // 1 - empty or not, with 4 center squares never being empty, so 32 bits
+    // 2 - white 
+    // other way to think about that - each square can be in 3 states, but we store 
+    // 2 bits (thus, allowing for 4 states).
+    // that should bring it down to 55 bits total
+    // decoding might be slow, so we'll store that only for high enough levels
+
+    // if we store with window = 2, how many states do we have to represent low/high?
+    // [a; a+2] [a; a + 1] [a; a] [a + 1; a + 1] [a + 1; a + 2] [a+2; a+2]
+    // 3 bits
+    // definintely within 64 bit total.
+```
+
+What about larger 8*8 board? rather than storing 128 bit we can do the same thing, and get away with ~100 bits.
+This will probably mean 'within 128 bit for entire state'. Also, if we allow to use part of value as a key, 
+we can further reduce the size of each value. We can definitely do that for lower levels? 
+
+Overall, we'll have 2 separate TT:
+1. Shared, distributed, persistent. There we can optimize storage aggressively as it will be done on higher, more expensive to compute levels only
+2. Local, shared between threads on the worker machines? Here we do care about processing speed, we just silently overwrite and probably can store part of the value as a key.
+
+In case #2 for example, for 8x8 case the board will be 128 bits; everything else: player, skipped, scores - another 8 bit or so. depending on the size of TT (amount of RAM available) we can be more aggressive with storing part of key as value.
+
+Would be great if we can, for example, get 63 bit for value + whatever bits for key and use 1 bit spin lock to synchronize. Seems unlikely though.
+
+
 ### null-window A/B search
 
 Let's plan on making 0-window search. That will simplify things a little + we'll need to store less data.
@@ -92,7 +144,7 @@ For 6x6
 2. A/B player to play against model/mcts/etc.
 3. Introduce reading from TT to MCTS rollouts
 4. Train a good model and use it for ordering in A/B
-5. web UI to visualize games and pplayer thoughts
+5. web UI to visualize games and player thoughts
 
 ### How to make distributed TT?
 

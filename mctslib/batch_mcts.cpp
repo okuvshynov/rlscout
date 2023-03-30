@@ -12,7 +12,6 @@
 This is batched implementation of MCTS (or, rather, PUCT) algorithm. 
 Rather than parallelizing each individual MCTS instance we just play multiple games at a time.
 
-
 For self-play and player evaluation we care more about throughput than latency, thus, 
 we can serially evaluate and prepare the board for evaluation, evaluate them in 1 batch and then continue serially.
 
@@ -89,7 +88,7 @@ struct GameSlot {
     state.apply_move(get_move_index(explore_for_n_moves));
     total_moves++;
     
-    if (state.finished()) {
+    if (state.finished()) { // or if we are in 'full search territory'
       if (log_game_done_cb != nullptr) {
         // do we need to play another game in this slot?
         slot_active = log_game_done_cb(state.winner());
@@ -238,7 +237,9 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
 
         // TODO: get value from the model here
         // when we do full search we can also consider getting data from
-        // transposition table???
+        // transposition table? How do we decide to know the value?
+        // -- if level is < threshold (say, <40 for 8x8) we use value from the model
+        // -- if level is > threshold (say, >40 for 8x8) we run full a/b search to get the value
         while (!g.rollout_state.finished()) {
           g.rollout_state.take_random_action();
         }

@@ -282,4 +282,15 @@ struct OthelloState {
       printf("\n");
     }
   }
+
+  friend std::ostream& operator<<(std::ostream& out, const Self& state) {
+    out << state.board[0] << " " << state.board[1] << " " << state.player << " " << state.skipped;
+    return out;
+  }
+
+  friend std::istream& operator>>(std::istream& in, Self& state) {
+    in >> state.board[0] >> state.board[1] >> state.player >> state.skipped;
+    return in;
+  }
+
 };
