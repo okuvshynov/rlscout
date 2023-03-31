@@ -80,6 +80,45 @@ Immediate next steps:
 
 ## LIFO order notes
 
+
+### Logic by ply
+
+Assuming we have a model, we can do this:
+
+
+For each level we can define two important policies:
+1. Move selection policy
+2. transposition table policy.
+
+Move selection can be one of:
+1. Action model with sampling + exploration noise 
+2. Action model with sampling
+3. Action model greedy
+4. No model evaluation
+
+Transposition table policy can be:
+1. Shared, persistent TT
+2. Local transposition table (what about canonical symmetry?)
+3. No TT
+
+Example policy selection could be:
+1. Action model with sampling + exploration noise [4; 20)
+2. Action model with sampling [20; 40)
+3. Action model greedy [40; 55)
+4. No model evaluation [55; inf]
+
+1. Shared, persistent TT [4; 30)
+2. Local transposition table [30; 60)
+3. No TT [60; inf)
+
+Actual values depend on various factors, including cost of model evaluation, model quality, cost of persistent storage and the compression used there.
+
+This way we can start new a/b routine independently, even with different settings if we want to. One more level of granularity is local thread - for example, 'local TT' can still be shared among threads within same instance. We can also start 'greediest' a/b instance, which will always pick the top selection.
+
+If we have that logic, can we keep getting new training data and refreshing the model? How different is it anyway compared to MCTS? What if we do that with null-window?
+
+Basically: can we fill in transposition table AND train model at the same time? Do we need that at all?
+
 ### applying model from A/B
 
 We need to do that anyway, let's check how this could work.
@@ -94,9 +133,6 @@ Also, we'd like to do that:
 2. on Apple M* using CoreML
 
 The source of model is in pytorch.
-
-
-
 
 ### how to store TT?
 

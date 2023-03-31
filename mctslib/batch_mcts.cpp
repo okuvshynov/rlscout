@@ -10,6 +10,8 @@
 /*
 
 This is batched implementation of MCTS (or, rather, PUCT) algorithm. 
+It is more efficient as we can apply NN to a batch of samples rather than
+individual sample.
 Rather than parallelizing each individual MCTS instance we just play multiple games at a time.
 
 For self-play and player evaluation we care more about throughput than latency, thus, 
