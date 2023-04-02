@@ -19,7 +19,7 @@ struct LocalTT {
     score_t low, high;
   };
 
-  std::vector<TTEntry> transposition_table[kLevels];
+  std::vector<TTEntry> data[kLevels];
 
   static constexpr size_t tt_sizes[kLevels] = {
       17,          17,          17,          17,      17,          17,
@@ -36,8 +36,8 @@ struct LocalTT {
 
   void init_tt() {
     for (size_t i = 0; i < kLevels; i++) {
-      transposition_table[i].resize(tt_sizes[i]);
-      for (auto& p : transposition_table[i]) {
+      data[i].resize(tt_sizes[i]);
+      for (auto& p : data[i]) {
         p.state.board[0] = 0ull;
         p.state.board[1] = 0ull;
       }
@@ -59,27 +59,27 @@ struct LocalTT {
                        score_t& beta, score_t& value) {
     slot = state.hash() % tt_sizes[stones];
 
-    if (transposition_table[stones][slot].state == state) {
-      if (transposition_table[stones][slot].low >= beta) {
+    if (data[stones][slot].state == state) {
+      if (data[stones][slot].low >= beta) {
         tt_hits[stones]++;
-        value = transposition_table[stones][slot].low;
+        value = data[stones][slot].low;
         return true;
       }
-      if (transposition_table[stones][slot].high <= alpha) {
+      if (data[stones][slot].high <= alpha) {
         tt_hits[stones]++;
-        value = transposition_table[stones][slot].high;
+        value = data[stones][slot].high;
         return true;
       }
 
-      alpha = std::max(alpha, transposition_table[stones][slot].low);
-      beta = std::min(beta, transposition_table[stones][slot].high);
+      alpha = std::max(alpha, data[stones][slot].low);
+      beta = std::min(beta, data[stones][slot].high);
     } else {
-      if (!transposition_table[stones][slot].state.empty()) {
+      if (!data[stones][slot].state.empty()) {
         evictions[stones]++;
       }
       // override / init slot
-      transposition_table[stones][slot].low = min_score;
-      transposition_table[stones][slot].high = max_score;
+      data[stones][slot].low = min_score;
+      data[stones][slot].high = max_score;
     }
     return false;
   }
@@ -87,17 +87,17 @@ struct LocalTT {
   template <uint32_t stones>
   void update(const State& state, size_t& slot, score_t& alpha, score_t& beta,
               score_t& value) {
-    transposition_table[stones][slot].state = state;
+    data[stones][slot].state = state;
 
     if (value <= alpha) {
-      transposition_table[stones][slot].high = value;
+      data[stones][slot].high = value;
     }
     if (value >= beta) {
-      transposition_table[stones][slot].low = value;
+      data[stones][slot].low = value;
     }
     if (value > alpha && value < beta) {
-      transposition_table[stones][slot].high = value;
-      transposition_table[stones][slot].low = value;
+      data[stones][slot].high = value;
+      data[stones][slot].low = value;
     }
   }
 };
