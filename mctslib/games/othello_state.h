@@ -120,18 +120,6 @@ struct OthelloState {
     return true;
   }
 
-  int32_t max_flip_score() const {
-    auto b = board[0] | board[1];
-    if ((b & kCorners) != kCorners) {
-      return 13;
-    }
-    if ((b & kBorder) != kBorder) {
-      return 11;
-    }
-    return 10;
-  }
-
-
   bool apply_move_no_check(uint64_t index) {
     auto m = mask(index);
 

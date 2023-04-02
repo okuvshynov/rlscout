@@ -80,6 +80,10 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### TT zero window
+
+Local TT will be overwritten so many times that it will be ok to optimize it for zero-window use-case.
+
 ### MCTS logic by ply
 
 For self-play which we use to get the model, we can do a similar approach. The policies we need to handle are:

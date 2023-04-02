@@ -69,18 +69,13 @@ class AlphaBeta {
       // TODO: This is othello-specific cutoff. Do we want to move it somewhere?
       auto score = state.score(0);
       if constexpr (do_max) {
-        if (score + 2 >= beta) {
+        // valid move means we'll at least add our own + swap one
+        if (score + 3 >= beta) {
           return beta;
-        }
-        if (score + state.max_flip_score() <= alpha) {
-          return alpha;
         }
       } else {
-        if (score - 2 <= alpha) {
+        if (score - 3  <= alpha) {
           return alpha;
-        }
-        if (score - state.max_flip_score() >= beta) {
-          return beta;
         }
       }
       State new_state = state;

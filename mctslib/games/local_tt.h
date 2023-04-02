@@ -28,7 +28,7 @@ struct LocalTT {
       1,           1,           1,           1,                     // 11-20
       1,           1,           1,           tt_size, tt_size,      // 21 - 25
       tt_size,     tt_size,     tt_size,     tt_size, tt_size * 2,  // 26-30
-      tt_size * 2, tt_size * 2, tt_size * 2,                        // 31-33
+      tt_size * 2, tt_size * 2, 17,                        // 31-33
       17,          17,          17};
 
   uint64_t tt_hits[kLevels] = {0ull};
@@ -61,22 +61,23 @@ struct LocalTT {
 
     if (data[stones][slot].state == state) {
       if (data[stones][slot].low >= beta) {
-        tt_hits[stones]++;
+        //tt_hits[stones]++;
         value = data[stones][slot].low;
         return true;
       }
       if (data[stones][slot].high <= alpha) {
-        tt_hits[stones]++;
+        //tt_hits[stones]++;
         value = data[stones][slot].high;
         return true;
       }
 
+      
       alpha = std::max(alpha, data[stones][slot].low);
       beta = std::min(beta, data[stones][slot].high);
     } else {
-      if (!data[stones][slot].state.empty()) {
-        evictions[stones]++;
-      }
+      //if (!data[stones][slot].state.empty()) {
+      //  evictions[stones]++;
+      //}
       // override / init slot
       data[stones][slot].low = min_score;
       data[stones][slot].high = max_score;
@@ -87,6 +88,8 @@ struct LocalTT {
   template <uint32_t stones>
   void update(const State& state, size_t& slot, score_t& alpha, score_t& beta,
               score_t& value) {
+    //std::cout << int(value) << " " << int(alpha) << " " << int(beta) << " " << int(data[stones][slot].low) << " " << int(data[stones][slot].high) << std::endl;
+      
     data[stones][slot].state = state;
 
     if (value <= alpha) {
