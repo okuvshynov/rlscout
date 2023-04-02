@@ -6,7 +6,7 @@
 
 
 using State = OthelloState<6>;
-using score_t = int32_t;
+using score_t = int8_t;
 
 int main() {
   auto AB = AlphaBeta<State, score_t>();

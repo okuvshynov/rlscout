@@ -17,7 +17,7 @@ struct LocalTT {
   struct TTEntry {
     State state;
     score_t low, high;
-  };
+  } __attribute__((packed));
 
   std::vector<TTEntry> data[kLevels];
 

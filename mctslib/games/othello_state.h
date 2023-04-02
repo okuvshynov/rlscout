@@ -34,9 +34,9 @@ struct OthelloState {
 
   static constexpr uint64_t kFull = 0b111111111111111111111111111111111111ull;
 
-  int32_t player = 0;   // 0 or 1
+  int8_t player = 0;   // 0 or 1
   //int32_t winner = -1;  // -1 -- draw or not finished
-  int32_t skipped = 0;  // if it becomes 2 the game is over
+  int8_t skipped = 0;  // if it becomes 2 the game is over
 
   uint64_t mask(uint64_t index) const { return (1ull << index); }
 
@@ -293,4 +293,4 @@ struct OthelloState {
     return in;
   }
 
-};
+} __attribute__((packed));

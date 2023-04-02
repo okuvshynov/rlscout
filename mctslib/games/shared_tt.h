@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+// For 8x8 case this would be remote and there's not too much point optimizing it a lot.
+
 template <typename State, typename score_t>
 struct SharedTT {
   using Self = SharedTT<State, score_t>;
