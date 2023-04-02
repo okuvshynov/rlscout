@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <fstream>
+#include <iostream>
 
 template<typename State, typename score_t>
 struct TT {

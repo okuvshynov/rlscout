@@ -80,6 +80,15 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### MCTS logic by ply
+
+For self-play which we use to get the model, we can do a similar approach. The policies we need to handle are:
+1. What do we do with move selection?
+2. What do we do with value estimate at leaf.
+
+For (1) we might have following options:
+1. 
+
 
 ### Logic by ply
 
@@ -117,7 +126,7 @@ This way we can start new a/b routine independently, even with different setting
 
 If we have that logic, can we keep getting new training data and refreshing the model? How different is it anyway compared to MCTS? What if we do that with null-window?
 
-Basically: can we fill in transposition table AND train model at the same time? Do we need that at all?
+Basically: can we fill in transposition table AND train model at the same time? Do we need that at all? Just keep 2 separate processes? 
 
 ### applying model from A/B
 
