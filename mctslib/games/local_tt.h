@@ -12,6 +12,8 @@ constexpr std::array<size_t, N> gen_ttable_sizes(std::index_sequence<Is...>) {
   return {{(Is < B1 ? 1 : (Is < B2 ? TSize : TSize * 2))...}};
 }
 
+constexpr bool do_stats = false;
+
 template <typename State, typename score_t, size_t kFullLevel, size_t kLevels>
 struct LocalTT {
   static constexpr size_t tt_size = 1 << 24;
@@ -26,7 +28,7 @@ struct LocalTT {
 
   std::vector<TTEntry> data[kLevels];
   
-  static constexpr std::array<size_t, kLevels> tt_sizes = gen_ttable_sizes<kLevels, kFullLevel, 30, tt_size>(std::make_index_sequence<kLevels>{});
+  static constexpr std::array<size_t, kLevels> tt_sizes = gen_ttable_sizes<kLevels, kFullLevel, 29, tt_size>(std::make_index_sequence<kLevels>{});
 
   uint64_t tt_hits[kLevels] = {0ull};
   uint64_t evictions[kLevels] = {0ull};
@@ -59,12 +61,16 @@ struct LocalTT {
 
     if (data[stones][slot].state == state) {
       if (data[stones][slot].low >= beta) {
-        tt_hits[stones]++;
+        if constexpr (do_stats) {
+          tt_hits[stones]++;
+        }
         value = data[stones][slot].low;
         return true;
       }
       if (data[stones][slot].high <= alpha) {
-        tt_hits[stones]++;
+        if constexpr (do_stats) {
+          tt_hits[stones]++;
+        }
         value = data[stones][slot].high;
         return true;
       }
@@ -73,8 +79,10 @@ struct LocalTT {
       alpha = std::max(alpha, data[stones][slot].low);
       beta = std::min(beta, data[stones][slot].high);
     } else {
-      if (!data[stones][slot].state.empty()) {
-        evictions[stones]++;
+      if constexpr (do_stats) {
+        if (!data[stones][slot].state.empty()) {
+          evictions[stones]++;
+        }
       }
       // override / init slot
       data[stones][slot].low = min_score;
