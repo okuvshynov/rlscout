@@ -80,6 +80,11 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### optimizing to_flip
+This is one of the most expensive operations, ~45% total CPU based on profiling.
+We can avoid expensive some fill operations, especially at the later stages, by masking
+the location. 
+
 ### TT zero window
 
 Local TT will be overwritten so many times that it will be ok to optimize it for zero-window use-case.
