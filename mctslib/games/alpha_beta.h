@@ -34,6 +34,7 @@ class AlphaBeta {
       }
       std::cout << d << " completions " << completions[d] << std::endl;
     }
+    tt.log_stats();
     /*
     std::cout << "cutoff idxs " << std::endl;
     for (size_t d = 0; d < kLevels; d++) {

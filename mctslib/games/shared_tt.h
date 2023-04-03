@@ -23,6 +23,9 @@ struct SharedTT {
     bool free = true;
   };
 
+  static constexpr size_t kLevels = 37;
+  uint64_t tt_hits[kLevels] = {0ull};
+
   size_t find_slot(const State& state) const {
     size_t slot = state.hash() % data.size();
     while (true) {
@@ -78,12 +81,12 @@ struct SharedTT {
     auto& entry = data[slot];
     if (!entry.free) {
       if (entry.low >= beta) {
-        // tt_hits[stones]++;
+        tt_hits[stones]++;
         value = entry.low;
         return true;
       }
       if (entry.high <= alpha) {
-        // tt_hits[stones]++;
+        tt_hits[stones]++;
         value = entry.high;
         return true;
       }
@@ -115,6 +118,15 @@ struct SharedTT {
 
   }
 
+
+  void print_stats() const {
+    for (size_t d = 0; d < kLevels; d++) {
+      if (tt_hits[d] == 0ull) {
+        continue;
+      }
+      std::cout << d << " tt_hits " << tt_hits[d] << std::endl;
+    }
+  }
 
   const size_t log_size_;
 
