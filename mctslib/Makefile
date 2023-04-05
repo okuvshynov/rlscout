@@ -17,6 +17,7 @@ othello_ab:
 	mkdir -p _build
 	c++ games/othello_6x6_ab.cpp -std=c++2a -Wall -O3 -o _build/othello6x6_ab
 
-alphabeta:
+othello6:
 	mkdir -p _build
-	c++ games/alphabeta.cpp -std=c++2a -Wall -O3 -o _build/alphabeta
+	c++ games/alpha_beta_player.cpp -std=c++2a -Wall -O3 -o _build/alpha_beta_player
+	_build/alpha_beta_player

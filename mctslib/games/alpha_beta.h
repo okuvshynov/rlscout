@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <cstdint>
 #include <iostream>
 
@@ -35,15 +36,6 @@ class AlphaBeta {
       std::cout << d << " completions " << completions[d] << std::endl;
     }
     tt.log_stats();
-    /*
-    std::cout << "cutoff idxs " << std::endl;
-    for (size_t d = 0; d < kLevels; d++) {
-      std::cout << d << ": ";
-      for (size_t l = 0; l < kLevels; l++) {
-        std::cout << cutoffs[d][l] << " ";
-      }
-      std::cout << std::endl;
-    }*/
   }
 
   template <uint32_t stones, bool do_max>
@@ -61,6 +53,12 @@ class AlphaBeta {
     auto alpha0 = alpha;
     auto beta0 = beta;
     auto moves = state.valid_actions();
+
+    /*if constexpr (stones + 2 == State::M * State::N) {
+      std::cout << std::popcount(moves) << " " << state.score(0) << std::endl;
+      state.p();
+      std::cout << std::endl;
+    }*/
 
     if (moves == 0ull) {
       State new_state = state;
