@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "tt.h"
+#include "othello_dumb7.h"
 
 template <typename State, typename score_t>
 class AlphaBeta {
@@ -40,7 +41,7 @@ class AlphaBeta {
 
   template <uint32_t stones, bool do_max>
   score_t alpha_beta(State state, score_t alpha, score_t beta) {
-    if (state.finished() || state.full()) {
+    if (state.finished()) {
       return state.score(0);
     }
 
@@ -52,13 +53,13 @@ class AlphaBeta {
     }
     auto alpha0 = alpha;
     auto beta0 = beta;
-    auto moves = state.valid_actions();
+    uint64_t moves;
 
-    /*if constexpr (stones + 2 == State::M * State::N) {
-      std::cout << std::popcount(moves) << " " << state.score(0) << std::endl;
-      state.p();
-      std::cout << std::endl;
-    }*/
+    if constexpr (stones + 1 == State::M * State::N) {
+      moves = OthelloDumb7Fill6x6::valid_moves_inv(state.board[state.player], state.board[1 - state.player]);
+    } else {
+      moves = state.valid_actions();
+    }
 
     if (moves == 0ull) {
       State new_state = state;
@@ -66,20 +67,20 @@ class AlphaBeta {
       value = alpha_beta<stones, !do_max>(new_state, alpha, beta);
     } else if constexpr (stones + 1 == State::M * State::N) {
       // TODO: This is othello-specific cutoff. Do we want to move it somewhere?
-      auto score = state.score(0);
+      auto curr_score = state.score(0);
       if constexpr (do_max) {
         // valid move means we'll at least add our own + swap one
-        if (score + 3 >= beta) {
+        if (curr_score + 3 >= beta) {
           return beta;
         }
       } else {
-        if (score - 3  <= alpha) {
+        if (curr_score - 3  <= alpha) {
           return alpha;
         }
       }
       State new_state = state;
       new_state.apply_move_mask(moves);
-      return new_state.score(0);
+      value = new_state.score(0);
     } else {
       value = do_max ? min_score : max_score;
       int32_t move_idx = 0;

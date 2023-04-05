@@ -109,28 +109,55 @@ struct OthelloDumb7Fill6x6 {
     return flood & ~(gen | prop);
   }
 
-  // TODO: create special versions for boundary? where we need only 5 directions? 3 directions?
-  // TODO: early stop
-  // For each of the 8 directions we can have a mask to check that empty slot is in the right area.
-  // For example, for all corners we can only do 3 directions, etc.
-  // gen1 - place we put new stone
-  // gen2 - self stones
-  // prop - opp stones
-  static uint64_t to_flip_old(uint64_t gen1, uint64_t gen2, uint64_t prop) {
-    uint64_t flood 
-           = s_fill(gen1, prop) & n_fill(gen2, prop);
-    flood |= n_fill(gen1, prop) & s_fill(gen2, prop);
+  // works for single empty cell case
+  static uint64_t valid_moves_inv(uint64_t gen, uint64_t prop) {
+    uint64_t self = gen;
 
-    flood |= e_fill(gen1, prop) & w_fill(gen2, prop);
-    flood |= w_fill(gen1, prop) & e_fill(gen2, prop);
+    // gen becomes 'empty slot'
+    gen = full6x6 & (~(gen | prop));
+    uint64_t flood = 0ull;
+    static constexpr uint64_t s_mask = 0b000000000000111111111111111111111111ull;
+    static constexpr uint64_t n_mask = 0b111111111111111111111111000000000000ull;
+    static constexpr uint64_t w_mask = 0b111100111100111100111100111100111100ull;
+    static constexpr uint64_t e_mask = 0b001111001111001111001111001111001111ull;
 
-    flood |= se_fill(gen1, prop) & nw_fill(gen2, prop);
-    flood |= nw_fill(gen1, prop) & se_fill(gen2, prop);
+    const bool w_good = (gen & w_mask) == gen;
+    const bool e_good = (gen & e_mask) == gen;
 
-    flood |= ne_fill(gen1, prop) & sw_fill(gen2, prop);
-    flood |= sw_fill(gen1, prop) & ne_fill(gen2, prop);
+    if ((gen & n_mask) == gen) {
+      flood |= n_shift(n_fill(gen, prop));
+      if (e_good) {
+        flood |= ne_shift(ne_fill(gen, prop));
+      }
+      if (w_good) {
+        flood |= nw_shift(nw_fill(gen, prop));
+      }
+      if (flood & self) {
+        return gen;
+      }
+    }   
 
-    return flood;
+    if ((gen & s_mask) == gen) {
+      flood |= s_shift(s_fill(gen, prop));
+      if (e_good) {
+        flood |= se_shift(se_fill(gen, prop));
+      }
+      if (w_good) {
+        flood |= sw_shift(sw_fill(gen, prop));
+      }
+      if (flood & self) {
+        return gen;
+      }
+    }
+
+    if (e_good) {
+      flood |= e_shift(e_fill(gen, prop));
+    }
+    if (w_good) {
+      flood |= w_shift(w_fill(gen, prop));
+    }
+     
+    return (flood & self) ? gen : 0ull;
   }
 
   // a few conditions are better than the old version, as each _fill 
