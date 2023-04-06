@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 
-#include "games/othello_state.h"
+#include "othello/othello_state.h"
 
 /*
 

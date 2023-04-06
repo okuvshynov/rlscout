@@ -110,7 +110,7 @@ struct OthelloDumb7Fill6x6 {
   }
 
   // works for single empty cell case
-  static uint64_t valid_moves_inv(uint64_t gen, uint64_t prop) {
+  static uint64_t has_valid_move(uint64_t gen, uint64_t prop) {
     uint64_t self = gen;
 
     // gen becomes 'empty slot'
@@ -159,6 +159,7 @@ struct OthelloDumb7Fill6x6 {
      
     return (flood & self) ? gen : 0ull;
   }
+
 
   // a few conditions are better than the old version, as each _fill 
   // is quite expensive

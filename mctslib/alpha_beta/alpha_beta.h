@@ -4,8 +4,10 @@
 #include <cstdint>
 #include <iostream>
 
-#include "tt.h"
-#include "othello_dumb7.h"
+#include "tt/tt.h"
+
+// TODO: remove this dependency
+#include "othello/othello_dumb7.h"
 
 template <typename State, typename score_t>
 class AlphaBeta {
@@ -56,7 +58,7 @@ class AlphaBeta {
     uint64_t moves;
 
     if constexpr (stones + 1 == State::M * State::N) {
-      moves = OthelloDumb7Fill6x6::valid_moves_inv(state.board[state.player], state.board[1 - state.player]);
+      moves = OthelloDumb7Fill6x6::has_valid_move(state.board[state.player], state.board[1 - state.player]);
     } else {
       moves = state.valid_actions();
     }

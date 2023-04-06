@@ -189,6 +189,7 @@ struct OthelloState {
   Self to_canonical() const {
     Self res = *this;
     Self curr = res;
+
     curr.vflip();
     if (curr < res) {
       res = curr;

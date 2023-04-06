@@ -1,4 +1,4 @@
-#include "othello_state.h"
+#include "othello/othello_state.h"
 #include <iostream>
 
 int main() {

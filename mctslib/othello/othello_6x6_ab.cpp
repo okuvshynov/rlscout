@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cstdint>
 
-#include "alpha_beta.h"
-#include "othello_state.h"
+#include "othello/othello_state.h"
+#include "alpha_beta/alpha_beta.h"
 
 
 using State = OthelloState<6>;
