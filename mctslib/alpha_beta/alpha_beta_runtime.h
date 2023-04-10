@@ -50,9 +50,9 @@ class AlphaBetaRuntime {
             new_state.apply_move_mask(move);
             score_t score;
             if (do_max) {
-                score = dispatch<MinRunner, State::M * State::N>(stones, alpha_beta, new_state, alpha, beta);
+                score = dispatch<MinRunner, State::M * State::N>(stones, std::ref(alpha_beta), new_state, alpha, beta);
             } else {
-                score = dispatch<MaxRunner, State::M * State::N>(stones, alpha_beta, new_state, alpha, beta);
+                score = dispatch<MaxRunner, State::M * State::N>(stones, std::ref(alpha_beta), new_state, alpha, beta);
             }
             res.emplace_back(move, score);
             moves = other_moves;

@@ -15,7 +15,7 @@ int main() {
         std::cout << std::endl;
     }
 
-  auto moves = AB.get_move_scores(s.to_canonical(), -5, -3);
+  auto moves = AB.get_move_scores(s.to_canonical(), -10, 10);
   for (auto p : moves) {
     std::cout << p.first << " " << int(p.second) << std::endl;
   }
