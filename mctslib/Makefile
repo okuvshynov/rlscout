@@ -15,3 +15,8 @@ othello6:
 	mkdir -p _build
 	c++ games/alpha_beta_player.cpp -std=c++2a -Wall -O3 -o _build/alpha_beta_player -I.
 	_build/alpha_beta_player
+
+test_dispatch:
+	mkdir -p _build
+	c++ utils/test_dispatch.cpp -std=c++2a -Wall -O3 -o _build/test_dispatch -I.
+	_build/test_dispatch

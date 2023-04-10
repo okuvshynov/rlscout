@@ -14,7 +14,7 @@ struct TT {
 
   LocalTTable replacement_tt = LocalTTable{};
 
-  TT() { replacement_tt.init_tt(); }
+  TT() { std::cout << "tt!" << std::endl; replacement_tt.init_tt(); }
 
   template <uint32_t stones>
   bool lookup_and_init(const State& state, size_t& slot, score_t& alpha,
