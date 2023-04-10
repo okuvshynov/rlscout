@@ -1,7 +1,10 @@
 #pragma once
 
 #include "alpha_beta/alpha_beta.h"
-//#include "utils/dispatch.h"
+
+
+// this is a version which does a dispatch
+// from run-time only available 
 
 template <typename State, typename score_t>
 class AlphaBetaRuntime {
