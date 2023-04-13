@@ -80,6 +80,25 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### logging value
+
+Where do we join?
+Let's say we have log lines like
+
+game_id, board_a, board_b, probs, <>
+then we separately log game_id -> result and join with all the samples.
+
+
+### Training model v2 
+
+There are two changes I'd like to do here:
+1. actually add value head
+2. Use full a/b at the latest stages to get better estimates from the start.
+
+After we have a decent model, we can try using it to speed up a/b search.
+We also need to have something to measure 'how decent model actually is'.
+
+
 ### optimizing to_flip
 This is one of the most expensive operations, ~45% total CPU based on profiling.
 We can avoid expensive some fill operations, especially at the later stages, by masking

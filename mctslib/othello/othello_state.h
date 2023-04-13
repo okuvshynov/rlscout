@@ -239,6 +239,14 @@ struct OthelloState {
     }
   }
 
+  Self maybe_to_canonical(const Self& old, uint64_t move) {
+    uint64_t old_board = old.board[0] | old.board[1];
+    if (move > old_board) {
+      return to_canonical();
+    }
+    return *this;
+  }
+
   int32_t score(int32_t player) const {
     return std::popcount(board[player]) - std::popcount(board[1 - player]);
   }

@@ -14,12 +14,12 @@ class AlphaBeta {
   static constexpr auto min_score = std::numeric_limits<score_t>::min();
   static constexpr auto max_score = std::numeric_limits<score_t>::max();
 
-  static constexpr size_t kLevels = 37;
+  static constexpr size_t kLevels = State::M * State::N + 1;
   std::chrono::steady_clock::time_point start =
       std::chrono::steady_clock::now();
 
   static constexpr int32_t log_max_level = 11;
-  static constexpr int32_t canonical_max_level = 30;
+  static constexpr int32_t canonical_max_level = 32;
 
   uint64_t completions[kLevels] = {0ull};
   uint64_t cutoffs[kLevels][kLevels] = {{0ull}};
@@ -95,7 +95,14 @@ class AlphaBeta {
         // for lower depth we pick the smallest of the symmetries
         // for high depth that operation itself becomes expensive enough
         if constexpr (stones + 1 < canonical_max_level) {
-          new_state = new_state.to_canonical();
+          //new_state = new_state.maybe_to_canonical(state, move);
+          //auto c_state = new_state.to_canonical();
+          //std::cout << (c_state == new_state) << std::endl;
+          if constexpr (stones + 4 < canonical_max_level) {
+            new_state = new_state.to_canonical();
+          } else {
+            new_state = new_state.maybe_to_canonical(state, move);
+          }
         }
 
         auto new_value =

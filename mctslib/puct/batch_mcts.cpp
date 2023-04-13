@@ -170,6 +170,10 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
     }
     g.reset(rollouts * State::M * State::N);
   }
+
+  // TODO: somewhere here we check that game has > F free slots
+  // if not, we play the game with full search MCTS and no logging.
+  // we just log score later
   
   static const int kBoardElements = 2 * State::M * State::N;
   static const int kProbElements = State::M * State::N;
@@ -236,11 +240,8 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         g.nodes[g.node_id].children_count = j - g.size;
         g.size = j;
 
-        // TODO: get value from the model here
-        // when we do full search we can also consider getting data from
-        // transposition table? How do we decide to know the value?
-        // -- if level is < threshold (say, <40 for 8x8) we use value from the model
-        // -- if level is > threshold (say, >40 for 8x8) we run full a/b search to get the value
+        // We get rid of random rollout entirely.
+        // Instead, we evaluate model here.
         while (!g.rollout_state.finished()) {
           g.rollout_state.take_random_action();
         }
