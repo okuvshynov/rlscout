@@ -40,9 +40,18 @@ struct MCTSNode {
 
 template<typename State>
 struct GameSlot {
-  GameSlot() : gen{batch_mcts_rd()} {}
+  GameSlot() : gen{batch_mcts_rd()} {
+    dis = std::uniform_int_distribution<int64_t>(
+        std::numeric_limits<int64_t>::min(),
+        std::numeric_limits<int64_t>::max()
+    );
+    restart();
+  }
 
-  void restart() { state = State(); }
+  void restart() { state = State(); 
+    game_id = dis(gen);
+    std::cout << "starting game " << game_id << std::endl;
+  }
 
   uint64_t get_move_index(uint32_t explore_for_n_moves) {
     static thread_local std::array<uint64_t, State::M * State::N> visits;
@@ -74,15 +83,15 @@ struct GameSlot {
     }
   }
 
-  void make_move(void (*log_freq_cb)(int32_t),
-                 bool (*log_game_done_cb)(int32_t), int32_t *log_boards_buffer,
+  void make_move(void (*log_freq_cb)(int64_t),
+                 bool (*log_game_done_cb)(int32_t, int64_t), int32_t *log_boards_buffer,
                  float *log_probs_buffer, uint32_t explore_for_n_moves,
                  int32_t model_id) {
     // logging training data here
     if (log_freq_cb != nullptr) {
       state.fill_boards(log_boards_buffer);
       fill_visits(log_probs_buffer);
-      log_freq_cb(model_id);
+      log_freq_cb(game_id);
     }
 
     // applying move
@@ -92,7 +101,7 @@ struct GameSlot {
     if (state.finished()) { // or if we are in 'full search territory'
       if (log_game_done_cb != nullptr) {
         // do we need to play another game in this slot?
-        slot_active = log_game_done_cb(state.score(0));
+        slot_active = log_game_done_cb(state.score(0), game_id);
       }
     }
   }
@@ -135,6 +144,7 @@ struct GameSlot {
 
   // global scope
   std::mt19937 gen;
+  std::uniform_int_distribution<int64_t> dis;
   bool slot_active = true;
   uint64_t total_moves = 0ull;
 
@@ -152,6 +162,7 @@ struct GameSlot {
   State rollout_state;
   int node_id;
   int last_player;
+  int64_t game_id;
 };
 
 uint64_t puct_cycles = 0ull, puct_wasted_cycles = 0ll;
@@ -161,8 +172,8 @@ template<typename State>
 void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
                  int32_t *boards_buffer, float *probs_buffer,
                  int32_t *log_boards_buffer, float *log_probs_buffer,
-                 void (*eval_cb)(int32_t), void (*log_freq_cb)(int32_t),
-                 bool (*log_game_done_cb)(int32_t), uint32_t model_id,
+                 void (*eval_cb)(int32_t), void (*log_freq_cb)(int64_t),
+                 bool (*log_game_done_cb)(int32_t, int64_t), uint32_t model_id,
                  uint32_t explore_for_n_moves) {
   for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
@@ -267,7 +278,7 @@ extern "C" {
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, int32_t *log_boards_buffer,
                 float *log_probs_buffer, void (*eval_cb)(int32_t),
-                void (*log_freq_cb)(int32_t), bool (*log_game_done_cb)(int32_t),
+                void (*log_freq_cb)(int64_t), bool (*log_game_done_cb)(int32_t, int64_t),
                 int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp) {

@@ -56,7 +56,7 @@ while True:
 
     # write
     if req['method'] == 'append_sample':
-        db.append_sample(req['board'], req['probs'], req['model_id'])
+        db.append_sample(req['board'], req['probs'], req['game_id'])
         res['data'] = True
         append_sample_log()
 
@@ -70,6 +70,10 @@ while True:
 
     if req['method'] == 'cleanup_samples':
         db.cleanup_samples(req['samples_to_keep'])
+        res['data'] = True
+
+    if req['method'] == 'game_done':
+        db.game_done(req['game_id'], req['score'])
         res['data'] = True
     
     socket.send_json(res)

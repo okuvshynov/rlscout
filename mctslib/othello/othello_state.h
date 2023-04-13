@@ -158,10 +158,10 @@ struct OthelloState {
   void fill_boards(int32_t* boards) const {
     for (uint64_t i = 0; i < n * n; i++) {
       boards[i] = boards[i + n * n] = 0;
-      if (board[player] & mask(i)) {
+      if (board[0] & mask(i)) {
         boards[i] = 1;
       }
-      if (board[1 - player] & mask(i)) {
+      if (board[1] & mask(i)) {
         boards[i + n * n] = 1;
       }
     }

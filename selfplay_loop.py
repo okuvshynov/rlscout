@@ -7,7 +7,7 @@ import torch
 from collections import defaultdict
 
 from backends.backend import backend
-from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+from batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
 from game_client import GameClient
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
@@ -90,7 +90,7 @@ def start_batch_mcts():
 
     model_id, model = models.get_best_model()
 
-    def game_done_fn(score):
+    def game_done_fn(score, game_id):
         global games_done, games_done_lock
 
         with games_done_lock:
@@ -103,6 +103,11 @@ def start_batch_mcts():
         model_id, model = models.get_best_model()
         rate = 1.0 * local_gd / (time.time() - start)
         print(f'result = {score}, done {local_gd} games. rate = {rate:.3f} games/s')
+
+        def log_game_done_impl(score, game_id):
+            client.game_done(game_id, score)
+
+        log_executor.submit(log_game_done_impl, score, game_id)
 
         # count done + enqueued
         return local_gd + batch_size * nthreads <= games_to_play
@@ -118,16 +123,16 @@ def start_batch_mcts():
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
 
-    def log_fn(model_id_IGNORE):
+    def log_fn(game_id):
         ## logging will be done in separate thread so we clone 
         board = torch.from_numpy(log_boards_buffer).clone()
         prob = torch.from_numpy(log_probs_buffer).clone()
-        def log_impl(board, prob):
+        def log_impl(board, prob, game_id):
             board = board.float()
             prob = prob / prob.sum()
-            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), model_id)
+            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), game_id)
 
-        log_executor.submit(log_impl, board, prob)
+        log_executor.submit(log_impl, board, prob, game_id)
 
     batch_mcts_lib.batch_mcts(
         batch_size,
@@ -137,7 +142,7 @@ def start_batch_mcts():
         log_probs_buffer,
         EvalFn(eval_fn),
         LogFn(log_fn),
-        BoolFn(game_done_fn),
+        GameDoneFn(game_done_fn),
         model_id,
         model_id,
         explore_for_n_moves,

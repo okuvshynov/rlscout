@@ -7,7 +7,8 @@ samples (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     boards_tensor BLOB,
     probs_tensor BLOB,
-    produced_by_model INTEGER
+    game_id INTEGER,
+    score INTEGER
 );
 """
 init_models = """
@@ -22,9 +23,9 @@ models (
 insert_samples_sql = """
 INSERT INTO
 samples
-    (boards_tensor, probs_tensor, produced_by_model) 
+    (boards_tensor, probs_tensor, game_id, score) 
 VALUES
-    (?, ?, ?)
+    (?, ?, ?, NULL)
 """
 
 select_best_model_sql = """
@@ -108,6 +109,15 @@ WHERE id IN (
     OFFSET ?)
 """
 
+update_samples_with_scores_sql = """
+UPDATE
+    samples
+SET
+    score = ?
+WHERE
+    game_id = ?
+"""
+
 class GameDB:
     def __init__(self, filename):
         self.filename = filename
@@ -135,9 +145,14 @@ class GameDB:
         with closing(self.conn.cursor()) as cursor:
             return cursor.execute(select_training_batch_sql, (size, )).fetchall()
 
-    def append_sample(self, boards, probs, model_id=None):
+    def append_sample(self, boards, probs, game_id=None):
         with closing(self.conn.cursor()) as cursor:
-            cursor.execute(insert_samples_sql, (boards, probs, model_id))
+            cursor.execute(insert_samples_sql, (boards, probs, game_id))
+            self.conn.commit()
+
+    def game_done(self, game_id, score):
+        with closing(self.conn.cursor()) as cursor:
+            cursor.execute(update_samples_with_scores_sql, (score, game_id))
             self.conn.commit()
 
     def save_snapshot(self, model):
@@ -164,7 +179,7 @@ class GameDB:
 
     def get_stats(self):
         with closing(self.conn.cursor()) as cursor:
-            return cursor.execute("select produced_by_model, sum(1) from samples group by produced_by_model;").fetchall()
+            return cursor.execute("select sum(1) from samples;").fetchall()
     
     def _setup_tables(self):
         with closing(self.conn.cursor()) as cursor:
