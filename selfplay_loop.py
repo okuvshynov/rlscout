@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import time
 import torch
+from collections import defaultdict
 
 from backends.backend import backend
 from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
@@ -36,7 +37,7 @@ games_done = 0
 games_done_lock = Lock()
 start = time.time()
 games_to_play = 100000
-games_stats = {0: 0, -1: 0, 1:0}
+games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 10
 model_rollouts = 100000
 model_temp = 1.5
@@ -89,19 +90,19 @@ def start_batch_mcts():
 
     model_id, model = models.get_best_model()
 
-    def game_done_fn(winner):
+    def game_done_fn(score):
         global games_done, games_done_lock
 
         with games_done_lock:
             games_done += 1
-            games_stats[winner] += 1
+            games_stats[score] += 1
             local_gd = games_done
 
         nonlocal model
         models.maybe_refresh_model()
         model_id, model = models.get_best_model()
         rate = 1.0 * local_gd / (time.time() - start)
-        print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
+        print(f'result = {score}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
         return local_gd + batch_size * nthreads <= games_to_play
