@@ -14,7 +14,7 @@ def to_coreml(torch_model, batch_size=1, board_size=8):
         traced_model,
         inputs=[ct.TensorType(shape=sample.shape)],
         compute_units=ct.ComputeUnit.CPU_AND_NE
-)
+    )
 
 class EvalBackend:
     def __init__(self, device, torch_model, batch_size=1, board_size=8):
@@ -24,5 +24,8 @@ class EvalBackend:
 
     def get_probs(self, boards):
         sample = {'x': boards.reshape(self.batch_size, 2, self.board_size, self.board_size)}
-        values = self.model.predict(sample).values()
-        return np.exp(list(values)[0])
+        values = self.model.predict(sample)
+
+        #print(values['var_186'])
+
+        return np.exp(list(values['var_186'])), values['var_213']

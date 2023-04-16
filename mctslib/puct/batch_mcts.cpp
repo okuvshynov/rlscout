@@ -22,6 +22,9 @@ Multithreading (and another layer of batching) can be applied on top if needed.
 
 std::random_device batch_mcts_rd;
 
+using LogFn = void (*)(int64_t, int8_t, int8_t);
+using EvalFn = void (*)(int32_t);
+
 struct MCTSNode {
   uint64_t in_action;
   double N = 0.0;
@@ -83,7 +86,7 @@ struct GameSlot {
     }
   }
 
-  void make_move(void (*log_freq_cb)(int64_t),
+  void make_move(LogFn log_freq_cb,
                  bool (*log_game_done_cb)(int32_t, int64_t), int32_t *log_boards_buffer,
                  float *log_probs_buffer, uint32_t explore_for_n_moves,
                  int32_t model_id) {
@@ -91,7 +94,7 @@ struct GameSlot {
     if (log_freq_cb != nullptr) {
       state.fill_boards(log_boards_buffer);
       fill_visits(log_probs_buffer);
-      log_freq_cb(game_id);
+      log_freq_cb(game_id, state.player, state.skipped);
     }
 
     // applying move
@@ -170,9 +173,9 @@ uint64_t puct_cycles = 0ull, puct_wasted_cycles = 0ll;
 // plays one move in all active games in all slots
 template<typename State>
 void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
-                 int32_t *boards_buffer, float *probs_buffer,
+                 int32_t *boards_buffer, float *probs_buffer, float *scores_buffer,
                  int32_t *log_boards_buffer, float *log_probs_buffer,
-                 void (*eval_cb)(int32_t), void (*log_freq_cb)(int64_t),
+                 EvalFn eval_cb, LogFn log_freq_cb,
                  bool (*log_game_done_cb)(int32_t, int64_t), uint32_t model_id,
                  uint32_t explore_for_n_moves) {
   for (auto &g : game_slots) {
@@ -226,8 +229,11 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
     // we'll just ignore the output for that part of input.
     // eval_cb takes boards_buffer as an input and writes results to probs_buffer.
     // TODO: Where do we pass value? 
+
+    bool use_scores_from_model = false;
     if (eval_cb != nullptr && model_id != 0) {
       eval_cb(model_id);
+      use_scores_from_model = true;
     }
 
     for (size_t i = 0; i < game_slots.size(); ++i) {
@@ -251,8 +257,11 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         g.nodes[g.node_id].children_count = j - g.size;
         g.size = j;
 
-        // We get rid of random rollout entirely.
-        // Instead, we evaluate model here.
+        if (use_scores_from_model) {
+          //std::cout << "using score " << scores_buffer[i] << std::endl;
+          g.record(g.node_id, scores_buffer[i]);
+          continue;
+        }
         while (!g.rollout_state.finished()) {
           g.rollout_state.take_random_action();
         }
@@ -276,9 +285,9 @@ extern "C" {
 // TODO: add something like 'game name' here and dispatch to the 
 // right implementation
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
-                float *probs_buffer, int32_t *log_boards_buffer,
-                float *log_probs_buffer, void (*eval_cb)(int32_t),
-                void (*log_freq_cb)(int64_t), bool (*log_game_done_cb)(int32_t, int64_t),
+                float *probs_buffer, float* scores_buffer, int32_t *log_boards_buffer,
+                float *log_probs_buffer, EvalFn eval_cb,
+                LogFn log_freq_cb, bool (*log_game_done_cb)(int32_t, int64_t),
                 int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp) {
@@ -289,12 +298,12 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
   while (has_active_games) {
     has_active_games = false;
     // first player
-    single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer,
+    single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer, scores_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
                 log_game_done_cb, model_a, explore_for_n_moves);
 
     // second player
-    single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer,
+    single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer, scores_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
                 log_game_done_cb, model_b, explore_for_n_moves);
 

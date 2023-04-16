@@ -21,16 +21,15 @@ class GameClient:
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(server)
 
-    # TODO: has to be incremental in future
-    # returns list of tensor pairs
-    def get_batch(self, size):
+    def get_batch(self, size, from_id):
         req = {
             'method': 'get_batch',
-            'size': size
+            'size': size,
+            'from_id' : from_id,
         }
         self.socket.send_json(req)
         res = self.socket.recv_json()
-        return [(torch_decode(b), torch_decode(p)) for (b, p) in res['data']]
+        return [(i, v, torch_decode(b), torch_decode(p), player, skipped) for (i, v, b, p, player, skipped) in res['data']]
 
     def get_best_model(self):
         req = {
@@ -76,12 +75,14 @@ class GameClient:
 
         return None if model is None else torch_decode(model)
 
-    def append_sample(self, board_tensor, probs_tensor, game_id):
+    def append_sample(self, board_tensor, probs_tensor, game_id, player, skipped):
         req = {
             'method': 'append_sample',
             'board': torch_encode(board_tensor),
             'probs': torch_encode(probs_tensor),
-            'game_id': game_id
+            'game_id': game_id,
+            'player': player,
+            'skipped': skipped
         }
         self.socket.send_json(req)
         return self.socket.recv_json()

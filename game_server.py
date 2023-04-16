@@ -5,7 +5,7 @@ import zmq
 from game_db import GameDB
 
 port = 8888
-db_filename = './db/othello6x6_v3.db'
+db_filename = './db/othello6x6_v4.db'
 #db_filename = ':memory:'
 
 context = zmq.Context()
@@ -34,7 +34,7 @@ while True:
 
     # read
     if req['method'] == 'get_batch':
-        res['data'] = [(b, p) for (b, p) in db.get_batch(req['size'])]
+        res['data'] = db.get_batch(req['size'], req['from_id'])
 
     if req['method'] == 'get_best_model':
         out = db.get_best_model()
@@ -56,7 +56,7 @@ while True:
 
     # write
     if req['method'] == 'append_sample':
-        db.append_sample(req['board'], req['probs'], req['game_id'])
+        db.append_sample(req['board'], req['probs'], req['game_id'], req['player'], req['skipped'])
         res['data'] = True
         append_sample_log()
 

@@ -8,6 +8,8 @@ samples (
     boards_tensor BLOB,
     probs_tensor BLOB,
     game_id INTEGER,
+    player INTEGER,
+    skipped INTEGER,
     score INTEGER
 );
 """
@@ -23,9 +25,9 @@ models (
 insert_samples_sql = """
 INSERT INTO
 samples
-    (boards_tensor, probs_tensor, game_id, score) 
+    (boards_tensor, probs_tensor, game_id, score, player, skipped) 
 VALUES
-    (?, ?, ?, NULL)
+    (?, ?, ?, NULL, ?, ?)
 """
 
 select_best_model_sql = """
@@ -69,11 +71,12 @@ VALUES(?, ?)
 
 select_training_batch_sql = """
 SELECT
-    boards_tensor, probs_tensor
+    id, score, boards_tensor, probs_tensor, player, skipped
 FROM 
     samples 
+WHERE
+    id > ?
 ORDER BY id
-DESC
 LIMIT ?
 """
 
@@ -141,13 +144,13 @@ class GameDB:
             model = cursor.execute(select_model_by_id_sql, (model_id, )).fetchone() 
             return model[0] if model is not None else None       
 
-    def get_batch(self, size):
+    def get_batch(self, size, from_id):
         with closing(self.conn.cursor()) as cursor:
-            return cursor.execute(select_training_batch_sql, (size, )).fetchall()
+            return cursor.execute(select_training_batch_sql, (from_id, size)).fetchall()
 
-    def append_sample(self, boards, probs, game_id=None):
+    def append_sample(self, boards, probs, game_id=None, player=0, skipped=0):
         with closing(self.conn.cursor()) as cursor:
-            cursor.execute(insert_samples_sql, (boards, probs, game_id))
+            cursor.execute(insert_samples_sql, (boards, probs, game_id, player, skipped))
             self.conn.commit()
 
     def game_done(self, game_id, score):

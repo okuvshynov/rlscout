@@ -80,6 +80,19 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### now we need the value part
+
+1. Training on 1/-1/0 at first
+2. What should be the loss?
+3. Applying it?
+
+
+### storing TT
+HDD are pretty cheap, you can buy 22Tb for $400. something like $20/Tb.
+
+1Tb == ~2-4B positions.
+
+
 ### logging value
 
 Where do we join?

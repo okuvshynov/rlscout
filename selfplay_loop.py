@@ -31,7 +31,7 @@ if args.nthreads is not None:
     nthreads = int(args.nthreads)
 
 board_size = 6
-batch_size = 1
+batch_size = 16
 
 games_done = 0
 games_done_lock = Lock()
@@ -39,7 +39,7 @@ start = time.time()
 games_to_play = 100000
 games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 10
-model_rollouts = 100000
+model_rollouts = 2000
 model_temp = 1.5
 
 executor = ThreadPoolExecutor(max_workers=1)
@@ -54,7 +54,6 @@ class ModelStore:
         self.batch_size = batch_size
         self.last_refresh = 0.0
         self.maybe_refresh_model()
-
 
     # loads new model if different from current
     def maybe_refresh_model(self):
@@ -82,6 +81,7 @@ def start_batch_mcts():
     boards_buffer = np.zeros(batch_size * 2 * board_size *
                             board_size, dtype=np.int32)
     probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
+    scores_buffer = np.ones(batch_size, dtype=np.float32)
 
     log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
     log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
@@ -119,25 +119,29 @@ def start_batch_mcts():
             if model is not None:
                 return model.get_probs(boards_buffer)
         fut = executor.submit(eval_model)
-        probs = fut.result()
+        probs, scores = fut.result()
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
+        np.copyto(scores_buffer, scores.reshape(
+            (batch_size, )))
 
-    def log_fn(game_id):
+
+    def log_fn(game_id, player, skipped):
         ## logging will be done in separate thread so we clone 
         board = torch.from_numpy(log_boards_buffer).clone()
         prob = torch.from_numpy(log_probs_buffer).clone()
-        def log_impl(board, prob, game_id):
+        def log_impl(board, prob, game_id, player, skipped):
             board = board.float()
             prob = prob / prob.sum()
-            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), game_id)
+            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), game_id, player, skipped)
 
-        log_executor.submit(log_impl, board, prob, game_id)
+        log_executor.submit(log_impl, board, prob, game_id, player, skipped)
 
     batch_mcts_lib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,
+        scores_buffer,
         log_boards_buffer,
         log_probs_buffer,
         EvalFn(eval_fn),
