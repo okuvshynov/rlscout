@@ -4,6 +4,7 @@
 
 #include "alpha_beta/alpha_beta_runtime.h"
 #include "othello/othello_state.h"
+#include "othello/othello_move_selection_policy.h"
 
 using State = OthelloState<6>;
 using score_t = int8_t;
@@ -15,81 +16,26 @@ struct Player {
 
 struct RandomPlayer : public Player {
   virtual int64_t get_move(const State& state) {
-    auto actions = state.valid_actions();
-    if (actions == 0ull) {
-      return -1ll;
-    }
-
-    auto action_size = std::popcount(actions);
-    auto dis = std::uniform_int_distribution<int64_t>(0, action_size - 1);
-    auto selected = dis(gen_);
-    int set_bit_count = 0;
-    for (int i = 0; i < 64; i++) {
-      if (actions & (1ULL << i)) {
-        if (set_bit_count == selected) {
-          return i;
-        }
-        set_bit_count++;
-      }
-    }
-    return -1;
+    return random_policy.get_move(state);
   }
-  int random_depth_;
-  std::random_device rd_;
-  std::mt19937 gen_{rd_()};
+    RandomSelectionPolicy random_policy;
 };
 
 struct RandomABPlayer : public Player {
-  RandomABPlayer(int random_depth) : random_depth_(random_depth) {}
-
-  int64_t pick_random_move(const State& state) {
-    auto actions = state.valid_actions();
-    if (actions == 0ull) {
-      return -1ll;
-    }
-
-    auto action_size = std::popcount(actions);
-    auto dis = std::uniform_int_distribution<int64_t>(0, action_size - 1);
-    auto selected = dis(gen_);
-    int set_bit_count = 0;
-    for (int i = 0; i < 64; i++) {
-      if (actions & (1ULL << i)) {
-        if (set_bit_count == selected) {
-          return i;
-        }
-        set_bit_count++;
-      }
-    }
-    return -1;
+  RandomABPlayer(int random_depth, score_t alpha, score_t beta) : ab_policy_(alpha, beta), random_depth_(random_depth) {
+    
   }
-
   virtual int64_t get_move(const State& state) {
-    if (state.stones_played() < random_depth_) {
-      return pick_random_move(state);
-    }
-    auto moves = ab_.get_move_scores(state, -10, 10);
-    //std::cout << int(state.player) << " ab moves " << moves.size() << std::endl;
-    if (moves.empty()) {
-      return -1;
-    }
-    /*for (auto m : moves) {
-      std::cout << m.first << " " << m.second << std::endl;
-    }*/
-    auto move =
-        std::max_element(moves.begin(), moves.end(), [&state](auto a, auto b) {
-          return state.player == 0 ? a.second < b.second : a.second > b.second;
-        });
-
-    return __builtin_ffsll(move->first) - 1;
+    return state.stones_played() < random_depth_ ? random_policy_.get_move(state) : ab_policy_.get_move(state);
   }
-  int random_depth_;
-  std::random_device rd_;
-  std::mt19937 gen_{rd_()};
-  AlphaBetaRuntime<State, score_t> ab_;
+
+    RandomSelectionPolicy random_policy_;
+    ABSelectionPolicy ab_policy_;
+    int random_depth_;
 };
 
 int main() {
-  Player* players[2] = {new RandomPlayer{}, new RandomABPlayer{20}};
+  Player* players[2] = {new RandomPlayer{}, new RandomABPlayer{25, -10, 10}};
 
   for (auto g = 0; g < 10000; g++) {
     OthelloState<6> state;
@@ -100,12 +46,10 @@ int main() {
       } else {
         state.apply_move(move);
       }
-      //state.p();
-      // state.to_canonical().p();
-      //std::cout << std::endl;
     }
 
-    std::cout << state.score(0) << std::endl;
+    std::cout << state.score(g % 2) << std::endl;
+    std::swap(players[0], players[1]);
   }
 
   return 0;
