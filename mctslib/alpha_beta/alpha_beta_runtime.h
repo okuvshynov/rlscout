@@ -68,7 +68,7 @@ class AlphaBetaRuntime {
       moves = other_moves;
     }
 
-    alpha_beta.log_stats_by_depth();
+    //alpha_beta.log_stats_by_depth();
 
     return res;
   }

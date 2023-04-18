@@ -31,7 +31,7 @@ if args.nthreads is not None:
     nthreads = int(args.nthreads)
 
 board_size = 6
-batch_size = 16
+batch_size = 1
 
 games_done = 0
 games_done_lock = Lock()
@@ -39,7 +39,7 @@ start = time.time()
 games_to_play = 100000
 games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 10
-model_rollouts = 2000
+model_rollouts = 20000
 model_temp = 1.5
 
 executor = ThreadPoolExecutor(max_workers=1)

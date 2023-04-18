@@ -13,3 +13,7 @@ othello_ab:
 test_dispatch:
 	mkdir -p _build
 	c++ othello/othello_dispatch.cpp -std=c++2a -Wall -O3 -o _build/othello_dispatch -I.
+
+duel:
+	mkdir -p _build
+	c++ othello/othello_duel.cpp -std=c++2a -Wall -O3 -o _build/duel -I.
