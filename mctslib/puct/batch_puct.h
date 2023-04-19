@@ -8,13 +8,15 @@
 
 /*
 
-This is batched implementation of MCTS (or, rather, PUCT) algorithm. 
+This is batched implementation of MCTS (or, rather, PUCT) algorithm.
 It is more efficient as we can apply NN to a batch of samples rather than
 individual sample.
-Rather than parallelizing each individual MCTS instance we just play multiple games at a time.
+Rather than parallelizing each individual MCTS instance we just play multiple
+games at a time.
 
-For self-play and player evaluation we care more about throughput than latency, thus, 
-we can serially evaluate and prepare the board for evaluation, evaluate them in 1 batch and then continue serially.
+For self-play and player evaluation we care more about throughput than latency,
+thus, we can serially evaluate and prepare the board for evaluation, evaluate
+them in 1 batch and then continue serially.
 
 Multithreading (and another layer of batching) can be applied on top if needed.
 
@@ -38,21 +40,21 @@ struct MCTSNode {
   // buffer at indicies [children_from; children_from + children_count)
   int children_from = 0;
   int children_count = 0;
-  MCTSNode(double prior) : P(prior) {};
-  MCTSNode() : P(1.0) {};
+  MCTSNode(double prior) : P(prior){};
+  MCTSNode() : P(1.0){};
 };
 
-template<typename State>
+template <typename State>
 struct GameSlot {
   GameSlot() : gen{batch_mcts_rd()} {
     dis = std::uniform_int_distribution<int64_t>(
         std::numeric_limits<int64_t>::min(),
-        std::numeric_limits<int64_t>::max()
-    );
+        std::numeric_limits<int64_t>::max());
     restart();
   }
 
-  void restart() { state = State(); 
+  void restart() {
+    state = State();
     game_id = dis(gen);
     std::cout << "starting game " << game_id << std::endl;
   }
@@ -80,7 +82,12 @@ struct GameSlot {
     }
   }
 
-  void fill_visits(float *freq_buffer) {
+  void log_training_data(LogFn log_freq_cb, int32_t *boards_buffer,
+                         float *freq_buffer) {
+    if (log_freq_cb == nullptr) {
+      return;
+    }
+    state.fill_boards(boards_buffer);
     for (int i = 0; i < State::N * State::M; i++) {
       freq_buffer[i] = 0.0f;
     }
@@ -88,28 +95,7 @@ struct GameSlot {
       const auto &node = nodes[nodes[root_id].children_from + i];
       freq_buffer[node.in_action] = node.N;
     }
-  }
-
-  void make_move(LogFn log_freq_cb, GameDoneFn log_game_done_cb, int32_t *log_boards_buffer,
-                 float *log_probs_buffer, uint32_t explore_for_n_moves,
-                 int32_t model_id) {
-    // logging training data here
-    if (log_freq_cb != nullptr) {
-      state.fill_boards(log_boards_buffer);
-      fill_visits(log_probs_buffer);
-      log_freq_cb(game_id, state.player, state.skipped);
-    }
-
-    // applying move
-    state.apply_move(get_move_index(explore_for_n_moves));
-    total_moves++;
-    
-    if (state.finished()) { // or if we are in 'full search territory'
-      if (log_game_done_cb != nullptr) {
-        // do we need to play another game in this slot?
-        slot_active = log_game_done_cb(state.score(0), game_id);
-      }
-    }
+    log_freq_cb(game_id, state.player, state.skipped);
   }
 
   void reset(size_t buffer_size) {
@@ -118,7 +104,7 @@ struct GameSlot {
     size = 1;
   }
 
-  double value(const MCTSNode& node, double temp) const {
+  double value(const MCTSNode &node, double temp) const {
     double res = node.Q;
     if (node.parent != -1) {
       res += node.P * temp * std::sqrt(nodes[node.parent].N) / (node.N + 1.0);
@@ -126,7 +112,7 @@ struct GameSlot {
     return res;
   }
 
-  int select(MCTSNode& node, double temp) const {
+  int select(MCTSNode &node, double temp) const {
     double mx = -10000.0;
     int32_t mxi = -1;
     for (int i = 0; i < node.children_count; i++) {
@@ -140,7 +126,7 @@ struct GameSlot {
   }
 
   void record(int node_id, double value) {
-    auto& node = nodes[node_id];
+    auto &node = nodes[node_id];
     if (node.parent >= 0) {
       record(node.parent, -value);
     }
@@ -152,33 +138,33 @@ struct GameSlot {
   std::mt19937 gen;
   std::uniform_int_distribution<int64_t> dis;
   bool slot_active = true;
-  uint64_t total_moves = 0ull;
 
   // per game instance scope
   State state;
+  int64_t game_id;
 
   // per each move scope
   std::vector<MCTSNode> nodes;
   int size = 0;
-  // currently we do not reuse search tree during self-play at all. In this case, 
-  // there's no need to store root_id. We might want to add it in future though.
+  // currently we do not reuse search tree during self-play at all. In this
+  // case, there's no need to store root_id. We might want to add it in future
+  // though.
   int root_id = 0;
 
   // within current search state scope
   State rollout_state;
   int node_id;
   int last_player;
-  int64_t game_id;
 };
 
 // plays one move in all active games in all slots
-template<typename State>
-void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
-                 int32_t *boards_buffer, float *probs_buffer, float *scores_buffer,
-                 int32_t *log_boards_buffer, float *log_probs_buffer,
-                 EvalFn eval_cb, LogFn log_freq_cb,
-                 GameDoneFn log_game_done_cb, uint32_t model_id,
-                 uint32_t explore_for_n_moves) {
+template <typename State>
+std::vector<uint64_t> get_moves(
+    std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
+    int32_t *boards_buffer, float *probs_buffer, float *scores_buffer,
+    int32_t *log_boards_buffer, float *log_probs_buffer, EvalFn eval_cb,
+    LogFn log_freq_cb, GameDoneFn log_game_done_cb, uint32_t model_id,
+    uint32_t explore_for_n_moves) {
   for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
       continue;
@@ -189,19 +175,18 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
   // TODO: somewhere here we check that game has > F free slots
   // if not, we play the game with full search AB and no logging.
   // we just log score later.
-  
+
   static const int kBoardElements = 2 * State::M * State::N;
   static const int kProbElements = State::M * State::N;
 
   for (int32_t r = 0; r < rollouts; r++) {
-
     // serially traverse the tree for each active game slot
     // and prepare the board for each game for evaluation
     for (size_t i = 0; i < game_slots.size(); ++i) {
-      //puct_cycles++;
+      // puct_cycles++;
       auto &g = game_slots[i];
       if (!g.slot_active || g.state.finished()) {
-        //puct_wasted_cycles++;
+        // puct_wasted_cycles++;
         continue;
       }
 
@@ -215,9 +200,9 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
 
       g.last_player = 1 - g.rollout_state.player;
 
-      // if leaf node was 'end-of-game' there's no need to evaluate action model 
+      // if leaf node was 'end-of-game' there's no need to evaluate action model
       if (g.rollout_state.finished()) {
-        //puct_wasted_cycles++;
+        // puct_wasted_cycles++;
         continue;
       }
 
@@ -228,7 +213,8 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
 
     // now evaluate model for all the game slots (including inactive ones)
     // we'll just ignore the output for that part of input.
-    // eval_cb takes boards_buffer as an input and writes results to probs_buffer and scores buffer
+    // eval_cb takes boards_buffer as an input and writes results to
+    // probs_buffer and scores buffer
 
     bool use_scores_from_model = false;
     if (eval_cb != nullptr && model_id != 0) {
@@ -248,7 +234,8 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         int j = g.size;
         for (uint64_t k = 0; k < State::M * State::N; k++) {
           if ((1ull << k) & moves) {
-            g.nodes[j] = MCTSNode(model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
+            g.nodes[j] = MCTSNode(
+                model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
             g.nodes[j].parent = g.node_id;
             g.nodes[j].in_action = k;
             j++;
@@ -258,7 +245,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
         g.size = j;
 
         if (use_scores_from_model) {
-          //std::cout << "using score " << scores_buffer[i] << std::endl;
+          // std::cout << "using score " << scores_buffer[i] << std::endl;
           g.record(g.node_id, scores_buffer[i]);
           continue;
         }
@@ -269,13 +256,47 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts, dou
       g.record(g.node_id, g.rollout_state.score(g.last_player));
     }
   }
+
+  std::vector<uint64_t> result;
+  result.resize(game_slots.size());
+  for (size_t i = 0; i < game_slots.size(); ++i) {
+    auto &g = game_slots[i];
+    if (!g.slot_active || g.state.finished()) {
+      continue;
+    }
+    result[i] = g.get_move_index(explore_for_n_moves);
+  }
+  return result;
+}
+
+// plays one move in all active games in all slots
+template <typename State>
+void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
+                 double temp, int32_t *boards_buffer, float *probs_buffer,
+                 float *scores_buffer, int32_t *log_boards_buffer,
+                 float *log_probs_buffer, EvalFn eval_cb, LogFn log_freq_cb,
+                 GameDoneFn log_game_done_cb, uint32_t model_id,
+                 uint32_t explore_for_n_moves) {
+  auto picked_moves = get_moves<State>(
+      game_slots, rollouts, temp, boards_buffer, probs_buffer, scores_buffer,
+      log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
+      log_game_done_cb, model_id, explore_for_n_moves);
   // now pick and apply moves
-  for (auto &g : game_slots) {
+  for (size_t i = 0; i < game_slots.size(); ++i) {
+    auto &g = game_slots[i];
     if (!g.slot_active || g.state.finished()) {
       continue;
     }
 
-    g.make_move(log_freq_cb, log_game_done_cb, log_boards_buffer,
-                log_probs_buffer, explore_for_n_moves, model_id);
+    g.log_training_data(log_freq_cb, log_boards_buffer, log_probs_buffer);
+
+    g.state.apply_move(picked_moves[i]);
+
+    if (g.state.finished()) {  // or if we are in 'full search territory'
+      if (log_game_done_cb != nullptr) {
+        // do we need to play another game in this slot?
+        g.slot_active = log_game_done_cb(g.state.score(0), g.game_id);
+      }
+    }
   }
 }

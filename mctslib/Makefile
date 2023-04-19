@@ -17,3 +17,7 @@ test_dispatch:
 duel:
 	mkdir -p _build
 	c++ othello/othello_duel.cpp -std=c++2a -Wall -O3 -o _build/duel -I.
+
+mcts_duel:
+	mkdir -p _build
+	c++ -shared -std=c++2a -o _build/libmctsduel.so -fPIC puct/puct_against_random.cpp -O3 -Wall -I.
