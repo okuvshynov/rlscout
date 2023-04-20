@@ -4,7 +4,7 @@ import time
 import torch
 
 from src.backends.backend import backend
-from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
 
 device = "cpu"
@@ -22,22 +22,23 @@ if args.device is not None:
     device = args.device
 
 board_size = 6
-batch_size = 16
+batch_size = 32
 games_done = 0
 games_to_play = 64
 margin = games_to_play // 16
 games_stats = {0: 0, -1: 0, 1:0}
-explore_for_n_moves = 0
-model_rollouts = 5000
+explore_for_n_moves = 8
+model_rollouts = 1000
 model_temp = 4.0
 
-raw_rollouts = 5000
+raw_rollouts = 1000
 raw_temp = 1.5
 
 client = GameClient()
 boards_buffer = np.zeros(batch_size * 2 * board_size *
                         board_size, dtype=np.int32)
 probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
+scores_buffer = np.ones(batch_size, dtype=np.float32)
 
 log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
 log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
@@ -59,25 +60,33 @@ def start_batch_duel():
         model_to_eval_id: model_to_eval
     }
 
-    def game_done_fn(winner):
+    def game_done_fn(score, game_id):
         global games_done
+
+        winner = -1
+        if score > 0:
+            winner = 0
+        if score < 0:
+            winner = 1
 
         games_done += 1
         games_stats[winner] += 1
         local_gd = games_done
 
         rate = 1.0 * local_gd / (time.time() - start)
-        print(f'result = {winner}, done {local_gd} games. rate = {rate:.3f} games/s')
+        print(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
         return local_gd + batch_size <= games_to_play
 
     def eval_fn(model_id):
-        probs = models_by_id[model_id].get_probs(boards_buffer)
+        probs, scores = models_by_id[model_id].get_probs(boards_buffer)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
+        np.copyto(scores_buffer, scores.reshape(
+            (batch_size, )))
 
-    def log_fn(model_id):
+    def log_fn(game_id, player, skipped):
         pass
 
     print(f'playing {model_to_eval_id} vs {best_model_id}')
@@ -91,11 +100,12 @@ def start_batch_duel():
         batch_size,
         boards_buffer,
         probs_buffer,
+        scores_buffer,
         log_boards_buffer,
         log_probs_buffer,
         EvalFn(eval_fn),
         LogFn(log_fn),
-        BoolFn(game_done_fn),
+        GameDoneFn(game_done_fn),
         model_to_eval_id,
         best_model_id,
         explore_for_n_moves,
@@ -119,11 +129,12 @@ def start_batch_duel():
         batch_size,
         boards_buffer,
         probs_buffer,
+        scores_buffer,
         log_boards_buffer,
         log_probs_buffer,
         EvalFn(eval_fn),
         LogFn(log_fn),
-        BoolFn(game_done_fn),
+        GameDoneFn(game_done_fn),
         best_model_id,
         model_to_eval_id,
         explore_for_n_moves,
