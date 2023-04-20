@@ -15,7 +15,10 @@ void batch_duel(uint32_t batch_size, int32_t *boards_buffer,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp) {
   using State = OthelloState<6>;
-  RandomABPlayer random_ab_player(18, -5, 5);
+  RandomABPlayer random_ab_player(20, -5, 5);
+  int64_t score = 0;
+
+  for (int rep = 0; rep < 10; rep ++) {
   {
     std::vector<GameSlot<State>> games{batch_size};
     bool has_active_games = true;
@@ -54,6 +57,7 @@ void batch_duel(uint32_t batch_size, int32_t *boards_buffer,
     }
     for (auto &g : games) {
       std::cout << g.state.score(0) << std::endl;
+      score += g.state.score(0);
     }
   }
 
@@ -100,7 +104,13 @@ void batch_duel(uint32_t batch_size, int32_t *boards_buffer,
 
     for (auto &g : games) {
       std::cout << g.state.score(1) << std::endl;
+      score += g.state.score(0);
     }
   }
+
+  std::cout << std::endl << "### " << score << std::endl;
+  }
+
+  std::cout << std::endl << "### " << score << std::endl;
 }
 }

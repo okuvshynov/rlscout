@@ -6,9 +6,9 @@ import time
 import torch
 from collections import defaultdict
 
-from backends.backend import backend
-from batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
-from game_client import GameClient
+from src.backends.backend import backend
+from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
+from src.game_client import GameClient
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
 device = "cpu"
@@ -39,7 +39,7 @@ start = time.time()
 games_to_play = 100000
 games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 10
-model_rollouts = 20000
+model_rollouts = 2000
 model_temp = 1.5
 
 executor = ThreadPoolExecutor(max_workers=1)

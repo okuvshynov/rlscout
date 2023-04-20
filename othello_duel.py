@@ -1,14 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread, Lock
-import argparse
 import numpy as np
 import time
 import torch
 from collections import defaultdict
 
-from backends.backend import backend
-from batch_mcts import batch_mcts_duel_lib, EvalFn, LogFn, GameDoneFn
-from game_client import GameClient
+from src.backends.backend import backend
+from src.batch_mcts import batch_mcts_duel_lib, EvalFn, LogFn, GameDoneFn
+from src.game_client import GameClient
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
 device = "cpu"
@@ -17,20 +16,19 @@ if torch.backends.mps.is_available():
 if torch.cuda.is_available():
     device = "cuda:0"
 
-
 nthreads = 1
 
 board_size = 6
-batch_size = 16
+batch_size = 256
 
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
 games_to_play = 100000
 games_stats = defaultdict(lambda : 0)
-explore_for_n_moves = 10
-model_rollouts = 2000
-model_temp = 1.5
+explore_for_n_moves = 1
+model_rollouts = 1000
+model_temp = 2.5
 
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)

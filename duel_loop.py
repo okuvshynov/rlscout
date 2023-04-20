@@ -3,9 +3,9 @@ import numpy as np
 import time
 import torch
 
-from backends.backend import backend
-from batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
-from game_client import GameClient
+from src.backends.backend import backend
+from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, BoolFn
+from src.game_client import GameClient
 
 device = "cpu"
 if torch.backends.mps.is_available():

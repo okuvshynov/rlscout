@@ -21,7 +21,7 @@ class GameClient:
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(server)
 
-    def get_batch(self, size, from_id):
+    def get_batch(self, size, from_id=0):
         req = {
             'method': 'get_batch',
             'size': size,

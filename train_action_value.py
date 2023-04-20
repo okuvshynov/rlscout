@@ -7,7 +7,7 @@ import torch.optim as optim
 from collections import deque
 
 from action_value_model import ActionValueModel
-from game_client import GameClient
+from src.game_client import GameClient
 
 random.seed(1991)
 

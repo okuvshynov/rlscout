@@ -5,10 +5,10 @@ import os
 from numpy.ctypeslib import ndpointer
 
 batch_mcts_lib = ctl.load_library("libmcts.so", os.path.join(
-    os.path.dirname(__file__), "mctslib", "_build"))
+    os.path.dirname(__file__), "..", "mctslib", "_build"))
 
 batch_mcts_duel_lib = ctl.load_library("libmctsduel.so", os.path.join(
-    os.path.dirname(__file__), "mctslib", "_build"))
+    os.path.dirname(__file__), "..", "mctslib", "_build"))
 
 LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int64, ctypes.c_int8, ctypes.c_int8)
 GameDoneFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32, ctypes.c_int64)
