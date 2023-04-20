@@ -59,10 +59,10 @@ class AlphaBetaRuntime {
       score_t score;
       if (do_max) {
         score = dispatch<MinRunner, State::M * State::N>(
-            stones, std::ref(alpha_beta), new_state, alpha, beta);
+            stones + 1, std::ref(alpha_beta), new_state, alpha, beta);
       } else {
         score = dispatch<MaxRunner, State::M * State::N>(
-            stones, std::ref(alpha_beta), new_state, alpha, beta);
+            stones + 1, std::ref(alpha_beta), new_state, alpha, beta);
       }
       res.emplace_back(move, score);
       moves = other_moves;
@@ -71,6 +71,18 @@ class AlphaBetaRuntime {
     //alpha_beta.log_stats_by_depth();
 
     return res;
+  }
+
+  score_t get_score(State state, score_t alpha, score_t beta) {
+    bool do_max = (state.player == 0);
+    uint32_t stones = state.stones_played();
+    if (do_max) {
+      return dispatch<MaxRunner, State::M * State::N>(
+            stones, std::ref(alpha_beta), state, alpha, beta); 
+    } else {
+      return dispatch<MinRunner, State::M * State::N>(
+            stones, std::ref(alpha_beta), state, alpha, beta); 
+    }
   }
 
  private:
