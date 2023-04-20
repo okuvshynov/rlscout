@@ -85,7 +85,6 @@ def train_minibatch(boards, probs, scores):
 
     pb = y.view(y.shape[0], -1)
     action_loss = -torch.mean(torch.sum(pb * actions_probs, dim=1))
-    print(z, score)
     score_loss = score_loss_fn(z, score.view(-1))
     loss = action_loss + score_loss
 

@@ -29,7 +29,7 @@ batch_mcts_lib.batch_mcts.argtypes = [
     ctypes.c_int32, # a_rollouts
     ctypes.c_double, # a_temp
     ctypes.c_int32, # b_rollouts
-    ctypes.c_double # b_temp
+    ctypes.c_double, # b_temp
 ]
 batch_mcts_lib.batch_mcts.restype = None
 

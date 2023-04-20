@@ -172,10 +172,6 @@ std::vector<uint64_t> get_moves(
     g.reset(rollouts * State::M * State::N);
   }
 
-  // TODO: somewhere here we check that game has > F free slots
-  // if not, we play the game with full search AB and no logging.
-  // we just log score later.
-
   static const int kBoardElements = 2 * State::M * State::N;
   static const int kProbElements = State::M * State::N;
 
@@ -292,7 +288,7 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
 
     g.state.apply_move(picked_moves[i]);
 
-    if (g.state.finished()) {  // or if we are in 'full search territory'
+    if (g.state.finished()) {
       if (log_game_done_cb != nullptr) {
         // do we need to play another game in this slot?
         g.slot_active = log_game_done_cb(g.state.score(0), g.game_id);

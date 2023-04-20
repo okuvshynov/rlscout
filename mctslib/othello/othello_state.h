@@ -136,7 +136,7 @@ struct OthelloState {
     return true;
   }
 
-  bool finished() const { return skipped >= 2; }
+  bool finished() const { return skipped >= 2 || full(); }
 
   int32_t winner() const {
     if (finished()) {
