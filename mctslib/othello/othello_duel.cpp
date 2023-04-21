@@ -9,8 +9,6 @@
 using State = OthelloState<6>;
 using score_t = int8_t;
 
-
-
 int main() {
   Player* players[2] = {new RandomPlayer{}, new RandomABPlayer{25, -5, 5}};
 
