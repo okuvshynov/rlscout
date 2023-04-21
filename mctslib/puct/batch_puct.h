@@ -25,7 +25,7 @@ Multithreading (and another layer of batching) can be applied on top if needed.
 std::random_device batch_mcts_rd;
 
 using LogFn = void (*)(int64_t, int8_t, int8_t);
-using EvalFn = void (*)(int32_t);
+using EvalFn = void (*)(int32_t, bool);
 using GameDoneFn = bool (*)(int32_t, int64_t);
 
 struct MCTSNode {
@@ -214,7 +214,7 @@ std::vector<uint64_t> get_moves(
 
     bool use_scores_from_model = false;
     if (eval_cb != nullptr && model_id != 0) {
-      eval_cb(model_id);
+      eval_cb(model_id, r == 0);
       use_scores_from_model = true;
     }
 
@@ -241,7 +241,7 @@ std::vector<uint64_t> get_moves(
         g.size = j;
 
         if (use_scores_from_model) {
-          // std::cout << "using score " << scores_buffer[i] << std::endl;
+          //std::cout << "using score " << scores_buffer[i] << std::endl;
           g.record(g.node_id, scores_buffer[i]);
           continue;
         }

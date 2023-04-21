@@ -185,6 +185,18 @@ struct OthelloState {
     return (board[0] | board[1]) < (other.board[0] | other.board[1]);
   }
 
+  // randomly transforms the board to one of the 8 symmetries 
+  void pick_random_symmetry() {
+    int idx = rand() % 8;
+    for (int i = 0; i < idx; i++) {
+      if (i % 2 == 0) {
+        vflip();
+      } else {
+        dflip();
+      }
+    }
+  }
+
   // TODO: this is too slow
   Self to_canonical() const {
     Self res = *this;

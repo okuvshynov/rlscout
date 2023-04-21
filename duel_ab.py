@@ -82,7 +82,7 @@ def start_batch_mcts():
     def game_done_fn(score, game_id):
         return False
 
-    def eval_fn(model_id_IGNORE):
+    def eval_fn(model_id_IGNORE, add_noise_IGNORE):
         # in self-play we ignore model id and just use the latest one
 
         def eval_model():

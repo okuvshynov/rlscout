@@ -12,7 +12,7 @@ batch_mcts_duel_lib = ctl.load_library("libmctsduel.so", os.path.join(
 
 LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int64, ctypes.c_int8, ctypes.c_int8)
 GameDoneFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32, ctypes.c_int64)
-EvalFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32)
+EvalFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32, ctypes.c_bool)
 batch_mcts_lib.batch_mcts.argtypes = [
     ctypes.c_int, 
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),   # boards

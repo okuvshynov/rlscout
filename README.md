@@ -80,6 +80,20 @@ Immediate next steps:
 
 ## LIFO order notes
 
+
+### Where exactly do we sample?
+
+It is not entirely clear where do we sample and where do we add noise.
+Re-reading the paper again, it seems like:
+1. For self-play to generate the data we:
+ - for first 30 moves sample from MCTS visit count to select a move to play
+ - for next moves select move greedily (max MCTS visit count)
+ - in addition to that, on each move selection we add Diriclet noise to root node on each move selection
+ - in addition to that, we sample one of the 8 symmetries to evaluate the model
+
+2. For model evaluation though, it is much less clear. What is the source of non-determinism? Only rotation?
+
+
 ### now we need the value part
 
 1. Training on 1/-1/0 at first

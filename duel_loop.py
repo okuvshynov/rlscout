@@ -79,7 +79,7 @@ def start_batch_duel():
         # count done + enqueued
         return local_gd + batch_size <= games_to_play
 
-    def eval_fn(model_id):
+    def eval_fn(model_id, add_noise_IGNORE):
         probs, scores = models_by_id[model_id].get_probs(boards_buffer)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))

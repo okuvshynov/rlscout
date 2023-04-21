@@ -31,16 +31,24 @@ if args.nthreads is not None:
     nthreads = int(args.nthreads)
 
 board_size = 6
-batch_size = 16
+batch_size = 32
 
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
-games_to_play = 100000
+games_to_play = 256
 games_stats = defaultdict(lambda : 0)
-explore_for_n_moves = 10
+explore_for_n_moves = 20
 model_rollouts = 3000
 model_temp = 2.5
+
+dirichlet_noise = 0.25
+
+def add_dirichlet_noise(probs, eps):
+    alpha = np.ones_like(probs) * 0.3
+    noise = np.random.dirichlet(alpha) * batch_size
+    res = (1 - eps) * probs + eps * noise
+    return res
 
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)
@@ -112,7 +120,7 @@ def start_batch_mcts():
         # count done + enqueued
         return local_gd + batch_size * nthreads <= games_to_play
 
-    def eval_fn(model_id_IGNORE):
+    def eval_fn(model_id_IGNORE, add_noise):
         # in self-play we ignore model id and just use the latest one
 
         def eval_model():
@@ -120,8 +128,10 @@ def start_batch_mcts():
                 return model.get_probs(boards_buffer)
         fut = executor.submit(eval_model)
         probs, scores = fut.result()
-        np.copyto(probs_buffer, probs.reshape(
-            (batch_size * board_size * board_size, )))
+        probs = probs.reshape((batch_size * board_size * board_size, ))
+        if add_noise:
+            probs = add_dirichlet_noise(probs, dirichlet_noise)
+        np.copyto(probs_buffer, probs)
         np.copyto(scores_buffer, scores.reshape(
             (batch_size, )))
 

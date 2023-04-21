@@ -7,3 +7,6 @@ _out/7x7/*.mlmodel
 _out/8x8/*.pt
 _out/8x8/*.mlmodel
 _out/8x8/*.db
+db/*.db
+.DS_Store
+settings.json
