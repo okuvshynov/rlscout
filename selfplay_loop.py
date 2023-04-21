@@ -31,18 +31,18 @@ if args.nthreads is not None:
     nthreads = int(args.nthreads)
 
 board_size = 6
-batch_size = 32
+batch_size = 64
 
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
-games_to_play = 256
+games_to_play = 1024
 games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 20
 model_rollouts = 3000
 model_temp = 2.5
 
-dirichlet_noise = 0.25
+dirichlet_noise = 0.3
 
 def add_dirichlet_noise(probs, eps):
     alpha = np.ones_like(probs) * 0.3

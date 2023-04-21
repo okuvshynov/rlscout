@@ -159,12 +159,12 @@ struct GameSlot {
 
 // plays one move in all active games in all slots
 template <typename State>
-std::vector<uint64_t> get_moves(
-    std::vector<GameSlot<State>> &game_slots, int32_t rollouts, double temp,
-    int32_t *boards_buffer, float *probs_buffer, float *scores_buffer,
-    int32_t *log_boards_buffer, float *log_probs_buffer, EvalFn eval_cb,
-    LogFn log_freq_cb, GameDoneFn log_game_done_cb, uint32_t model_id,
-    uint32_t explore_for_n_moves) {
+std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
+                                int32_t rollouts, double temp,
+                                int32_t *boards_buffer, float *probs_buffer,
+                                float *scores_buffer, EvalFn eval_cb,
+                                uint32_t model_id,
+                                uint32_t explore_for_n_moves) {
   for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
       continue;
@@ -241,7 +241,7 @@ std::vector<uint64_t> get_moves(
         g.size = j;
 
         if (use_scores_from_model) {
-          //std::cout << "using score " << scores_buffer[i] << std::endl;
+          // std::cout << "using score " << scores_buffer[i] << std::endl;
           g.record(g.node_id, scores_buffer[i]);
           continue;
         }
@@ -273,10 +273,9 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
                  float *log_probs_buffer, EvalFn eval_cb, LogFn log_freq_cb,
                  GameDoneFn log_game_done_cb, uint32_t model_id,
                  uint32_t explore_for_n_moves) {
-  auto picked_moves = get_moves<State>(
-      game_slots, rollouts, temp, boards_buffer, probs_buffer, scores_buffer,
-      log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
-      log_game_done_cb, model_id, explore_for_n_moves);
+  auto picked_moves =
+      get_moves<State>(game_slots, rollouts, temp, boards_buffer, probs_buffer,
+                       scores_buffer, eval_cb, model_id, explore_for_n_moves);
   // now pick and apply moves
   for (size_t i = 0; i < game_slots.size(); ++i) {
     auto &g = game_slots[i];
