@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstdint>
-#include <iostream>
 #include <random>
 #include <vector>
 
@@ -56,7 +55,6 @@ struct GameSlot {
   void restart() {
     state = State();
     game_id = dis(gen);
-    std::cout << "starting game " << game_id << std::endl;
   }
 
   // TODO: this returns 0 when there are no valid moves

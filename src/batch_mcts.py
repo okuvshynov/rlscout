@@ -47,5 +47,6 @@ batch_duel_lib.ab_duel.argtypes = [
     ctypes.c_int8, # alpha
     ctypes.c_int8, # beta
     ctypes.c_uint32, # full_after_n_moves
+    ctypes.c_bool, # inverse player order
 ]
 batch_duel_lib.ab_duel.restype = None

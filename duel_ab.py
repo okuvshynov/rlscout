@@ -1,13 +1,17 @@
-from concurrent.futures import ThreadPoolExecutor
-from threading import Thread, Lock
 import numpy as np
 import time
 import torch
+import sys
 from collections import defaultdict
 
 from src.backends.backend import backend
 from src.batch_mcts import batch_duel_lib, EvalFn, GameDoneFn
 from src.game_client import GameClient
+
+import logging
+
+logging.basicConfig(format='%(asctime)s %(message)s')
+logging.basicConfig(filename='logs/duel_ab.log', encoding='utf-8', level=logging.INFO)
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
 device = "cpu"
@@ -20,14 +24,19 @@ board_size = 6
 batch_size = 128
 
 games_done = 0
-games_done_lock = Lock()
 start = time.time()
-games_to_play = 256
+games_to_play = 128
 games_stats = defaultdict(lambda : 0)
+
+## MCTS config
 explore_for_n_moves = 1
 model_rollouts = 1000
 model_temp = 2.5
 
+## alpha-beta config
+alpha = -5
+beta = 5
+full_search_after_move = 15
 
 client = GameClient()
 boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -58,8 +67,9 @@ def start_batch_duel():
         local_gd = games_done
 
         rate = 1.0 * local_gd / (time.time() - start)
-        print(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
-        print(games_stats)
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        logging.info(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
         # count done + enqueued
         return local_gd + batch_size <= games_to_play
 
@@ -81,11 +91,42 @@ def start_batch_duel():
         explore_for_n_moves,
         model_rollouts,
         model_temp,
-        -5,
-        5,
-        13
+        alpha,
+        beta,
+        full_search_after_move,
+        False
     )
-    print(games_stats)
+
+    local_stats = {
+        'new': games_stats[0],
+        'old': games_stats[1]
+    }
+    games_stats = defaultdict(lambda : 0)
+    games_done = 0
+    start = time.time()
+    batch_duel_lib.ab_duel(
+        batch_size,
+        boards_buffer,
+        probs_buffer,
+        scores_buffer,
+        EvalFn(eval_fn),
+        GameDoneFn(game_done_fn),
+        model_id,
+        explore_for_n_moves,
+        model_rollouts,
+        model_temp,
+        alpha,
+        beta,
+        full_search_after_move,
+        True
+    )
+
+    local_stats['new'] += games_stats[1]
+    local_stats['old'] += games_stats[0]
+
+    logging.info(local_stats)
+
+    print(local_stats)
 
 if not start_batch_duel():
     print('no model to eval, sleeping')
