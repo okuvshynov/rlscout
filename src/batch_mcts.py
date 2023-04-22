@@ -7,7 +7,7 @@ from numpy.ctypeslib import ndpointer
 batch_mcts_lib = ctl.load_library("libmcts.so", os.path.join(
     os.path.dirname(__file__), "..", "mctslib", "_build"))
 
-batch_mcts_duel_lib = ctl.load_library("libmctsduel.so", os.path.join(
+batch_duel_lib = ctl.load_library("libduel.so", os.path.join(
     os.path.dirname(__file__), "..", "mctslib", "_build"))
 
 LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int64, ctypes.c_int8, ctypes.c_int8)
@@ -33,23 +33,19 @@ batch_mcts_lib.batch_mcts.argtypes = [
 ]
 batch_mcts_lib.batch_mcts.restype = None
 
-
-batch_mcts_duel_lib.batch_duel.argtypes = [
+batch_duel_lib.ab_duel.argtypes = [
     ctypes.c_int, 
     ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),   # boards
     ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # probs
     ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # scores
-    ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),   # log boards
-    ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # log scores
     EvalFn,
-    LogFn,
     GameDoneFn, # game_done_fn,
-    ctypes.c_int, #model_a
-    ctypes.c_int, #model_b
+    ctypes.c_int, #model_id
     ctypes.c_int,  # explore_for_n_moves
-    ctypes.c_int32, # a_rollouts
-    ctypes.c_double, # a_temp
-    ctypes.c_int32, # b_rollouts
-    ctypes.c_double # b_temp
+    ctypes.c_int32, # rollouts
+    ctypes.c_double, # temp
+    ctypes.c_int8, # alpha
+    ctypes.c_int8, # beta
+    ctypes.c_uint32, # full_after_n_moves
 ]
-batch_mcts_duel_lib.batch_duel.restype = None
+batch_duel_lib.ab_duel.restype = None

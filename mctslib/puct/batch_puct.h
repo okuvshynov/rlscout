@@ -157,7 +157,7 @@ struct GameSlot {
   int last_player;
 };
 
-// plays one move in all active games in all slots
+// returns one move in all active games in all slots
 template <typename State>
 std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
                                 int32_t rollouts, double temp,

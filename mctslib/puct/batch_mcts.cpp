@@ -8,7 +8,7 @@ extern "C" {
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, float* scores_buffer, int32_t *log_boards_buffer,
                 float *log_probs_buffer, EvalFn eval_cb,
-                LogFn log_freq_cb, bool (*log_game_done_cb)(int32_t, int64_t),
+                LogFn log_freq_cb, GameDoneFn log_game_done_cb,
                 int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp) {
