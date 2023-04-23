@@ -22,14 +22,14 @@ if args.device is not None:
     device = args.device
 
 board_size = 6
-batch_size = 32
+batch_size = 16
 games_done = 0
-games_to_play = 64
+games_to_play = 128
 margin = games_to_play // 16
 games_stats = {0: 0, -1: 0, 1:0}
-explore_for_n_moves = 8
-model_rollouts = 1000
-model_temp = 4.0
+explore_for_n_moves = 20
+model_rollouts = 3000
+model_temp = 2.5
 
 raw_rollouts = 1000
 raw_temp = 1.5

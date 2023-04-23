@@ -18,6 +18,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
   bool has_active_games = true;
   while (has_active_games) {
     has_active_games = false;
+    //std::cout << model_a << " " << model_b << std::endl;
     // first player
     single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer, scores_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
@@ -27,6 +28,8 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
     single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer, scores_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
                 log_game_done_cb, model_b, explore_for_n_moves);
+
+    //games[0].state.p();
 
     // if a game is finished, but we need to play more games, restart the game
     // and reuse the slot

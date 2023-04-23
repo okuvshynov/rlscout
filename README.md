@@ -80,6 +80,14 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Value prediction are pretty bad
+
+What should we do:
+1. Check the data - how often do we, for example, have duplicate input with different output? Our data is based on imperfect player doing some extra exploration, so that is definitely possible
+2. Try optimize for value only and ignore action loss. 
+3. See value error by ply
+4. 
+
 
 ### Where exactly do we sample?
 

@@ -35,8 +35,8 @@ model_temp = 2.5
 
 ## alpha-beta config
 alpha = -5
-beta = 5
-full_search_after_move = 15
+beta = -3
+full_search_after_move = 14
 
 client = GameClient()
 boards_buffer = np.zeros(batch_size * 2 * board_size *

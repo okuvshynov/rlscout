@@ -44,14 +44,14 @@ epoch_samples_min = 2 ** 15
 
 train_set_rate = 0.8
 
-minibatch_per_epoch = 500
+minibatch_per_epoch = 3000
 minibatch_size = 512
 
 # circular buffer for 'most recent training samples'
 current_samples = deque([], maxlen=epoch_samples_max)
 
-if action_model is None:
-    action_model = ActionValueModel()
+#if action_model is None:
+action_model = ActionValueModel()
     
 action_model = action_model.to(device)
 
@@ -105,6 +105,7 @@ def evaluate_sample(boards, probs, scores):
         probs = y.view(y.shape[0], -1)
         action_loss = -torch.mean(torch.sum(probs * action_probs, dim=1))
         score_loss = score_loss_fn(z, score.view(-1))
+        print(f'action loss: {action_loss}, score loss: {score_loss}')
         loss = action_loss + score_loss
         
     return loss.item()
