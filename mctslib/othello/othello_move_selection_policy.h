@@ -79,6 +79,14 @@ struct RandomABPlayer : public Player {
     return state.stones_played() < random_depth_ ? random_policy_.get_move(state) : ab_policy_.get_move(state);
   }
 
+  void load_tt(const std::string& filename) {
+    ab_policy_.ab_.load_tt(filename);
+  }
+
+  void save_tt(const std::string& filename) {
+    ab_policy_.ab_.save_tt(filename);
+  }
+
   RandomSelectionPolicy random_policy_;
   ABSelectionPolicy ab_policy_;
   int random_depth_;

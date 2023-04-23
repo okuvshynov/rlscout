@@ -53,15 +53,20 @@ struct SharedTT {
     }
   }
 
-  static Self load_from(const std::string& filename) {
+  // full replacement
+  void load_from(const std::string& filename) {
     auto in = std::ifstream(filename);
     size_t log_size, i;
     in >> log_size;
-    Self res(log_size);
-    std::cout << log_size << std::endl;
+
+    for (size_t i = 0; i < data.size(); i++) {
+      data[i].free = true;
+    }
+    data.resize(1ull << log_size);
+
     uint64_t low, high;
     while (in >> i) {
-      auto& entry = res.data[i];
+      auto& entry = data[i];
       entry.free = false;
       in >> entry.state >> low >> high;
       entry.low = low;
@@ -71,7 +76,6 @@ struct SharedTT {
         std::cout << entry.low << " " << entry.high << std::endl;
       }
     }
-    return res;
   }
 
   template <uint32_t stones>

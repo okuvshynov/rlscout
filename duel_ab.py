@@ -21,11 +21,11 @@ if torch.cuda.is_available():
     device = "cuda:0"
 
 board_size = 6
-batch_size = 128
+batch_size = 32
 
 games_done = 0
 start = time.time()
-games_to_play = 128
+games_to_play = 64
 games_stats = defaultdict(lambda : 0)
 
 ## MCTS config
@@ -36,9 +36,9 @@ model_temp = 2.5
 ## alpha-beta config
 alpha = -5
 beta = -3
-full_search_after_move = 14
+full_search_after_move = 18
 
-client = GameClient()
+client = GameClient("tcp://Oleksandrs-Mini:8888")
 boards_buffer = np.zeros(batch_size * 2 * board_size *
                         board_size, dtype=np.int32)
 probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
@@ -46,7 +46,9 @@ scores_buffer = np.ones(batch_size, dtype=np.float32)
 
 def start_batch_duel():
     global games_done, games_stats, start
+    games_done = 0
 
+    #model_id, model = 127, client.get_model(127)
     model_id, model = client.get_best_model()
     if model is None:
         return False
@@ -103,7 +105,7 @@ def start_batch_duel():
     }
     games_stats = defaultdict(lambda : 0)
     games_done = 0
-    start = time.time()
+
     batch_duel_lib.ab_duel(
         batch_size,
         boards_buffer,
@@ -127,6 +129,14 @@ def start_batch_duel():
     logging.info(local_stats)
 
     print(local_stats)
+
+for iter in range(32):
+    print(f'starting iter {iter}')
+    start_batch_duel()
+    curr = time.time()
+    dur = curr - start
+    print(f'done in {dur:.2f}')
+    start = curr
 
 if not start_batch_duel():
     print('no model to eval, sleeping')

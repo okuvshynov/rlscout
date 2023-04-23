@@ -22,6 +22,7 @@ void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
     if (g.state.finished()) {
       g.slot_active = log_game_done_cb(g.state.score(0), g.game_id);
     }
+    //g.state.p();
   }
 }
 
@@ -40,6 +41,7 @@ void process_rand_ab(std::vector<GameSlot<State>> &games,
     if (g.state.finished()) {
       g.slot_active = log_game_done_cb(g.state.score(0), g.game_id);
     }
+    //g.state.p();
   }
 }
 
@@ -59,6 +61,7 @@ void ab_duel(uint32_t batch_size,
              bool inverse_first_player) {
   using State = OthelloState<6>;
   RandomABPlayer random_ab_player(full_after_n_moves, alpha, beta);
+  random_ab_player.ab_policy_.ab_.load_tt("./db/6x6.tt");
   std::vector<GameSlot<State>> games{batch_size};
 
   bool has_active_games = true;
@@ -91,5 +94,7 @@ void ab_duel(uint32_t batch_size,
       }
     }
   }
+
+  random_ab_player.ab_policy_.ab_.save_tt("./db/6x6.tt");
 }
 }

@@ -85,6 +85,14 @@ class AlphaBetaRuntime {
     }
   }
 
+  void load_tt(const std::string& filename) {
+    alpha_beta.load_shared_tt(filename);
+  }
+
+  void save_tt(const std::string& filename) {
+    alpha_beta.save_shared_tt(filename);
+  }
+
  private:
   AlphaBeta<State, score_t> alpha_beta;
 };

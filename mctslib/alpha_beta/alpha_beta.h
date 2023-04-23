@@ -27,6 +27,14 @@ class AlphaBeta {
   TT<State, score_t> tt;
 
  public:
+  void load_shared_tt(const std::string& file) {
+    tt.full_tt.load_from(file);
+  }
+  void save_shared_tt(const std::string& file) {
+    tt.full_tt.save_to(file);
+  }
+
+
   void log_stats_by_depth() {
     auto curr = std::chrono::steady_clock::now();
     std::chrono::duration<double> diff = curr - start;
