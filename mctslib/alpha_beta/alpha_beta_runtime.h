@@ -93,6 +93,10 @@ class AlphaBetaRuntime {
     alpha_beta.save_shared_tt(filename);
   }
 
+  void print_tt_stats() {
+    alpha_beta.print_tt_stats();
+  }
+
  private:
   AlphaBeta<State, score_t> alpha_beta;
 };

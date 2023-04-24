@@ -145,4 +145,8 @@ class AlphaBeta {
     }
     return value;
   }
+
+  void print_tt_stats() {
+    tt.log_stats();
+  }
 };

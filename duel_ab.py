@@ -36,7 +36,7 @@ model_temp = 2.5
 ## alpha-beta config
 alpha = -5
 beta = -3
-full_search_after_move = 18
+full_search_after_move = 16
 
 client = GameClient("tcp://Oleksandrs-Mini:8888")
 boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -69,8 +69,7 @@ def start_batch_duel():
         local_gd = games_done
 
         rate = 1.0 * local_gd / (time.time() - start)
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        print(f'{local_gd} done.')
         logging.info(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
         # count done + enqueued
         return local_gd + batch_size <= games_to_play

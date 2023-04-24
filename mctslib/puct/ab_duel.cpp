@@ -96,5 +96,6 @@ void ab_duel(uint32_t batch_size,
   }
 
   random_ab_player.ab_policy_.ab_.save_tt("./db/6x6.tt");
+  random_ab_player.ab_policy_.ab_.print_tt_stats();
 }
 }
