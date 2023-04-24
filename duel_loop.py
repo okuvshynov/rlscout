@@ -15,11 +15,16 @@ if torch.cuda.is_available():
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
+parser.add_argument('-s', '--server')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
+
+server = 'tcp://localhost:8888'
+if args.server is not None:
+    server = args.device
 
 board_size = 6
 batch_size = 16
@@ -30,11 +35,13 @@ games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 20
 model_rollouts = 3000
 model_temp = 2.5
+random_rollouts = 20
 
 raw_rollouts = 1000
 raw_temp = 1.5
 
-client = GameClient()
+
+client = GameClient(server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *
                         board_size, dtype=np.int32)
 probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
@@ -112,7 +119,9 @@ def start_batch_duel():
         model_rollouts,
         model_temp,
         model_rollouts if best_model is not None else raw_rollouts,
-        model_temp if best_model is not None else raw_temp
+        model_temp if best_model is not None else raw_temp,
+        random_rollouts,
+        random_rollouts
     )
     print(games_stats)
 
@@ -142,6 +151,8 @@ def start_batch_duel():
         model_temp if best_model is not None else raw_temp,
         model_rollouts,
         model_temp,
+        random_rollouts,
+        random_rollouts
     )
     print(games_stats)
 

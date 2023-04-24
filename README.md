@@ -80,6 +80,10 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### let's keep using random rollouts 
+
+And more of them. This way we'll definitely get a better model and can test is as part of alpha-beta algo.
+
 ### Value prediction are pretty bad
 
 What should we do:

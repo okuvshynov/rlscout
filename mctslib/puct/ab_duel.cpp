@@ -12,7 +12,7 @@ void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
                   uint32_t explore_for_n_moves) {
   auto picked_moves =
       get_moves<State>(games, rollouts, temp, boards_buffer, probs_buffer,
-                       scores_buffer, eval_cb, model_id, explore_for_n_moves);
+                       scores_buffer, eval_cb, model_id, explore_for_n_moves, 1);
   for (size_t i = 0; i < games.size(); ++i) {
     auto &g = games[i];
     if (!g.slot_active || g.state.finished()) {

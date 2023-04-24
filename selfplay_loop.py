@@ -20,11 +20,16 @@ if torch.cuda.is_available():
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
 parser.add_argument('-t', '--nthreads')
+parser.add_argument('-s', '--server')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
+
+server = 'tcp://localhost:8888'
+if args.server is not None:
+    server = args.device
 
 nthreads = 1
 if args.nthreads is not None:
@@ -41,6 +46,7 @@ games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 20
 model_rollouts = 3000
 model_temp = 2.5
+random_rollouts = 20
 
 dirichlet_noise = 0.3
 
@@ -58,7 +64,7 @@ class ModelStore:
         self.lock = Lock()
         self.model_id = 0
         self.model = None
-        self.game_client = GameClient()
+        self.game_client = GameClient(server)
         self.batch_size = batch_size
         self.last_refresh = 0.0
         self.maybe_refresh_model()
@@ -94,7 +100,7 @@ def start_batch_mcts():
     log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
     log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
 
-    client = GameClient()
+    client = GameClient(server)
 
     model_id, model = models.get_best_model()
 
@@ -163,7 +169,9 @@ def start_batch_mcts():
         model_rollouts,
         model_temp,
         model_rollouts,
-        model_temp
+        model_temp,
+        random_rollouts,
+        random_rollouts
     )
 
 threads = [Thread(target=start_batch_mcts, daemon=False)

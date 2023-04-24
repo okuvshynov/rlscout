@@ -162,7 +162,7 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
                                 int32_t *boards_buffer, float *probs_buffer,
                                 float *scores_buffer, EvalFn eval_cb,
                                 uint32_t model_id,
-                                uint32_t explore_for_n_moves) {
+                                uint32_t explore_for_n_moves, uint32_t random_rollouts) {
   for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
       continue;
@@ -210,10 +210,8 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
     // eval_cb takes boards_buffer as an input and writes results to
     // probs_buffer and scores buffer
 
-    bool use_scores_from_model = false;
     if (eval_cb != nullptr && model_id != 0) {
       eval_cb(model_id, r == 0);
-      use_scores_from_model = true;
     }
 
     for (size_t i = 0; i < game_slots.size(); ++i) {
@@ -238,16 +236,24 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         g.nodes[g.node_id].children_count = j - g.size;
         g.size = j;
 
-        if (use_scores_from_model) {
+        /*if (use_scores_from_model) {
           // std::cout << "using score " << scores_buffer[i] << std::endl;
           g.record(g.node_id, scores_buffer[i]);
           continue;
+        }*/
+        double val = 0.0;
+        for (auto rr = 0; rr < random_rollouts; rr++) {
+          auto temp_state = g.rollout_state;
+          while (!temp_state.finished()) {
+            temp_state.take_random_action();
+          }
+          auto v = temp_state.score(g.last_player);
+          val += v;
         }
-        while (!g.rollout_state.finished()) {
-          g.rollout_state.take_random_action();
-        }
+        g.record(g.node_id, val / random_rollouts);
+      } else {
+        g.record(g.node_id, g.rollout_state.score(g.last_player));
       }
-      g.record(g.node_id, g.rollout_state.score(g.last_player));
     }
   }
 
@@ -270,10 +276,10 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
                  float *scores_buffer, int32_t *log_boards_buffer,
                  float *log_probs_buffer, EvalFn eval_cb, LogFn log_freq_cb,
                  GameDoneFn log_game_done_cb, uint32_t model_id,
-                 uint32_t explore_for_n_moves) {
+                 uint32_t explore_for_n_moves, uint32_t random_rollouts) {
   auto picked_moves =
       get_moves<State>(game_slots, rollouts, temp, boards_buffer, probs_buffer,
-                       scores_buffer, eval_cb, model_id, explore_for_n_moves);
+                       scores_buffer, eval_cb, model_id, explore_for_n_moves, random_rollouts);
   // now pick and apply moves
   for (size_t i = 0; i < game_slots.size(); ++i) {
     auto &g = game_slots[i];

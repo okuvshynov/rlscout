@@ -11,7 +11,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 LogFn log_freq_cb, GameDoneFn log_game_done_cb,
                 int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
-                double b_temp) {
+                double b_temp, uint32_t a_rr, uint32_t b_rr) {
   using State = OthelloState<6>;
   
   std::vector<GameSlot<State>> games{batch_size};
@@ -22,12 +22,12 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
     // first player
     single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer, scores_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
-                log_game_done_cb, model_a, explore_for_n_moves);
+                log_game_done_cb, model_a, explore_for_n_moves, a_rr);
 
     // second player
     single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer, scores_buffer,
                 log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
-                log_game_done_cb, model_b, explore_for_n_moves);
+                log_game_done_cb, model_b, explore_for_n_moves, b_rr);
 
     //games[0].state.p();
 
