@@ -20,16 +20,21 @@ if torch.cuda.is_available():
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
 parser.add_argument('-t', '--nthreads')
-parser.add_argument('-s', '--server')
+parser.add_argument('-s', '--data_server')
+parser.add_argument('-m', '--model_server')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
 
-server = 'tcp://localhost:8888'
-if args.server is not None:
-    server = args.device
+data_server = 'tcp://localhost:8889'
+if args.data_server is not None:
+    data_server = args.data_server
+
+model_server = 'tcp://localhost:8888'
+if args.model_server is not None:
+    model_server = args.model_server
 
 nthreads = 1
 if args.nthreads is not None:
@@ -64,7 +69,7 @@ class ModelStore:
         self.lock = Lock()
         self.model_id = 0
         self.model = None
-        self.game_client = GameClient(server)
+        self.game_client = GameClient(model_server)
         self.batch_size = batch_size
         self.last_refresh = 0.0
         self.maybe_refresh_model()
@@ -100,7 +105,7 @@ def start_batch_mcts():
     log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
     log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
 
-    client = GameClient(server)
+    client = GameClient(data_server)
 
     model_id, model = models.get_best_model()
 

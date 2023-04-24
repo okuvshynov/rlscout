@@ -22,15 +22,26 @@ if torch.cuda.is_available():
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
+parser.add_argument('-s', '--data_server')
+parser.add_argument('-m', '--model_server')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
 
-client = GameClient()
+data_server = 'tcp://localhost:8889'
+if args.data_server is not None:
+    data_server = args.data_server
 
-(last_model_id, action_model) = client.get_last_model()
+model_server = 'tcp://localhost:8888'
+if args.model_server is not None:
+    model_server = args.model_server
+
+model_client = GameClient(model_server)
+data_client = GameClient(data_server)
+
+(last_model_id, action_model) = model_client.get_last_model()
 print(f'loading last snapshot from DB: id={last_model_id}')
 print(f'training on device {device}')
 
@@ -115,7 +126,7 @@ e = 0
 while True:
     # read samples 
     while True:
-        batch = client.get_batch(read_batch_size, sample_id)
+        batch = data_client.get_batch(read_batch_size, sample_id)
         if len(batch) == 0:
             # TODO: wait? do what?
             break
@@ -127,6 +138,11 @@ while True:
 
         if len(batch) < read_batch_size:
             break
+
+    if len(current_samples) < epoch_samples_min:
+        print(f'not enough samples to continue training: {len(current_samples)}')
+        time.sleep(60)
+        continue
 
     nans = 0
 
@@ -186,4 +202,4 @@ while True:
             print(f' | {dur:.1f} seconds | epoch {e}: training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     print('saving model snapshot')
-    client.save_model_snapshot(action_model)
+    model_client.save_model_snapshot(action_model)

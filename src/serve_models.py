@@ -1,17 +1,30 @@
+import argparse
 from collections import deque
 import time
 import zmq
 
 from game_db import GameDB
 
+parser = argparse.ArgumentParser("model storage")
+parser.add_argument('-p', '--port')
+parser.add_argument('-d', '--db')
+args = parser.parse_args()
+
 port = 8888
-db_filename = './db/othello6x6_noise.db'
-#db_filename = ':memory:'
+db_filename = './db/othello6x6_models.db'
+
+if args.port is not None:
+    port = args.port
+if args.db is not None:
+    db_filename = args.db
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
-socket.bind("tcp://*:8888")
+socket.bind(f'tcp://*:{port}')
+print(f'listening on port {port}')
+
 db = GameDB(db_filename)
+print(f'connected to db {db_filename}')
 
 queries_processed = 0
 
@@ -32,10 +45,6 @@ while True:
     req = socket.recv_json()
     res = {}
 
-    # read
-    if req['method'] == 'get_batch':
-        res['data'] = db.get_batch(req['size'], req['from_id'])
-
     if req['method'] == 'get_best_model':
         out = db.get_best_model()
         res['data'] = (0, None) if out is None else out
@@ -51,15 +60,7 @@ while True:
     if req['method'] == 'get_model':
         res['data'] = db.get_model(req['id'])
 
-    if req['method'] == 'stats':
-        res['data'] = db.get_stats()
-
     # write
-    if req['method'] == 'append_sample':
-        db.append_sample(req['board'], req['probs'], req['game_id'], req['player'], req['skipped'])
-        res['data'] = True
-        append_sample_log()
-
     if req['method'] == 'save_model_snapshot':
         db.save_snapshot(req['model'])
         res['data'] = True
@@ -68,14 +69,6 @@ while True:
         db.record_evaluation(req['model_id'], req['eval_result'])
         res['data'] = True
 
-    if req['method'] == 'cleanup_samples':
-        db.cleanup_samples(req['samples_to_keep'])
-        res['data'] = True
-
-    if req['method'] == 'game_done':
-        db.game_done(req['game_id'], req['score'])
-        res['data'] = True
-    
     socket.send_json(res)
 
     queries_processed += 1
