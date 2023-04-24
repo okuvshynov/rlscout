@@ -51,7 +51,7 @@ read_batch_size = 2 ** 12
 current_data = []
 
 epoch_samples_max = 2 ** 20
-epoch_samples_min = 2 ** 15
+epoch_samples_min = 2 ** 18
 
 train_set_rate = 0.8
 
@@ -96,7 +96,7 @@ def train_minibatch(boards, probs, scores):
 
     pb = y.view(y.shape[0], -1)
     action_loss = -torch.mean(torch.sum(pb * actions_probs, dim=1))
-    score_loss = score_loss_fn(z, score.view(-1))
+    score_loss = 0 # score_loss_fn(z, score.view(-1))
     loss = action_loss + score_loss
 
     loss.backward()
@@ -115,8 +115,8 @@ def evaluate_sample(boards, probs, scores):
         action_probs, score = action_model(X)
         probs = y.view(y.shape[0], -1)
         action_loss = -torch.mean(torch.sum(probs * action_probs, dim=1))
-        score_loss = score_loss_fn(z, score.view(-1))
-        print(f'action loss: {action_loss}, score loss: {score_loss}')
+        score_loss = 0 # score_loss_fn(z, score.view(-1))
+        #print(f'action loss: {action_loss}, score loss: {score_loss}')
         loss = action_loss + score_loss
         
     return loss.item()
@@ -179,15 +179,11 @@ while True:
     boards_train = torch.stack(boards[:idx]).float().to(device)
     boards_val = torch.stack(boards[idx:]).float().to(device)
 
-    print(boards_train.shape)
-
     probs_train = torch.stack(probs[:idx]).float().to(device)
     probs_val = torch.stack(probs[idx:]).float().to(device)
 
     scores_train = torch.tensor(scores[:idx]).float().to(device)
     scores_val = torch.tensor(scores[idx:]).float().to(device)
-
-    print(scores_train.shape)
 
     start = time.time()
     for i in range(minibatch_per_epoch):
