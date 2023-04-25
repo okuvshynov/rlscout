@@ -80,6 +80,16 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Logging from C
+
+As we use C library from multiple python apps, it would be nice to control logging with the same python logging module.
+To do that, we can build C library with some flag to indicate that logging should go to python lib.
+
+### Current setup
+
+1. M1 Mac Mini running self-play, data server and duel continously. 
+2. Training model on laptop once in a while
+
 ### we are getting more services and need to organize them better.
 
 1. Selfplay (can be 0-N)

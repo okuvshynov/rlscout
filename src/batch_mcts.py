@@ -50,5 +50,6 @@ batch_duel_lib.ab_duel.argtypes = [
     ctypes.c_int8, # beta
     ctypes.c_uint32, # full_after_n_moves
     ctypes.c_bool, # inverse player order
+    ctypes.c_uint32, # random rollouts at leaf
 ]
 batch_duel_lib.ab_duel.restype = None

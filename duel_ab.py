@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import torch
+import argparse
 from collections import defaultdict
 
 from src.backends.backend import backend
@@ -18,25 +19,39 @@ if torch.backends.mps.is_available():
 if torch.cuda.is_available():
     device = "cuda:0"
 
+parser = argparse.ArgumentParser("rlscout training")
+parser.add_argument('-d', '--device')
+parser.add_argument('-s', '--model_server')
+
+args = parser.parse_args()
+
+if args.device is not None:
+    device = args.device
+
+model_server = 'tcp://localhost:8888'
+if args.model_server is not None:
+    model_server = args.model_server
+
 board_size = 6
-batch_size = 32
+batch_size = 16
 
 games_done = 0
 start = time.time()
-games_to_play = 64
+games_to_play = 32
 games_stats = defaultdict(lambda : 0)
 
 ## MCTS config
 explore_for_n_moves = 1
 model_rollouts = 1000
 model_temp = 2.5
+random_rollouts = 20
 
 ## alpha-beta config
 alpha = -5
 beta = -3
 full_search_after_move = 16
 
-client = GameClient("tcp://Oleksandrs-Mini:8888")
+client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *
                         board_size, dtype=np.int32)
 probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
@@ -46,7 +61,6 @@ def start_batch_duel():
     global games_done, games_stats, start
     games_done = 0
 
-    #model_id, model = 127, client.get_model(127)
     model_id, model = client.get_best_model()
     if model is None:
         return False
@@ -92,7 +106,8 @@ def start_batch_duel():
         alpha,
         beta,
         full_search_after_move,
-        False
+        False,
+        random_rollouts
     )
 
     local_stats = {
@@ -116,14 +131,14 @@ def start_batch_duel():
         alpha,
         beta,
         full_search_after_move,
-        True
+        True,
+        random_rollouts
     )
 
     local_stats['new'] += games_stats[1]
     local_stats['old'] += games_stats[0]
 
     logging.info(local_stats)
-
     print(local_stats)
 
 for iter in range(32):
