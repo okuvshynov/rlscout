@@ -15,16 +15,16 @@ if torch.cuda.is_available():
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
-parser.add_argument('-s', '--server')
+parser.add_argument('-s', '--model_server')
 
 args = parser.parse_args()
 
 if args.device is not None:
     device = args.device
 
-server = 'tcp://localhost:8888'
-if args.server is not None:
-    server = args.device
+model_server = 'tcp://localhost:8888'
+if args.model_server is not None:
+    model_server = args.model_server
 
 board_size = 6
 batch_size = 16
@@ -41,7 +41,7 @@ raw_rollouts = 1000
 raw_temp = 1.5
 
 
-client = GameClient(server)
+client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *
                         board_size, dtype=np.int32)
 probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
