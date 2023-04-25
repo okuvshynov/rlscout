@@ -4,8 +4,8 @@ import time
 import torch
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
+
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient

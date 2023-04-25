@@ -8,8 +8,7 @@ from collections import defaultdict
 
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='logs/selfplay_loop.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/selfplay_loop.log', encoding='utf-8', level=logging.INFO)
 
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
@@ -99,6 +98,8 @@ class ModelStore:
         with self.lock:
             return (self.model_id, self.model)
 
+
+logging.info('setting up model store')
 models = ModelStore(batch_size=batch_size)
 
 def start_batch_mcts():
@@ -183,6 +184,8 @@ def start_batch_mcts():
         random_rollouts,
         random_rollouts
     )
+
+logging.info('starting self play')
 
 threads = [Thread(target=start_batch_mcts, daemon=False)
            for _ in range(nthreads)]

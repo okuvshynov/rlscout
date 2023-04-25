@@ -4,8 +4,7 @@ import zmq
 import argparse
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='logs/sample_db.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/samples_db.log', encoding='utf-8', level=logging.INFO)
 
 from game_db import GameDB
 
@@ -25,9 +24,9 @@ if args.db is not None:
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind(f'tcp://*:{port}')
-print(f'listening on port {port}')
+logging.info(f'listening on port {port}')
 db = GameDB(db_filename)
-print(f'connected to db {db_filename}')
+logging.info(f'connected to db {db_filename}')
 
 queries_processed = 0
 

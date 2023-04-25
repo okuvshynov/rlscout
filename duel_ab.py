@@ -1,7 +1,6 @@
 import numpy as np
 import time
 import torch
-import sys
 from collections import defaultdict
 
 from src.backends.backend import backend
@@ -10,8 +9,7 @@ from src.game_client import GameClient
 
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='logs/duel_ab.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_with_ab.log', encoding='utf-8', level=logging.INFO)
 
 # can be 'cpu', 'cuda:x', 'mps', 'ane'
 device = "cpu"

@@ -3,10 +3,10 @@ import zmq
 
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='logs/model_db.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/models_db.log', encoding='utf-8', level=logging.INFO)
 
 from game_db import GameDB
+
 
 parser = argparse.ArgumentParser("model storage")
 parser.add_argument('-p', '--port')
@@ -24,16 +24,16 @@ if args.db is not None:
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind(f'tcp://*:{port}')
-print(f'listening on port {port}')
+logging.info(f'listening on port {port}')
 
 db = GameDB(db_filename)
-print(f'connected to db {db_filename}')
+logging.info(f'connected to db {db_filename}')
 
 while True:
     req = socket.recv_json()
     res = {}
 
-    logging.info(f'method: {req["method"]}')
+    logging.info(f'request: {req["method"]}')
 
     if req['method'] == 'get_best_model':
         out = db.get_best_model()
