@@ -69,7 +69,6 @@ def start_batch_duel():
         local_gd = games_done
 
         rate = 1.0 * local_gd / (time.time() - start)
-        print(f'{local_gd} done.')
         logging.info(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
         # count done + enqueued
         return local_gd + batch_size <= games_to_play

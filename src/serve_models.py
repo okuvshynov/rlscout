@@ -1,7 +1,10 @@
 import argparse
-from collections import deque
-import time
 import zmq
+
+import logging
+
+logging.basicConfig(format='%(asctime)s %(message)s')
+logging.basicConfig(filename='logs/model_db.log', encoding='utf-8', level=logging.INFO)
 
 from game_db import GameDB
 
@@ -26,24 +29,11 @@ print(f'listening on port {port}')
 db = GameDB(db_filename)
 print(f'connected to db {db_filename}')
 
-queries_processed = 0
-
-samples_last_min = deque()
-samples_last_10min = deque()
-
-def append_sample_log():
-    now = time.time()
-    samples_last_min.append(now)
-    samples_last_10min.append(now)
-
-    while samples_last_min[0] + 60.0 < now:
-        samples_last_min.popleft()
-    while samples_last_10min[0] + 600.0 < now:
-        samples_last_10min.popleft()
-
 while True:
     req = socket.recv_json()
     res = {}
+
+    logging.info(f'method: {req["method"]}')
 
     if req['method'] == 'get_best_model':
         out = db.get_best_model()
@@ -70,9 +60,3 @@ while True:
         res['data'] = True
 
     socket.send_json(res)
-
-    queries_processed += 1
-
-    if queries_processed % 100 == 0:
-        print(f'processed {queries_processed} queries')
-        print(f'samples processed: {len(samples_last_min)} last min,  {len(samples_last_10min)} last 10 min')

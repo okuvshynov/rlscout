@@ -6,6 +6,11 @@ import time
 import torch
 from collections import defaultdict
 
+import logging
+
+logging.basicConfig(format='%(asctime)s %(message)s')
+logging.basicConfig(filename='logs/selfplay_loop.log', encoding='utf-8', level=logging.INFO)
+
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
@@ -88,7 +93,7 @@ class ModelStore:
                 return 
             model = backend(device, torch_model, self.batch_size, board_size)
             (self.model_id, self.model) = (model_id, model)
-            print(f'new best model: {self.model_id}')
+            logging.info(f'new best model: {self.model_id}')
 
     def get_best_model(self):
         with self.lock:
@@ -121,7 +126,7 @@ def start_batch_mcts():
         models.maybe_refresh_model()
         model_id, model = models.get_best_model()
         rate = 1.0 * local_gd / (time.time() - start)
-        print(f'result = {score}, done {local_gd} games. rate = {rate:.3f} games/s')
+        logging.info(f'result = {score}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         def log_game_done_impl(score, game_id):
             client.game_done(game_id, score)
@@ -188,4 +193,4 @@ for t in threads:
 for t in threads:
     t.join()
 
-print(games_stats)
+logging.info(games_stats)

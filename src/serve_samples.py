@@ -2,6 +2,10 @@ from collections import deque
 import time
 import zmq
 import argparse
+import logging
+
+logging.basicConfig(format='%(asctime)s %(message)s')
+logging.basicConfig(filename='logs/sample_db.log', encoding='utf-8', level=logging.INFO)
 
 from game_db import GameDB
 
@@ -70,6 +74,6 @@ while True:
     queries_processed += 1
 
     if queries_processed % 100 == 0:
-        print(f'processed {queries_processed} queries')
-        print(f'samples processed: {len(samples_last_min)} last min,  {len(samples_last_10min)} last 10 min')
+        logging.info(f'processed {queries_processed} queries')
+        logging.info(f'samples processed: {len(samples_last_min)} last min,  {len(samples_last_10min)} last 10 min')
 

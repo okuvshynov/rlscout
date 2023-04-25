@@ -2,7 +2,10 @@ import argparse
 import numpy as np
 import time
 import torch
+import logging
 
+logging.basicConfig(format='%(asctime)s %(message)s')
+logging.basicConfig(filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
@@ -81,7 +84,7 @@ def start_batch_duel():
         local_gd = games_done
 
         rate = 1.0 * local_gd / (time.time() - start)
-        print(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
+        logging.info(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
         return local_gd + batch_size <= games_to_play
@@ -96,7 +99,7 @@ def start_batch_duel():
     def log_fn(game_id, player, skipped):
         pass
 
-    print(f'playing {model_to_eval_id} vs {best_model_id}')
+    logging.info(f'playing {model_to_eval_id} vs {best_model_id}')
 
     games_stats = {0: 0, -1: 0, 1:0}
     start = time.time()
@@ -123,7 +126,7 @@ def start_batch_duel():
         random_rollouts,
         random_rollouts
     )
-    print(games_stats)
+    logging.info(games_stats)
 
     local_stats = {
         'new': games_stats[0],
@@ -154,12 +157,12 @@ def start_batch_duel():
         random_rollouts,
         random_rollouts
     )
-    print(games_stats)
+    logging.info(games_stats)
 
     local_stats['new'] += games_stats[1]
     local_stats['old'] += games_stats[0]
 
-    print(local_stats)
+    logging.info(local_stats)
 
     outcome = '+' if local_stats['new'] >= local_stats['old'] + margin else '-'
     client.record_eval(model_to_eval_id, outcome)
@@ -168,5 +171,5 @@ def start_batch_duel():
 
 while True:
     if not start_batch_duel():
-        print('no model to eval, sleeping')
+        logging.info('no model to eval, sleeping')
         time.sleep(60)

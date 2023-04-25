@@ -80,6 +80,13 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### we are getting more services and need to organize them better.
+
+1. Selfplay (can be 0-N)
+2. Duel (can be 0-1)
+3. Training (can be 0-1)
+4. Duel vs a/b (can be ??)
+
 ### let's keep using random rollouts 
 
 And more of them. This way we'll definitely get a better model and can test is as part of alpha-beta algo.
