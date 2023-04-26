@@ -131,14 +131,6 @@ class GameClient:
 
 if __name__ == '__main__':
     client = GameClient()
-    #print(client.get_batch(1)[0][0].shape)
-    #print(client.get_best_model())
-    #print(client.get_model_to_eval())
-    #print(client.get_model(31))
-    #print(client.get_model(131))
-
-    #client.append_sample(torch.ones(2, 8, 8), torch.ones(1, 8, 8), 0)
-    #print(client.get_batch(1))
 
     client.save_model_snapshot(torch.ones(1,2,3,4))
     print(client.get_model_to_eval())

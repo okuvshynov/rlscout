@@ -42,12 +42,12 @@ games_to_play = 32
 explore_for_n_moves = 1
 model_rollouts = 1000
 model_temp = 2.5
-random_rollouts = 18
+random_rollouts = 20
 
 ## alpha-beta config
 alpha = -5
 beta = -3
-full_search_after_move = 20
+full_search_after_move = 13
 
 client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *

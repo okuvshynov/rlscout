@@ -57,7 +57,6 @@ struct GameSlot {
   void restart() {
     state = State();
     game_id = dis(gen);
-    PyLog::INFO("starting game");
   }
 
   // TODO: this returns 0 when there are no valid moves

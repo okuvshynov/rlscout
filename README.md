@@ -3,7 +3,7 @@ This is an in-progress attempt (with very slow progress) to find a solution to s
 Most likely candidates are Othello 8x8 or freestyle gomoku on 8x8 - 9x9 boards.  
 
 Rough idea is the following:
-1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game <---- we are here now
+1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game
 2. Use that model to provide a good ordering for full search, like [PVS](https://www.chessprogramming.org/Principal_Variation_Search)
 
 Currently is tested on:
@@ -24,15 +24,15 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 High level: confirm that everything works e2e on 6x6 board. 
 
-1. Keep running current self-play procedure on Mac Mini;
-2. Try larger model;
-3. Combine native code to single library
-4. KV store for transposition table; What's the best option? Seemsl like we can start with whatever, and pick the right implementation after some experiments.
-5. Distributed logging - use Kafka both for 'analytics-like' logging and sample logging; What do use to visualize analytics data?
-6. Use our model in alpha-beta search. Check if we get any benefit of using model + search at lower levels.
-7. Make unit tests/intergation tests
-8. Create requirements.txt, check that it works on fresh instance
-9. Make it work on multi-GPU instances
+[ ] Keep running current self-play procedure on Mac Mini;
+[ ] Try larger model;
+[x] Combine native code to single library
+[ ] KV store for transposition table; What's the best option? Seemsl like we can start with whatever, and pick the right implementation after some experiments.
+[ ] Distributed logging - use Kafka both for 'analytics-like' logging and sample logging; What do use to visualize analytics data?
+[ ] Use our model in alpha-beta search. Check if we get any benefit of using model + search at lower levels.
+[ ] Make unit tests/intergation tests
+[ ] Create requirements.txt, check that it works on fresh instance
+[ ] Make it work on multi-GPU instances
 
 ### Current non-intrusive setup:
 To run everything on the same host and keep number of models in sync with evaluation, we have a controller which pauses training if there are 2 or more not evaluated model snapshots;

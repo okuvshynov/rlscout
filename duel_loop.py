@@ -43,7 +43,6 @@ random_rollouts = 20
 raw_rollouts = 1000
 raw_temp = 1.5
 
-
 client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *
                         board_size, dtype=np.int32)
