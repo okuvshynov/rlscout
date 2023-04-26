@@ -128,6 +128,11 @@ def evaluate_sample(boards, probs, scores):
 
 e = 0
 
+models_to_eval = model_client.count_models_to_eval()
+if models_to_eval > wait_for_evaluation:
+    logging.info(f'{models_to_eval} models are not evaluated yet, waiting')
+    time.sleep(60)
+
 while True:
     # read samples 
     while True:

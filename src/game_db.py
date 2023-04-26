@@ -146,7 +146,8 @@ class GameDB:
         
     def count_models_to_eval(self):
         with closing(self.conn.cursor()) as cursor:
-            return cursor.execute(count_models_to_eval_sql).fetchone()
+            cnt = cursor.execute(count_models_to_eval_sql).fetchone()
+            return cnt[0]
 
     def get_last_model(self):
         with closing(self.conn.cursor()) as cursor:
