@@ -18,67 +18,21 @@ just pull everything we need.
 wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/rlscout/master/scripts/lambda_setup.sh && chmod +x ~/lambda_rlscout_setup.sh && ~/lambda_rlscout_setup.sh
 ```
 
-
-## TODO now
-
-Immediate next steps:
-```
-[ ] get rid of all hardcoded constants in the code.
-[x] Implement batching for self-play. We already run multiple search procedures in parallel, but call prediction on batch of size 1. This is very inefficient for any underlying HW (CPU, Apple's Neural Engine, GPU). Aggregate across the self-play and evaluate once instead. This will get more important for larger models.
-    [x] basic self-play is done
-    [x] handle model updates
-    [x] write the data
-[x] get rid of locks on every rollouts, that scales poorly with # of threads growing
-    [x] looks like the better way would be to call back to Python with the full batch.
-    [x] actually, let's just move more of self-play to native. Only do callbacks for moves logging and batch prediction? 
-[x] batched MCTS next steps:
-    [x] do log
-    [x] write util to visualize sample
-    [x] support no model case
-    [x] support model update
-    [x] support different players case / make duel batched as well
-    [x] add exploration (select node by sampling, not greedily picking max) for first few moves
-    [x] clean up everything
-[x] measure time for training
-[x] Make it work on cuda as well.
-    [x] train loop
-    [x] self-play
-[x] pick the best model eval mode out of available (e.g. coreml on apple, torch2trt for nVidia)
-[x] multi threading and queue for batches
-  [ ] same for training - getting data/saving snapshot in a separate thread
-[x] measure moves/second rather than games/second
-[x] try quantization
-
-[x] othello state for 6x6 and 8x8
-[ ] frozen baseline - pure mcts with many rollouts
-
-[ ] avoid wasted puct cycles
-[ ] duel with quantized model
-[ ] try e2e without 'no model' special case
-[ ] PID for rollout count
-[ ] model testing - how much to test stat sig
-[ ] incremental training data update
-[ ] check how many 'same' nodes visited during MCTS.
-[ ] decent logging
-[ ] decouple batch_mcts from game logic, so that we can reuse it in different game
-[ ] check bias=False performance
-
-[ ] sample rotations during mcts
-[ ] Implement value model head.
-[ ] visualize pure model vs search of different depth
-[ ] Experiment on model architecture/training hyperparams.
-[ ] check how often do we copy things around and transform between torch/numpy/different data types/etc.
-[ ] cleanup old models from db?
-[x] do not store symmetries in the db. Generate them on the fly in the training. 
-[x] track time per move in player
-    [x] do per move and per rollout, not per game
-[x] train loop starts from scratch now, need to resume from the model
-[x] use player in selfplay rather than calling everything manually.
-[x] factor out model evaluation from 'player'
-[x] cleanup old training samples
-```
-
 ## LIFO order notes
+
+### What do we do next?
+
+High level: confirm that everything works e2e on 6x6 board. 
+
+1. Keep running current self-play procedure on Mac Mini;
+2. Try larger model;
+3. Combine native code to single library
+4. KV store for transposition table; What's the best option? Seemsl like we can start with whatever, and pick the right implementation after some experiments.
+5. Distributed logging - use Kafka both for 'analytics-like' logging and sample logging; What do use to visualize analytics data?
+6. Use our model in alpha-beta search. Check if we get any benefit of using model + search at lower levels.
+7. Make unit tests/intergation tests
+8. Create requirements.txt, check that it works on fresh instance
+9. Make it work on multi-GPU instances
 
 ### Current non-intrusive setup:
 To run everything on the same host and keep number of models in sync with evaluation, we have a controller which pauses training if there are 2 or more not evaluated model snapshots;

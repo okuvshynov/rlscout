@@ -5,7 +5,7 @@ import argparse
 from collections import defaultdict
 
 from src.backends.backend import backend
-from src.batch_mcts import batch_duel_lib, EvalFn, GameDoneFn
+from src.batch_mcts import batch_mcts_lib, EvalFn, GameDoneFn
 from src.game_client import GameClient
 
 import logging
@@ -35,21 +35,19 @@ if args.model_server is not None:
 board_size = 6
 batch_size = 16
 
-games_done = 0
 start = time.time()
 games_to_play = 32
-games_stats = defaultdict(lambda : 0)
 
 ## MCTS config
 explore_for_n_moves = 1
 model_rollouts = 1000
 model_temp = 2.5
-random_rollouts = 20
+random_rollouts = 18
 
 ## alpha-beta config
 alpha = -5
 beta = -3
-full_search_after_move = 16
+full_search_after_move = 20
 
 client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -58,8 +56,9 @@ probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
 scores_buffer = np.ones(batch_size, dtype=np.float32)
 
 def start_batch_duel():
-    global games_done, games_stats, start
+    global start
     games_done = 0
+    games_stats = defaultdict(lambda : 0)
 
     model_id, model = client.get_best_model()
     if model is None:
@@ -68,7 +67,7 @@ def start_batch_duel():
     model = backend(device, model, batch_size, board_size)
 
     def game_done_fn(score, game_id_IGNORE):
-        global games_done
+        nonlocal games_done
 
         winner = -1
         if score > 0:
@@ -92,7 +91,7 @@ def start_batch_duel():
         np.copyto(scores_buffer, scores.reshape(
             (batch_size, )))
 
-    batch_duel_lib.ab_duel(
+    batch_mcts_lib.ab_duel(
         batch_size,
         boards_buffer,
         probs_buffer,
@@ -117,7 +116,7 @@ def start_batch_duel():
     games_stats = defaultdict(lambda : 0)
     games_done = 0
 
-    batch_duel_lib.ab_duel(
+    batch_mcts_lib.ab_duel(
         batch_size,
         boards_buffer,
         probs_buffer,
@@ -139,15 +138,14 @@ def start_batch_duel():
     local_stats['old'] += games_stats[0]
 
     logging.info(local_stats)
-    print(local_stats)
 
 for iter in range(32):
-    print(f'starting iter {iter}')
+    logging.info(f'starting iter {iter}')
     start_batch_duel()
     curr = time.time()
     dur = curr - start
-    print(f'done in {dur:.2f}')
+    logging.info(f'done in {dur:.2f}')
     start = curr
 
 if not start_batch_duel():
-    print('no model to eval, sleeping')
+    logging.info('no model to eval, sleeping')

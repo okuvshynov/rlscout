@@ -171,7 +171,7 @@ while True:
             nans += 1
             continue
 
-        # game was not finished and we dodn't record the score
+        # game was not finished and we didn't record the score
         if score is None:
             nans += 1
             continue
@@ -211,7 +211,7 @@ while True:
             dur = time.time() - start
             train_loss = evaluate_sample(boards_train, probs_train, scores_train)
             val_loss = evaluate_sample(boards_val, probs_val, scores_val)
-            logging.info(f' | {dur:.1f} seconds | epoch {e}: training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
+            logging.info(f' | {dur:.1f} seconds | minibatches {e}:{i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     logging.info('saving model snapshot')
     model_client.save_model_snapshot(action_model)
