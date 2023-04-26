@@ -1,6 +1,7 @@
 import ctypes
 import numpy.ctypeslib as ctl
 import os
+import logging
 
 from numpy.ctypeslib import ndpointer
 
@@ -34,6 +35,21 @@ batch_mcts_lib.batch_mcts.argtypes = [
     ctypes.c_uint32, # b random rollouts
 ]
 batch_mcts_lib.batch_mcts.restype = None
+
+PyLogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p)
+batch_mcts_lib.init_py_logger.argtypes = [PyLogFn]
+batch_mcts_lib.init_py_logger.restype = None
+
+def py_log_impl_cb(level, msg):
+    level = level.decode('utf-8')
+    msg = msg.decode('utf-8')
+    if level == 'info':
+        logging.info(msg)
+
+py_log_fn = PyLogFn(py_log_impl_cb)
+
+print('initializing logger')
+batch_mcts_lib.init_py_logger(py_log_fn)
 
 batch_duel_lib.ab_duel.argtypes = [
     ctypes.c_int, 

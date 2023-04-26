@@ -5,6 +5,10 @@
 
 extern "C" {
 
+void init_py_logger(PyLogFn log_fn) {
+    PyLog::instance().initialize(log_fn);
+}
+
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, float* scores_buffer, int32_t *log_boards_buffer,
                 float *log_probs_buffer, EvalFn eval_cb,

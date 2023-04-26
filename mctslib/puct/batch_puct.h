@@ -5,6 +5,8 @@
 #include <random>
 #include <vector>
 
+#include "utils/py_log.h"
+
 /*
 
 This is batched implementation of MCTS (or, rather, PUCT) algorithm.
@@ -55,6 +57,7 @@ struct GameSlot {
   void restart() {
     state = State();
     game_id = dis(gen);
+    PyLog::INFO("starting game");
   }
 
   // TODO: this returns 0 when there are no valid moves

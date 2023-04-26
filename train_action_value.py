@@ -61,8 +61,8 @@ minibatch_size = 512
 # circular buffer for 'most recent training samples'
 current_samples = deque([], maxlen=epoch_samples_max)
 
-#if action_model is None:
-action_model = ActionValueModel()
+if action_model is None:
+    action_model = ActionValueModel()
     
 action_model = action_model.to(device)
 
