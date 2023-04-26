@@ -1,6 +1,7 @@
 all:
 	mkdir -p _build
 	c++ -shared -std=c++2a -o _build/libmcts.so -fPIC puct/batch_mcts.cpp -O3 -Wall -I.
+	c++ -shared -std=c++2a -o _build/libduel.so -fPIC puct/ab_duel.cpp -O3 -Wall -I.
 
 othello:
 	mkdir -p _build
@@ -17,7 +18,3 @@ test_dispatch:
 duel:
 	mkdir -p _build
 	c++ othello/othello_duel.cpp -std=c++2a -Wall -O3 -o _build/duel -I.
-
-ab_duel:
-	mkdir -p _build
-	c++ -shared -std=c++2a -o _build/libduel.so -fPIC puct/ab_duel.cpp -O3 -Wall -I.

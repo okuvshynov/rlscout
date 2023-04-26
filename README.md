@@ -80,6 +80,9 @@ Immediate next steps:
 
 ## LIFO order notes
 
+### Current non-intrusive setup:
+To run everything on the same host and keep number of models in sync with evaluation, we have a controller which pauses training if there are 2 or more not evaluated model snapshots;
+
 ### Logging from C
 
 As we use C library from multiple python apps, it would be nice to control logging with the same python logging module.

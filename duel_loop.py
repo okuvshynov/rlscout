@@ -30,7 +30,7 @@ if args.model_server is not None:
     model_server = args.model_server
 
 board_size = 6
-batch_size = 16
+batch_size = 64
 games_done = 0
 games_to_play = 128
 margin = games_to_play // 16

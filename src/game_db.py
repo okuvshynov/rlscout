@@ -53,6 +53,15 @@ ORDER BY id
 LIMIT 1
 """
 
+count_models_to_eval_sql = """
+SELECT
+    count(*)
+FROM 
+    models 
+WHERE
+    evaluation=''
+"""
+
 select_last_model_sql = """
 SELECT
     id, torch_model
@@ -134,6 +143,10 @@ class GameDB:
     def get_last_not_evaluated_model(self):
         with closing(self.conn.cursor()) as cursor:
             return cursor.execute(select_model_to_eval_sql).fetchone()
+        
+    def count_models_to_eval(self):
+        with closing(self.conn.cursor()) as cursor:
+            return cursor.execute(count_models_to_eval_sql).fetchone()
 
     def get_last_model(self):
         with closing(self.conn.cursor()) as cursor:

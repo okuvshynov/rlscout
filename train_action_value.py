@@ -5,6 +5,9 @@ import time
 import torch
 import torch.optim as optim
 from collections import deque
+import logging
+
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', encoding='utf-8', level=logging.INFO)
 
 from action_value_model import ActionValueModel
 from src.game_client import GameClient
@@ -42,8 +45,8 @@ model_client = GameClient(model_server)
 data_client = GameClient(data_server)
 
 (last_model_id, action_model) = model_client.get_last_model()
-print(f'loading last snapshot from DB: id={last_model_id}')
-print(f'training on device {device}')
+logging.info(f'loading last snapshot from DB: id={last_model_id}')
+logging.info(f'training on device {device}')
 
 sample_id = 0
 read_batch_size = 2 ** 12
@@ -57,6 +60,8 @@ train_set_rate = 0.8
 
 minibatch_per_epoch = 3000
 minibatch_size = 512
+
+wait_for_evaluation = 2
 
 # circular buffer for 'most recent training samples'
 current_samples = deque([], maxlen=epoch_samples_max)
@@ -116,7 +121,7 @@ def evaluate_sample(boards, probs, scores):
         probs = y.view(y.shape[0], -1)
         action_loss = -torch.mean(torch.sum(probs * action_probs, dim=1))
         score_loss = 0 # score_loss_fn(z, score.view(-1))
-        #print(f'action loss: {action_loss}, score loss: {score_loss}')
+        #logging.info(f'action loss: {action_loss}, score loss: {score_loss}')
         loss = action_loss + score_loss
         
     return loss.item()
@@ -134,15 +139,20 @@ while True:
         max_id = max(s_id for s_id, _, _, _, _, _ in batch)
         sample_id = max(sample_id, max_id)
         current_samples.extend(batch)
-        print(f'sample size: {len(current_samples)}')
+        logging.info(f'sample size: {len(current_samples)}')
 
         if len(batch) < read_batch_size:
             break
 
     if len(current_samples) < epoch_samples_min:
-        print(f'not enough samples to continue training: {len(current_samples)}')
+        logging.info(f'not enough samples to continue training: {len(current_samples)}')
         time.sleep(60)
         continue
+
+    models_to_eval = model_client.count_models_to_eval()
+    if models_to_eval > wait_for_evaluation:
+        logging.info(f'{models_to_eval} models are not evaluated yet, waiting')
+        time.sleep(60)
 
     nans = 0
 
@@ -169,6 +179,7 @@ while True:
         # boards are ordered from POV of current player, but score is
         # from player 0 POV.
         samples.extend(list(zip(symm(b), symm(p), [value] * 8)))
+    logging.info(f'observed {nans} corrupted samples')
     random.shuffle(samples)
 
     boards, probs, scores = zip(*samples)
@@ -195,7 +206,7 @@ while True:
             dur = time.time() - start
             train_loss = evaluate_sample(boards_train, probs_train, scores_train)
             val_loss = evaluate_sample(boards_val, probs_val, scores_val)
-            print(f' | {dur:.1f} seconds | epoch {e}: training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
+            logging.info(f' | {dur:.1f} seconds | epoch {e}: training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
-    print('saving model snapshot')
+    logging.info('saving model snapshot')
     model_client.save_model_snapshot(action_model)

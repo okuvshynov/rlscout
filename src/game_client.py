@@ -52,6 +52,14 @@ class GameClient:
         if id != 0:
             model = torch_decode(model)
         return (id, model)
+    
+    def count_models_to_eval(self):
+        req = {
+            'method': 'count_models_to_eval'
+        }
+        self.socket.send_json(req)
+        res = self.socket.recv_json()
+        return res['data']
 
     def get_last_model(self):
         req = {

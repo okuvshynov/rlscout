@@ -9,6 +9,6 @@ _out/8x8/*.mlmodel
 _out/8x8/*.db
 db/*.db
 .DS_Store
-settings.json
 logs/*.log
 db/*.tt
+.vscode/**

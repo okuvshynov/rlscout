@@ -48,7 +48,6 @@ def py_log_impl_cb(level, msg):
 
 py_log_fn = PyLogFn(py_log_impl_cb)
 
-print('initializing logger')
 batch_mcts_lib.init_py_logger(py_log_fn)
 
 batch_duel_lib.ab_duel.argtypes = [

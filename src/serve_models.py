@@ -43,6 +43,10 @@ while True:
         out = db.get_last_not_evaluated_model()
         res['data'] = (0, None) if out is None else out
 
+    if req['method'] == 'count_models_to_eval':
+        out = db.count_models_to_eval()
+        res['data'] = 0 if out is None else out
+
     if req['method'] == 'get_last_model':
         out = db.get_last_model()
         res['data'] = (0, None) if out is None else out
