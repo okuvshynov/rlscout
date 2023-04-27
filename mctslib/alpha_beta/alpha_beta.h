@@ -18,6 +18,7 @@ class AlphaBeta {
   std::chrono::steady_clock::time_point start =
       std::chrono::steady_clock::now();
 
+  // TODO:  move this to some config
   static constexpr int32_t log_max_level = 11;
   static constexpr int32_t canonical_max_level = 32;
 

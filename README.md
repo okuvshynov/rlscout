@@ -33,6 +33,8 @@ High level: confirm that everything works e2e on 6x6 board.
 [ ] Make unit tests/intergation tests
 [ ] Create requirements.txt, check that it works on fresh instance
 [ ] Make it work on multi-GPU instances
+[ ] rename mctslib
+[ ] handle shutdown signals
 
 ### Current non-intrusive setup:
 To run everything on the same host and keep number of models in sync with evaluation, we have a controller which pauses training if there are 2 or more not evaluated model snapshots;

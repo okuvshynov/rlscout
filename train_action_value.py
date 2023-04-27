@@ -159,21 +159,21 @@ while True:
         logging.info(f'{models_to_eval} models are not evaluated yet, waiting')
         time.sleep(60)
 
-    nans = 0
+    nans = [0, 0, 0]
 
     samples = []
 
     for s_id, score, b, p, player, skipped in current_samples:
         if torch.isnan(b).any() or torch.isnan(p).any():
-            nans += 1
+            nans[0] += 1
             continue
         if torch.isinf(b).any() or torch.isinf(p).any():
-            nans += 1
+            nans[1] += 1
             continue
 
         # game was not finished and we didn't record the score
         if score is None:
-            nans += 1
+            nans[2] += 1
             continue
 
         value = sign(score)
