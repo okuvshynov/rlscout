@@ -5,9 +5,7 @@
 #include <iostream>
 
 #include "tt/tt.h"
-
-// TODO: remove this dependency
-#include "othello/othello_dumb7.h"
+#include "alpha_beta/move_generators.h"
 
 template <typename State, typename score_t>
 class AlphaBeta {
@@ -64,15 +62,10 @@ class AlphaBeta {
     }
     auto alpha0 = alpha;
     auto beta0 = beta;
-    uint64_t moves;
 
-    if constexpr (stones + 1 == State::M * State::N) {
-      moves = OthelloDumb7Fill6x6::has_valid_move(state.board[state.player], state.board[1 - state.player]);
-    } else {
-      moves = state.valid_actions();
-    }
+    auto move_gen = PlainMoveGenerator<State, stones>(state);
 
-    if (moves == 0ull) {
+    if (move_gen.moves() == 0ull) {
       State new_state = state;
       new_state.apply_skip();
       value = alpha_beta<stones, !do_max>(new_state, alpha, beta);
@@ -90,23 +83,22 @@ class AlphaBeta {
         }
       }
       State new_state = state;
-      new_state.apply_move_mask(moves);
+      new_state.apply_move_mask(move_gen.moves());
       value = new_state.score(0);
     } else {
       value = do_max ? min_score : max_score;
       int32_t move_idx = 0;
-      while (moves) {
-        uint64_t other_moves = (moves & (moves - 1));
-        uint64_t move = moves ^ other_moves;
+      
+      
+      while (move_gen.moves()) {
+        auto move = move_gen.next_move();
+
         State new_state = state;
         new_state.apply_move_mask(move);
 
         // for lower depth we pick the smallest of the symmetries
         // for high depth that operation itself becomes expensive enough
         if constexpr (stones + 1 < canonical_max_level) {
-          //new_state = new_state.maybe_to_canonical(state, move);
-          //auto c_state = new_state.to_canonical();
-          //std::cout << (c_state == new_state) << std::endl;
           if constexpr (stones + 4 < canonical_max_level) {
             new_state = new_state.to_canonical();
           } else {
@@ -132,8 +124,6 @@ class AlphaBeta {
             break;
           }
         }
-
-        moves = other_moves;
         move_idx++;
       }
     }

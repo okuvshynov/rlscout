@@ -20,6 +20,15 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Testing/using model from alpha-beta
+
+[x] Measure non-ordered a/b search for -5;-3: 
+    8932.76s on Mac Mini M1
+[ ] Create move ordering compile-time policy
+[ ] Test with just model eval
+[ ] Test with model + mcts
+
+
 ### What do we do next?
 
 High level: confirm that everything works e2e on 6x6 board. 
@@ -35,6 +44,7 @@ High level: confirm that everything works e2e on 6x6 board.
 [ ] Make it work on multi-GPU instances
 [ ] rename mctslib
 [ ] handle shutdown signals
+[ ] make each app a 'service'
 
 ### Current non-intrusive setup:
 To run everything on the same host and keep number of models in sync with evaluation, we have a controller which pauses training if there are 2 or more not evaluated model snapshots;

@@ -65,3 +65,12 @@ batch_mcts_lib.ab_duel.argtypes = [
     ctypes.c_uint32, # random rollouts at leaf
 ]
 batch_mcts_lib.ab_duel.restype = None
+
+batch_mcts_lib.run_ab.restype = ctypes.c_int8
+batch_mcts_lib.run_ab.argtypes = [
+    ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),   # boards
+    ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # probs
+    EvalFn,
+    ctypes.c_int8, # alpha
+    ctypes.c_int8, # beta
+]
