@@ -5,7 +5,7 @@ from collections import defaultdict
 from threading import Thread
 
 from src.backends.backend import backend
-from src.batch_mcts import batch_mcts_lib, EvalFn, GameDoneFn
+from src.rlslib import rlslib, EvalFn, GameDoneFn
 from src.game_client import GameClient
 from src.utils import pick_device
 
@@ -86,7 +86,7 @@ def start_batch_duel():
         np.copyto(scores_buffer, scores.reshape(
             (batch_size, )))
 
-    batch_mcts_lib.ab_duel(
+    rlslib.ab_duel(
         batch_size,
         boards_buffer,
         probs_buffer,
@@ -111,7 +111,7 @@ def start_batch_duel():
     games_stats = defaultdict(lambda : 0)
     games_done = 0
 
-    batch_mcts_lib.ab_duel(
+    rlslib.ab_duel(
         batch_size,
         boards_buffer,
         probs_buffer,

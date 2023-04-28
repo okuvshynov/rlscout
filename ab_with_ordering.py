@@ -4,7 +4,7 @@ import logging
 from threading import Thread
 
 from src.backends.backend import backend
-from src.batch_mcts import batch_mcts_lib, EvalFn
+from src.rlslib import rlslib, EvalFn
 from src.game_client import GameClient
 from src.utils import pick_device
 
@@ -40,7 +40,7 @@ def eval_fn(model_id_IGNORE, add_noise_IGNORE):
         (board_size * board_size, )))
     
 def start_ab():
-    batch_mcts_lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
+    rlslib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
 
 t = Thread(target=start_ab, daemon=False)
 t.start()

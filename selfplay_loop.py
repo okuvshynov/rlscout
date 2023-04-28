@@ -11,7 +11,7 @@ import logging
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/selfplay_loop.log', encoding='utf-8', level=logging.INFO)
 
 from src.backends.backend import backend
-from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
+from src.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
 from src.utils import pick_device
 
@@ -161,7 +161,7 @@ def start_batch_mcts():
 
         log_executor.submit(log_impl, board, prob, game_id, player, skipped)
 
-    batch_mcts_lib.batch_mcts(
+    rlslib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,

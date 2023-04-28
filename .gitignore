@@ -1,6 +1,6 @@
-mctslib/_build/**
-mctslib/build/**
-mctslib/_gen/**
+rlslib/_build/**
+rlslib/build/**
+rlslib/_gen/**
 **/__pycache__/**
 _out/7x7/*.pt
 _out/7x7/*.mlmodel
