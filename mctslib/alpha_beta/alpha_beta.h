@@ -6,6 +6,7 @@
 
 #include "tt/tt.h"
 #include "alpha_beta/move_generators.h"
+#include "utils/model_evaluator.h"
 
 template <typename State, typename score_t>
 class AlphaBeta {
@@ -19,11 +20,14 @@ class AlphaBeta {
   // TODO:  move this to some config
   static constexpr int32_t log_max_level = 11;
   static constexpr int32_t canonical_max_level = 32;
+  static constexpr int32_t evaluate_nn_until_level = 12;
 
   uint64_t completions[kLevels] = {0ull};
   uint64_t cutoffs[kLevels][kLevels] = {{0ull}};
 
   TT<State, score_t> tt;
+
+  ModelEvaluator* evaluator = nullptr; 
 
  public:
   void load_shared_tt(const std::string& file) {
@@ -31,6 +35,10 @@ class AlphaBeta {
   }
   void save_shared_tt(const std::string& file) {
     tt.full_tt.save_to(file);
+  }
+
+  void set_model_evaluator(ModelEvaluator* evaluator) {
+    this->evaluator = evaluator;
   }
 
 
@@ -63,7 +71,15 @@ class AlphaBeta {
     auto alpha0 = alpha;
     auto beta0 = beta;
 
-    auto move_gen = PlainMoveGenerator<State, stones>(state);
+    // no constexpr ternary operator; create a lambda and execute it.
+    auto move_gen = [&]() {
+      if constexpr (stones > evaluate_nn_until_level) {
+        return PlainMoveGenerator<State, stones>(state);
+      } else {
+        return ActionModelMoveGenerator<State, stones>(state, *evaluator);
+      }
+    } ();
+
 
     if (move_gen.moves() == 0ull) {
       State new_state = state;

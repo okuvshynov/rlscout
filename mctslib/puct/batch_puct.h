@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "utils/py_log.h"
+#include "utils/model_evaluator.h"
 
 /*
 
@@ -26,7 +27,6 @@ Multithreading (and another layer of batching) can be applied on top if needed.
 std::random_device batch_mcts_rd;
 
 using LogFn = void (*)(int64_t, int8_t, int8_t);
-using EvalFn = void (*)(int32_t, bool);
 using GameDoneFn = bool (*)(int32_t, int64_t);
 
 struct MCTSNode {
@@ -161,8 +161,7 @@ struct GameSlot {
 template <typename State>
 std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
                                 int32_t rollouts, double temp,
-                                int32_t *boards_buffer, float *probs_buffer,
-                                float *scores_buffer, EvalFn eval_cb,
+                                ModelEvaluator evaluator,
                                 uint32_t model_id,
                                 uint32_t explore_for_n_moves, uint32_t random_rollouts) {
   for (auto &g : game_slots) {
@@ -202,8 +201,8 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         continue;
       }
 
-      if (eval_cb != nullptr) {
-        g.rollout_state.fill_boards(boards_buffer + i * kBoardElements);
+      if (evaluator.run != nullptr) {
+        g.rollout_state.fill_boards(evaluator.boards_buffer + i * kBoardElements);
       }
     }
 
@@ -212,8 +211,8 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
     // eval_cb takes boards_buffer as an input and writes results to
     // probs_buffer and scores buffer
 
-    if (eval_cb != nullptr && model_id != 0) {
-      eval_cb(model_id, r == 0);
+    if (evaluator.run != nullptr && model_id != 0) {
+      evaluator.run(model_id, r == 0);
     }
 
     for (size_t i = 0; i < game_slots.size(); ++i) {
@@ -229,7 +228,7 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         for (uint64_t k = 0; k < State::M * State::N; k++) {
           if ((1ull << k) & moves) {
             g.nodes[j] = MCTSNode(
-                model_id > 0 ? probs_buffer[i * kProbElements + k] : 1.0f);
+                model_id > 0 ? evaluator.probs_buffer[i * kProbElements + k] : 1.0f);
             g.nodes[j].parent = g.node_id;
             g.nodes[j].in_action = k;
             j++;
@@ -279,9 +278,14 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
                  float *log_probs_buffer, EvalFn eval_cb, LogFn log_freq_cb,
                  GameDoneFn log_game_done_cb, uint32_t model_id,
                  uint32_t explore_for_n_moves, uint32_t random_rollouts) {
+  ModelEvaluator evaluator {
+    .boards_buffer = boards_buffer,
+    .probs_buffer = probs_buffer,
+    .scores_buffer = scores_buffer,
+    .run = eval_cb
+  };
   auto picked_moves =
-      get_moves<State>(game_slots, rollouts, temp, boards_buffer, probs_buffer,
-                       scores_buffer, eval_cb, model_id, explore_for_n_moves, random_rollouts);
+      get_moves<State>(game_slots, rollouts, temp, evaluator, model_id, explore_for_n_moves, random_rollouts);
   // now pick and apply moves
   for (size_t i = 0; i < game_slots.size(); ++i) {
     auto &g = game_slots[i];

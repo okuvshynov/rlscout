@@ -20,6 +20,13 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### First version of model-guided alpha-beta search works good.
+
+We end up with ~3x improvement even with very restricted evaluation (up to level 12): 3763.47s. 
+Let's try different settings + MCTS on top.
+Also try older (worse) model.
+
+
 ### Testing/using model from alpha-beta
 
 [x] Measure non-ordered a/b search for -5;-3: 

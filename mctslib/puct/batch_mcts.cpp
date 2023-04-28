@@ -5,6 +5,7 @@
 #include "othello/othello_move_selection_policy.h"
 #include "othello/othello_state.h"
 #include "puct/batch_puct.h"
+#include "utils/model_evaluator.h"
 
 template <typename State>
 void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
@@ -12,9 +13,15 @@ void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
                   float *scores_buffer, EvalFn eval_cb,
                   GameDoneFn log_game_done_cb, int32_t model_id,
                   uint32_t explore_for_n_moves, uint32_t random_rollouts) {
+
+  ModelEvaluator evaluator {
+    .boards_buffer = boards_buffer,
+    .probs_buffer = probs_buffer,
+    .scores_buffer = scores_buffer,
+    .run = eval_cb
+  };
   auto picked_moves =
-      get_moves<State>(games, rollouts, temp, boards_buffer, probs_buffer,
-                       scores_buffer, eval_cb, model_id, explore_for_n_moves, random_rollouts);
+      get_moves<State>(games, rollouts, temp, evaluator, model_id, explore_for_n_moves, random_rollouts);
   for (size_t i = 0; i < games.size(); ++i) {
     auto &g = games[i];
     if (!g.slot_active || g.state.finished()) {
@@ -154,6 +161,13 @@ int8_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb, int8_
   using State = OthelloState<6>;
   auto AB = AlphaBeta<State, int8_t>();
   State s;
+  ModelEvaluator evaluator {
+    .boards_buffer = boards_buffer,
+    .probs_buffer = probs_buffer,
+    .scores_buffer = nullptr,
+    .run = eval_cb
+  };
+  AB.set_model_evaluator(&evaluator);
   return AB.alpha_beta<4, true>(s.to_canonical(), alpha, beta);
 }
 
