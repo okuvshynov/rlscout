@@ -8,11 +8,17 @@ from src.rlslib import rlslib, EvalFn
 from src.game_client import GameClient
 from src.utils import pick_device
 
+## TODO:
+# - make it a loop as well
+# - write results to database
+# - change logging to PyLog
+
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', encoding='utf-8', level=logging.INFO)
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
 parser.add_argument('-s', '--model_server')
+parser.add_argument('-m', '--model_id')
 
 args = parser.parse_args()
 
@@ -31,11 +37,15 @@ boards_buffer = np.zeros(2 * board_size *
                         board_size, dtype=np.int32)
 probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
 
-(best_model_id, best_model) = client.get_best_model()
-best_model = backend(device, best_model, batch_size=1, board_size=board_size)
+if args.model_id is None:
+    (best_model_id, model) = client.get_best_model()
+else:
+    model = client.get_model(args.model_id)
+
+model = backend(device, model, batch_size=1, board_size=board_size)
 
 def eval_fn(model_id_IGNORE, add_noise_IGNORE):
-    probs, _ = best_model.get_probs(boards_buffer)
+    probs, _ = model.get_probs(boards_buffer)
     np.copyto(probs_buffer, probs.reshape(
         (board_size * board_size, )))
     

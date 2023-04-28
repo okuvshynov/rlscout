@@ -128,14 +128,3 @@ class GameClient:
         }
         self.socket.send_json(req)
         return self.socket.recv_json()
-
-if __name__ == '__main__':
-    client = GameClient()
-
-    client.save_model_snapshot(torch.ones(1,2,3,4))
-    print(client.get_model_to_eval())
-    print(client.get_best_model())
-    print(client.get_model(1))
-
-    client.record_eval(1, '+')
-    print(client.get_best_model())

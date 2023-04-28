@@ -54,7 +54,7 @@ epoch_samples_min = 2 ** 18
 
 train_set_rate = 0.8
 
-minibatch_per_epoch = 3000
+minibatch_per_epoch = 5000
 minibatch_size = 512
 
 wait_for_evaluation = 2
@@ -154,6 +154,7 @@ while True:
     if models_to_eval > wait_for_evaluation:
         logging.info(f'{models_to_eval} models are not evaluated yet, waiting')
         time.sleep(60)
+        continue
 
     nans = [0, 0, 0]
 
@@ -200,14 +201,11 @@ while True:
     start = time.time()
     for i in range(minibatch_per_epoch):
         train_minibatch(boards_train, probs_train, scores_train)
-        if i % 10 == 9:
-            sys.stdout.write('.')
-            sys.stdout.flush()
         if i % 100 == 99:
             dur = time.time() - start
             train_loss = evaluate_sample(boards_train, probs_train, scores_train)
             val_loss = evaluate_sample(boards_val, probs_val, scores_val)
-            logging.info(f' | {dur:.1f} seconds | minibatches {e}:{i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
+            logging.info(f'{dur:.1f} seconds | minibatches {e}:{i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     logging.info('saving model snapshot')
     model_client.save_model_snapshot(action_model)
