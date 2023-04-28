@@ -8,18 +8,15 @@
 #include "othello_dumb7.h"
 
 uint64_t flip_v_6x6(uint64_t v) {
-  return
-  ((v & 0b111111000000000000000000000000000000ull) >> 30) |
-  ((v & 0b111111000000000000000000000000ull) >> 18) |
-  ((v & 0b111111000000000000000000ull) >> 6) |
-  ((v & 0b111111000000000000ull) << 6) |
-  ((v & 0b111111000000ull) << 18) |
-  ((v & 0b111111ull) << 30);
+  return ((v & 0b111111000000000000000000000000000000ull) >> 30) |
+         ((v & 0b111111000000000000000000000000ull) >> 18) |
+         ((v & 0b111111000000000000000000ull) >> 6) |
+         ((v & 0b111111000000000000ull) << 6) |
+         ((v & 0b111111000000ull) << 18) | ((v & 0b111111ull) << 30);
 }
 
 const uint64_t kCorners = 0b100001000000000000000000000000100001ull;
 const uint64_t kBorder = 0b111111100001100001100001100001111111ull;
-
 
 template <uint8_t n>
 struct OthelloState {
@@ -34,8 +31,8 @@ struct OthelloState {
 
   static constexpr uint64_t kFull = 0b111111111111111111111111111111111111ull;
 
-  int8_t player = 0;   // 0 or 1
-  //int32_t winner = -1;  // -1 -- draw or not finished
+  int8_t player = 0;  // 0 or 1
+  // int32_t winner = -1;  // -1 -- draw or not finished
   int8_t skipped = 0;  // if it becomes 2 the game is over
 
   uint64_t mask(uint64_t index) const { return (1ull << index); }
@@ -44,7 +41,7 @@ struct OthelloState {
 
   bool operator==(const Self& other) const {
     return board[0] == other.board[0] && board[1] == other.board[1] &&
-           player == other.player && //winner == other.winner &&
+           player == other.player &&  // winner == other.winner &&
            skipped == other.skipped;
   }
 
@@ -59,11 +56,10 @@ struct OthelloState {
     return b;
   }
 
-  bool empty() const {
-    return board[0] == 0ull && board[1] == 0ull;
-  }
+  bool empty() const { return board[0] == 0ull && board[1] == 0ull; }
 
-  // idea from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal
+  // idea from
+  // https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal
   // reimplemented for 6x6 board with 3 other masks / delta swaps
   uint64_t flip_diag_6x6(uint64_t x) const {
     uint64_t t;
@@ -109,8 +105,8 @@ struct OthelloState {
   bool apply_move_mask(uint64_t m) {
     skipped = 0;
 
-    auto to_flip = OthelloDumb7Fill6x6::to_flip(m, board[player],
-                                                board[1 - player]);
+    auto to_flip =
+        OthelloDumb7Fill6x6::to_flip(m, board[player], board[1 - player]);
 
     board[player] |= m;
     board[player] |= to_flip;
@@ -125,8 +121,8 @@ struct OthelloState {
 
     skipped = 0;
 
-    auto to_flip = OthelloDumb7Fill6x6::to_flip(m, board[player],
-                                                board[1 - player]);
+    auto to_flip =
+        OthelloDumb7Fill6x6::to_flip(m, board[player], board[1 - player]);
 
     board[player] |= m;
     board[player] |= to_flip;
@@ -143,7 +139,7 @@ struct OthelloState {
       auto score0 = score(0);
       if (score0 > 0) {
         return 0;
-      } 
+      }
       if (score0 < 0) {
         return 1;
       }
@@ -151,9 +147,7 @@ struct OthelloState {
     return -1;
   }
 
-  bool full() const {
-    return (board[0] | board[1]) == kFull;
-  }
+  bool full() const { return (board[0] | board[1]) == kFull; }
 
   void fill_boards(int32_t* boards) const {
     for (uint64_t i = 0; i < n * n; i++) {
@@ -185,7 +179,7 @@ struct OthelloState {
     return (board[0] | board[1]) < (other.board[0] | other.board[1]);
   }
 
-  // randomly transforms the board to one of the 8 symmetries 
+  // randomly transforms the board to one of the 8 symmetries
   void pick_random_symmetry() {
     int idx = rand() % 8;
     for (int i = 0; i < idx; i++) {
@@ -293,7 +287,8 @@ struct OthelloState {
   }
 
   friend std::ostream& operator<<(std::ostream& out, const Self& state) {
-    out << state.board[0] << " " << state.board[1] << " " << state.player << " " << state.skipped;
+    out << state.board[0] << " " << state.board[1] << " " << state.player << " "
+        << state.skipped;
     return out;
   }
 

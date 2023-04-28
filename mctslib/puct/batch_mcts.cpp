@@ -1,7 +1,5 @@
 #include <cstdint>
 
-#include "othello/othello_state.h"
-#include "puct/batch_puct.h"
 #include "othello/othello_move_selection_policy.h"
 #include "othello/othello_state.h"
 #include "puct/batch_puct.h"
@@ -13,15 +11,13 @@ void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
                   float *scores_buffer, EvalFn eval_cb,
                   GameDoneFn log_game_done_cb, int32_t model_id,
                   uint32_t explore_for_n_moves, uint32_t random_rollouts) {
-
-  ModelEvaluator evaluator {
-    .boards_buffer = boards_buffer,
-    .probs_buffer = probs_buffer,
-    .scores_buffer = scores_buffer,
-    .run = eval_cb
-  };
+  ModelEvaluator evaluator{.boards_buffer = boards_buffer,
+                           .probs_buffer = probs_buffer,
+                           .scores_buffer = scores_buffer,
+                           .run = eval_cb};
   auto picked_moves =
-      get_moves<State>(games, rollouts, temp, evaluator, model_id, explore_for_n_moves, random_rollouts);
+      get_moves<State>(games, rollouts, temp, evaluator, model_id,
+                       explore_for_n_moves, random_rollouts);
   for (size_t i = 0; i < games.size(); ++i) {
     auto &g = games[i];
     if (!g.slot_active || g.state.finished()) {
@@ -31,7 +27,7 @@ void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
     if (g.state.finished()) {
       g.slot_active = log_game_done_cb(g.state.score(0), g.game_id);
     }
-    //g.state.p();
+    // g.state.p();
   }
 }
 
@@ -50,41 +46,41 @@ void process_rand_ab(std::vector<GameSlot<State>> &games,
     if (g.state.finished()) {
       g.slot_active = log_game_done_cb(g.state.score(0), g.game_id);
     }
-    //g.state.p();
+    // g.state.p();
   }
 }
 
 extern "C" {
 
-void init_py_logger(PyLogFn log_fn) {
-    PyLog::instance().initialize(log_fn);
-}
+void init_py_logger(PyLogFn log_fn) { PyLog::instance().initialize(log_fn); }
 
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
-                float *probs_buffer, float* scores_buffer, int32_t *log_boards_buffer,
-                float *log_probs_buffer, EvalFn eval_cb,
-                LogFn log_freq_cb, GameDoneFn log_game_done_cb,
+                float *probs_buffer, float *scores_buffer,
+                int32_t *log_boards_buffer, float *log_probs_buffer,
+                EvalFn eval_cb, LogFn log_freq_cb, GameDoneFn log_game_done_cb,
                 int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp, uint32_t a_rr, uint32_t b_rr) {
   using State = OthelloState<6>;
-  
+
   std::vector<GameSlot<State>> games{batch_size};
   bool has_active_games = true;
   while (has_active_games) {
     has_active_games = false;
-    //std::cout << model_a << " " << model_b << std::endl;
-    // first player
-    single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer, scores_buffer,
-                log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
-                log_game_done_cb, model_a, explore_for_n_moves, a_rr);
+    // std::cout << model_a << " " << model_b << std::endl;
+    //  first player
+    single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer,
+                       scores_buffer, log_boards_buffer, log_probs_buffer,
+                       eval_cb, log_freq_cb, log_game_done_cb, model_a,
+                       explore_for_n_moves, a_rr);
 
     // second player
-    single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer, scores_buffer,
-                log_boards_buffer, log_probs_buffer, eval_cb, log_freq_cb,
-                log_game_done_cb, model_b, explore_for_n_moves, b_rr);
+    single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer,
+                       scores_buffer, log_boards_buffer, log_probs_buffer,
+                       eval_cb, log_freq_cb, log_game_done_cb, model_b,
+                       explore_for_n_moves, b_rr);
 
-    //games[0].state.p();
+    // games[0].state.p();
 
     // if a game is finished, but we need to play more games, restart the game
     // and reuse the slot
@@ -96,7 +92,8 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
         }
       }
     }
-    //std::cout << "puct cycles: " << puct_cycles << ", " << puct_wasted_cycles << std::endl;
+    // std::cout << "puct cycles: " << puct_cycles << ", " << puct_wasted_cycles
+    // << std::endl;
   }
 }
 
@@ -153,22 +150,20 @@ void ab_duel(uint32_t batch_size,
   PyLog::INFO("saving transposition table");
   random_ab_player.ab_policy_.ab_.save_tt("./db/6x6.tt");
   PyLog::INFO("saving transposition table done");
-  //random_ab_player.ab_policy_.ab_.print_tt_stats();
+  // random_ab_player.ab_policy_.ab_.print_tt_stats();
 }
 
-int8_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb, int8_t alpha, int8_t beta) {
+int8_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb,
+              int8_t alpha, int8_t beta) {
   PyLog::INFO("starting alpha-beta search");
   using State = OthelloState<6>;
   auto AB = AlphaBeta<State, int8_t>();
   State s;
-  ModelEvaluator evaluator {
-    .boards_buffer = boards_buffer,
-    .probs_buffer = probs_buffer,
-    .scores_buffer = nullptr,
-    .run = eval_cb
-  };
+  ModelEvaluator evaluator{.boards_buffer = boards_buffer,
+                           .probs_buffer = probs_buffer,
+                           .scores_buffer = nullptr,
+                           .run = eval_cb};
   AB.set_model_evaluator(&evaluator);
   return AB.alpha_beta<4, true>(s.to_canonical(), alpha, beta);
 }
-
 }

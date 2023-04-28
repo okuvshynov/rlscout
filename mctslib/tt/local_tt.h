@@ -1,13 +1,13 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
-#include <vector>
 #include <utility>
-#include <array>
+#include <vector>
 
-template<size_t N, size_t B1, size_t B2, size_t TSize, size_t... Is>
+template <size_t N, size_t B1, size_t B2, size_t TSize, size_t... Is>
 constexpr std::array<size_t, N> gen_ttable_sizes(std::index_sequence<Is...>) {
   return {{(Is < B1 ? 1 : (Is < B2 ? TSize : TSize * 2))...}};
 }
@@ -27,8 +27,10 @@ struct LocalTT {
   } __attribute__((packed));
 
   std::vector<TTEntry> data[kLevels];
-  
-  static constexpr std::array<size_t, kLevels> tt_sizes = gen_ttable_sizes<kLevels, kFullLevel, 29, tt_size>(std::make_index_sequence<kLevels>{});
+
+  static constexpr std::array<size_t, kLevels> tt_sizes =
+      gen_ttable_sizes<kLevels, kFullLevel, 29, tt_size>(
+          std::make_index_sequence<kLevels>{});
 
   uint64_t tt_hits[kLevels] = {0ull};
   uint64_t evictions[kLevels] = {0ull};
@@ -75,7 +77,6 @@ struct LocalTT {
         return true;
       }
 
-      
       alpha = std::max(alpha, data[stones][slot].low);
       beta = std::min(beta, data[stones][slot].high);
     } else {
@@ -94,7 +95,6 @@ struct LocalTT {
   template <uint32_t stones>
   void update(const State& state, size_t& slot, score_t& alpha, score_t& beta,
               score_t& value) {
-    //std::cout << int(value) << " " << int(alpha) << " " << int(beta) << " " << int(data[stones][slot].low) << " " << int(data[stones][slot].high) << std::endl;
     static_assert(stones < kLevels);
     data[stones][slot].state = state;
 

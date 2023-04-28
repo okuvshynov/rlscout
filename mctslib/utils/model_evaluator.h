@@ -12,6 +12,6 @@ using EvalFn = void (*)(int32_t, bool);
 struct ModelEvaluator {
     int32_t *boards_buffer;
     float *probs_buffer;
-    float *scores_buffer;
+    float *scores_buffer; // unused at the moment
     EvalFn run;
 };

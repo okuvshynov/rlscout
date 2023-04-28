@@ -5,8 +5,10 @@
 // based on https://www.chessprogramming.org/Dumb7Fill
 struct OthelloDumb7Fill6x6 {
   static const uint64_t full = 0xffffffffffffffffull;
-  static const uint64_t not_e = ~(full & 0b000001000001000001000001000001000001ull);
-  static const uint64_t not_w = ~(full & 0b100000100000100000100000100000100000ull);
+  static const uint64_t not_e =
+      ~(full & 0b000001000001000001000001000001000001ull);
+  static const uint64_t not_w =
+      ~(full & 0b100000100000100000100000100000100000ull);
   static const uint64_t full6x6 = (1ull << 36ull) - 1ull;
 
   static uint64_t s_shift(uint64_t b) { return (b << 6) & full6x6; }
@@ -116,10 +118,14 @@ struct OthelloDumb7Fill6x6 {
     // gen becomes 'empty slot'
     gen = full6x6 & (~(gen | prop));
     uint64_t flood = 0ull;
-    static constexpr uint64_t s_mask = 0b000000000000111111111111111111111111ull;
-    static constexpr uint64_t n_mask = 0b111111111111111111111111000000000000ull;
-    static constexpr uint64_t w_mask = 0b111100111100111100111100111100111100ull;
-    static constexpr uint64_t e_mask = 0b001111001111001111001111001111001111ull;
+    static constexpr uint64_t s_mask =
+        0b000000000000111111111111111111111111ull;
+    static constexpr uint64_t n_mask =
+        0b111111111111111111111111000000000000ull;
+    static constexpr uint64_t w_mask =
+        0b111100111100111100111100111100111100ull;
+    static constexpr uint64_t e_mask =
+        0b001111001111001111001111001111001111ull;
 
     const bool w_good = (gen & w_mask) == gen;
     const bool e_good = (gen & e_mask) == gen;
@@ -135,7 +141,7 @@ struct OthelloDumb7Fill6x6 {
       if (flood & self) {
         return gen;
       }
-    }   
+    }
 
     if ((gen & s_mask) == gen) {
       flood |= s_shift(s_fill(gen, prop));
@@ -156,19 +162,22 @@ struct OthelloDumb7Fill6x6 {
     if (w_good) {
       flood |= w_shift(w_fill(gen, prop));
     }
-     
+
     return (flood & self) ? gen : 0ull;
   }
 
-
-  // a few conditions are better than the old version, as each _fill 
+  // a few conditions are better than the old version, as each _fill
   // is quite expensive
   static uint64_t to_flip(uint64_t gen1, uint64_t gen2, uint64_t prop) {
     uint64_t flood = 0ull;
-    static constexpr uint64_t s_mask = 0b000000000000111111111111111111111111ull;
-    static constexpr uint64_t n_mask = 0b111111111111111111111111000000000000ull;
-    static constexpr uint64_t w_mask = 0b111100111100111100111100111100111100ull;
-    static constexpr uint64_t e_mask = 0b001111001111001111001111001111001111ull;
+    static constexpr uint64_t s_mask =
+        0b000000000000111111111111111111111111ull;
+    static constexpr uint64_t n_mask =
+        0b111111111111111111111111000000000000ull;
+    static constexpr uint64_t w_mask =
+        0b111100111100111100111100111100111100ull;
+    static constexpr uint64_t e_mask =
+        0b001111001111001111001111001111001111ull;
 
     const bool w_good = (gen1 & w_mask) == gen1;
     const bool e_good = (gen1 & e_mask) == gen1;

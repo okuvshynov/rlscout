@@ -5,8 +5,8 @@
 #include <random>
 #include <vector>
 
-#include "utils/py_log.h"
 #include "utils/model_evaluator.h"
+#include "utils/py_log.h"
 
 /*
 
@@ -161,9 +161,9 @@ struct GameSlot {
 template <typename State>
 std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
                                 int32_t rollouts, double temp,
-                                ModelEvaluator evaluator,
-                                uint32_t model_id,
-                                uint32_t explore_for_n_moves, uint32_t random_rollouts) {
+                                ModelEvaluator evaluator, uint32_t model_id,
+                                uint32_t explore_for_n_moves,
+                                uint32_t random_rollouts) {
   for (auto &g : game_slots) {
     if (!g.slot_active || g.state.finished()) {
       continue;
@@ -202,7 +202,8 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
       }
 
       if (evaluator.run != nullptr) {
-        g.rollout_state.fill_boards(evaluator.boards_buffer + i * kBoardElements);
+        g.rollout_state.fill_boards(evaluator.boards_buffer +
+                                    i * kBoardElements);
       }
     }
 
@@ -228,7 +229,8 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         for (uint64_t k = 0; k < State::M * State::N; k++) {
           if ((1ull << k) & moves) {
             g.nodes[j] = MCTSNode(
-                model_id > 0 ? evaluator.probs_buffer[i * kProbElements + k] : 1.0f);
+                model_id > 0 ? evaluator.probs_buffer[i * kProbElements + k]
+                             : 1.0f);
             g.nodes[j].parent = g.node_id;
             g.nodes[j].in_action = k;
             j++;
@@ -278,14 +280,13 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
                  float *log_probs_buffer, EvalFn eval_cb, LogFn log_freq_cb,
                  GameDoneFn log_game_done_cb, uint32_t model_id,
                  uint32_t explore_for_n_moves, uint32_t random_rollouts) {
-  ModelEvaluator evaluator {
-    .boards_buffer = boards_buffer,
-    .probs_buffer = probs_buffer,
-    .scores_buffer = scores_buffer,
-    .run = eval_cb
-  };
+  ModelEvaluator evaluator{.boards_buffer = boards_buffer,
+                           .probs_buffer = probs_buffer,
+                           .scores_buffer = scores_buffer,
+                           .run = eval_cb};
   auto picked_moves =
-      get_moves<State>(game_slots, rollouts, temp, evaluator, model_id, explore_for_n_moves, random_rollouts);
+      get_moves<State>(game_slots, rollouts, temp, evaluator, model_id,
+                       explore_for_n_moves, random_rollouts);
   // now pick and apply moves
   for (size_t i = 0; i < game_slots.size(); ++i) {
     auto &g = game_slots[i];

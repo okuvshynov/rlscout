@@ -5,7 +5,8 @@
 #include <iostream>
 #include <vector>
 
-// For 8x8 case this would be remote and there's not too much point optimizing it a lot.
+// For 8x8 case this would be remote and there's not too much point optimizing
+// it a lot.
 
 template <typename State, typename score_t>
 struct SharedTT {
@@ -80,7 +81,7 @@ struct SharedTT {
 
   template <uint32_t stones>
   bool lookup_and_init(const State& state, size_t& slot, score_t& alpha,
-                     score_t& beta, score_t& value) {
+                       score_t& beta, score_t& value) {
     slot = find_slot(state);
     auto& entry = data[slot];
     if (!entry.free) {
@@ -104,8 +105,8 @@ struct SharedTT {
   }
 
   template <uint32_t stones>
-  void update(const State& state, size_t& slot, score_t& alpha,
-                      score_t& beta, score_t& value) {
+  void update(const State& state, size_t& slot, score_t& alpha, score_t& beta,
+              score_t& value) {
     auto& entry = data[slot];
     entry.free = false;
     entry.state = state;
@@ -119,9 +120,7 @@ struct SharedTT {
       entry.high = value;
       entry.low = value;
     }
-
   }
-
 
   void print_stats() const {
     for (size_t d = 0; d < kLevels; d++) {

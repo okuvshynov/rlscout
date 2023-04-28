@@ -9,7 +9,7 @@ template <typename State, typename score_t>
 class AlphaBetaRuntime {
   template <uint32_t stones>
   struct MaxRunner {
-    score_t run(AlphaBeta<State, score_t> &ab, State s, double alpha,
+    score_t run(AlphaBeta<State, score_t>& ab, State s, double alpha,
                 double beta) {
       score_t res = ab.template alpha_beta<stones, true>(s, alpha, beta);
       return res;
@@ -18,7 +18,7 @@ class AlphaBetaRuntime {
 
   template <uint32_t stones>
   struct MinRunner {
-    score_t run(AlphaBeta<State, score_t> &ab, State s, double alpha,
+    score_t run(AlphaBeta<State, score_t>& ab, State s, double alpha,
                 double beta) {
       return ab.template alpha_beta<stones, false>(s, alpha, beta);
     }
@@ -76,10 +76,10 @@ class AlphaBetaRuntime {
     uint32_t stones = state.stones_played();
     if (do_max) {
       return dispatch<MaxRunner, State::M * State::N>(
-            stones, std::ref(alpha_beta), state, alpha, beta); 
+          stones, std::ref(alpha_beta), state, alpha, beta);
     } else {
       return dispatch<MinRunner, State::M * State::N>(
-            stones, std::ref(alpha_beta), state, alpha, beta); 
+          stones, std::ref(alpha_beta), state, alpha, beta);
     }
   }
 
@@ -91,9 +91,7 @@ class AlphaBetaRuntime {
     alpha_beta.save_shared_tt(filename);
   }
 
-  void print_tt_stats() {
-    alpha_beta.print_tt_stats();
-  }
+  void print_tt_stats() { alpha_beta.print_tt_stats(); }
 
  private:
   AlphaBeta<State, score_t> alpha_beta;

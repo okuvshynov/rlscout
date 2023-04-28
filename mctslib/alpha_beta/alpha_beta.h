@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "tt/tt.h"
 #include "alpha_beta/move_generators.h"
+#include "tt/tt.h"
 #include "utils/model_evaluator.h"
 
 template <typename State, typename score_t>
@@ -27,20 +27,15 @@ class AlphaBeta {
 
   TT<State, score_t> tt;
 
-  ModelEvaluator* evaluator = nullptr; 
+  ModelEvaluator* evaluator = nullptr;
 
  public:
-  void load_shared_tt(const std::string& file) {
-    tt.full_tt.load_from(file);
-  }
-  void save_shared_tt(const std::string& file) {
-    tt.full_tt.save_to(file);
-  }
+  void load_shared_tt(const std::string& file) { tt.full_tt.load_from(file); }
+  void save_shared_tt(const std::string& file) { tt.full_tt.save_to(file); }
 
   void set_model_evaluator(ModelEvaluator* evaluator) {
     this->evaluator = evaluator;
   }
-
 
   void log_stats_by_depth() {
     auto curr = std::chrono::steady_clock::now();
@@ -78,7 +73,7 @@ class AlphaBeta {
       } else {
         return ActionModelMoveGenerator<State, stones>(state, *evaluator);
       }
-    } ();
+    }();
 
     if (move_gen.moves() == 0ull) {
       State new_state = state;
@@ -93,7 +88,7 @@ class AlphaBeta {
           return beta;
         }
       } else {
-        if (curr_score - 3  <= alpha) {
+        if (curr_score - 3 <= alpha) {
           return alpha;
         }
       }
@@ -103,7 +98,7 @@ class AlphaBeta {
     } else {
       value = do_max ? min_score : max_score;
       int32_t move_idx = 0;
-      
+
       while (move_gen.moves()) {
         auto move = move_gen.next_move();
 
@@ -151,7 +146,5 @@ class AlphaBeta {
     return value;
   }
 
-  void print_tt_stats() {
-    tt.log_stats();
-  }
+  void print_tt_stats() { tt.log_stats(); }
 };

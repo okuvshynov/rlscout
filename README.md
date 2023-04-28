@@ -22,10 +22,12 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ### First version of model-guided alpha-beta search works good.
 
-We end up with ~3x improvement even with very restricted evaluation (up to level 12): 3763.47s. 
+We end up with almost ~3x improvement even with very restricted evaluation (up to level 12): 3763.47s. 
 Let's try different settings + MCTS on top.
 Also try older (worse) model.
 We get another improvement for using model up to 18 level (2190.68s) . At this state, however, we spend considerable resource on model evaluation. Can we batch this? Here we probably have to lock the thread and aggregate somewhere. 
+
+Now that it works ok in principle, let's clean everything up.
 
 
 ### Testing/using model from alpha-beta
