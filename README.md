@@ -25,21 +25,24 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 We end up with ~3x improvement even with very restricted evaluation (up to level 12): 3763.47s. 
 Let's try different settings + MCTS on top.
 Also try older (worse) model.
+We get another improvement for using model up to 18 level (2190.68s) . At this state, however, we spend considerable resource on model evaluation. Can we batch this? Here we probably have to lock the thread and aggregate somewhere. 
 
 
 ### Testing/using model from alpha-beta
 
+```
 [x] Measure non-ordered a/b search for -5;-3: 
     8932.76s on Mac Mini M1
 [ ] Create move ordering compile-time policy
 [ ] Test with just model eval
 [ ] Test with model + mcts
-
+```
 
 ### What do we do next?
 
 High level: confirm that everything works e2e on 6x6 board. 
 
+```
 [ ] Keep running current self-play procedure on Mac Mini;
 [ ] Try larger model;
 [x] Combine native code to single library
@@ -52,6 +55,7 @@ High level: confirm that everything works e2e on 6x6 board.
 [ ] rename mctslib
 [ ] handle shutdown signals
 [ ] make each app a 'service'
+```
 
 ### Current non-intrusive setup:
 To run everything on the same host and keep number of models in sync with evaluation, we have a controller which pauses training if there are 2 or more not evaluated model snapshots;

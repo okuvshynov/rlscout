@@ -20,7 +20,7 @@ class AlphaBeta {
   // TODO:  move this to some config
   static constexpr int32_t log_max_level = 11;
   static constexpr int32_t canonical_max_level = 32;
-  static constexpr int32_t evaluate_nn_until_level = 12;
+  static constexpr int32_t evaluate_nn_until_level = 18;
 
   uint64_t completions[kLevels] = {0ull};
   uint64_t cutoffs[kLevels][kLevels] = {{0ull}};
@@ -80,7 +80,6 @@ class AlphaBeta {
       }
     } ();
 
-
     if (move_gen.moves() == 0ull) {
       State new_state = state;
       new_state.apply_skip();
@@ -104,7 +103,6 @@ class AlphaBeta {
     } else {
       value = do_max ? min_score : max_score;
       int32_t move_idx = 0;
-      
       
       while (move_gen.moves()) {
         auto move = move_gen.next_move();

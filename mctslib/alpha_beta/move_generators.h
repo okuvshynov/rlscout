@@ -42,11 +42,9 @@ struct ActionModelMoveGenerator {
         }
         for (uint64_t k = 0; k < State::M * State::N; k++) {
           if ((1ull << k) & moves_) {
-            std::cout << k << " " << evaluator.probs_buffer[k] << std::endl;
             ordered_moves_.emplace_back(evaluator.probs_buffer[k], (1ull << k));
           }
         }
-        std::cout << std::endl;
         std::sort(ordered_moves_.begin(), ordered_moves_.end());
     }
 
