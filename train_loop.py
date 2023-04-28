@@ -9,7 +9,7 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', encoding='utf-8', level=logging.INFO)
 
-from action_value_model import ActionValueModel
+from src.action_value_model import ActionValueModel
 from src.game_client import GameClient
 from src.utils import pick_train_device
 

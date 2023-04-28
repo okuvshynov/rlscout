@@ -1,0 +1,57 @@
+import torch.nn as nn
+
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ResidualBlock, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1), # TODO: bias=False ?
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1), # TODO: bias=False ?
+            nn.BatchNorm2d(out_channels)
+        )
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        residual = x
+        out = self.conv(x)
+        out += residual
+        return self.relu(out)
+
+channels = 128
+m, n = 6, 6
+
+class ActionValueModel(nn.Module):
+    def __init__(self):
+        super(ActionValueModel, self).__init__()
+        self.residual_tower = nn.Sequential(
+            nn.Conv2d(2, channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+        )
+        self.action = nn.Sequential(
+            nn.Conv2d(channels, 2, kernel_size=1),
+            nn.BatchNorm2d(2),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(2 * m * n, m * n),
+            nn.LogSoftmax(dim=1)
+        )
+
+        self.value = nn.Sequential(
+            nn.Conv2d(channels, 1, kernel_size=1),
+            nn.BatchNorm2d(1),
+            nn.Flatten(),
+            nn.Linear(m * n, 1),
+            nn.Tanh()
+        )
+    
+    def forward(self, x):
+        w = self.residual_tower(x)
+        return self.action(w), self.value(w)
