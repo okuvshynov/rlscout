@@ -26,6 +26,7 @@ class EvalBackend:
         sample = {'x': boards.reshape(self.batch_size, 2, self.board_size, self.board_size)}
         values = self.model.predict(sample)
 
-        #print(values['var_186'])
+        #TODO: this is likely wrong. 
+        keys = sorted(values.keys())
 
-        return np.exp(list(values['var_186'])), values['var_213']
+        return np.exp(list(values[keys[0]])), values[keys[1]]
