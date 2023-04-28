@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import time
 import logging
+from threading import Thread
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
 
@@ -163,7 +164,12 @@ def start_batch_duel():
 
     return True
 
-while True:
-    if not start_batch_duel():
-        logging.info('no model to eval, sleeping')
-        time.sleep(60)
+def duel_loop():
+    while True:
+        if not start_batch_duel():
+            logging.info('no model to eval, sleeping')
+            time.sleep(60)
+
+t = Thread(target=duel_loop, daemon=False)
+t.start()
+t.join()

@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import logging
+from threading import Thread
 
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn
@@ -37,5 +38,11 @@ def eval_fn(model_id_IGNORE, add_noise_IGNORE):
     probs, _ = best_model.get_probs(boards_buffer)
     np.copyto(probs_buffer, probs.reshape(
         (board_size * board_size, )))
+    
+def start_ab():
+    batch_mcts_lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
 
-print(batch_mcts_lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3))
+t = Thread(target=start_ab, daemon=False)
+t.start()
+t.join()
+

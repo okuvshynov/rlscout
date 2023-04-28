@@ -2,6 +2,7 @@ import numpy as np
 import time
 import argparse
 from collections import defaultdict
+from threading import Thread
 
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn, GameDoneFn
@@ -133,13 +134,16 @@ def start_batch_duel():
 
     logging.info(local_stats)
 
-for iter in range(32):
-    logging.info(f'starting iter {iter}')
-    start_batch_duel()
-    curr = time.time()
-    dur = curr - start
-    logging.info(f'done in {dur:.2f}')
-    start = curr
 
-if not start_batch_duel():
-    logging.info('no model to eval, sleeping')
+def start_ab_duel():
+    for iter in range(32):
+        logging.info(f'starting iter {iter}')
+        start_batch_duel()
+        curr = time.time()
+        dur = curr - start
+        logging.info(f'done in {dur:.2f}')
+        start = curr
+
+t = Thread(target=start_ab_duel, daemon=False)
+t.start()
+t.join()
