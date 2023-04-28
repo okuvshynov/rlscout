@@ -13,13 +13,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/selfplay_lo
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
-
-# can be 'cpu', 'cuda:x', 'mps', 'ane'
-device = "cpu"
-if torch.backends.mps.is_available():
-    device = "ane"
-if torch.cuda.is_available():
-    device = "cuda:0"
+from src.utils import pick_device
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
@@ -29,8 +23,11 @@ parser.add_argument('-m', '--model_server')
 
 args = parser.parse_args()
 
+device = pick_device()
 if args.device is not None:
     device = args.device
+
+logging.info(f'starting self-play on device {device}')
 
 data_server = 'tcp://localhost:8889'
 if args.data_server is not None:

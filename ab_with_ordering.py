@@ -1,20 +1,13 @@
 import argparse
 import numpy as np
-import time
-import torch
 import logging
 
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn
 from src.game_client import GameClient
+from src.utils import pick_device
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', encoding='utf-8', level=logging.INFO)
-
-device = "cpu"
-if torch.backends.mps.is_available():
-    device = "ane"
-if torch.cuda.is_available():
-    device = "cuda:0"
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
@@ -22,6 +15,7 @@ parser.add_argument('-s', '--model_server')
 
 args = parser.parse_args()
 
+device = pick_device()
 if args.device is not None:
     device = args.device
 

@@ -1,8 +1,10 @@
-from src.backends.backend import backend
-from src.game_client import GameClient
 import matplotlib.pyplot as plt
 import random
 import torch
+
+from src.backends.backend import backend
+from src.game_client import GameClient
+from src.utils import pick_device
 
 def plot_sample(where, board, probs):
     m = board.shape[1]
@@ -21,11 +23,7 @@ def plot_sample(where, board, probs):
                     fontsize='large', va='center', ha='center')
     where.imshow(probs.view(m, n).cpu().numpy(), cmap='Blues')
 
-device = "cpu"
-if torch.backends.mps.is_available():
-    device = "ane"
-if torch.cuda.is_available():
-    device = "cuda:0"
+device = pick_device()
 
 client = GameClient()
 
@@ -42,8 +40,6 @@ random.shuffle(samples)
 def format_sample(sample):
     _, v, b, p, _, _= sample
     return b.view(2, 6, 6), p, v
-
-
 
 for s in samples:
     f, axarr = plt.subplots(3,1) 

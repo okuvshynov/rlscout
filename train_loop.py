@@ -11,17 +11,12 @@ logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_lo
 
 from action_value_model import ActionValueModel
 from src.game_client import GameClient
+from src.utils import pick_train_device
 
 random.seed(1991)
 
 gen = torch.Generator()
 gen.manual_seed(1991)
-
-device = "cpu"
-if torch.backends.mps.is_available():
-    device = "mps"
-if torch.cuda.is_available():
-    device = "cuda:0"
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
@@ -30,6 +25,7 @@ parser.add_argument('-m', '--model_server')
 
 args = parser.parse_args()
 
+device = pick_train_device()
 if args.device is not None:
     device = args.device
 
