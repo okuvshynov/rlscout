@@ -4,11 +4,11 @@ import time
 import torch
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', encoding='utf-8', level=logging.INFO)
-
 from src.backends.backend import backend
 from src.batch_mcts import batch_mcts_lib, EvalFn
 from src.game_client import GameClient
+
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', encoding='utf-8', level=logging.INFO)
 
 device = "cpu"
 if torch.backends.mps.is_available():

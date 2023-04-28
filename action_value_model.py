@@ -1,4 +1,3 @@
-# for now just action but with residual connections
 import torch.nn as nn
 
 class ResidualBlock(nn.Module):

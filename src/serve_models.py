@@ -7,7 +7,6 @@ logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/models_db.l
 
 from game_db import GameDB
 
-
 parser = argparse.ArgumentParser("model storage")
 parser.add_argument('-p', '--port')
 parser.add_argument('-d', '--db')
