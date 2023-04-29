@@ -1,6 +1,5 @@
 import argparse
 import random
-import sys
 import time
 import torch
 import torch.optim as optim
@@ -23,6 +22,7 @@ parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
 parser.add_argument('-s', '--data_server')
 parser.add_argument('-m', '--model_server')
+parser.add_argument('-f', '--from_model_id')
 
 args = parser.parse_args()
 
@@ -41,8 +41,13 @@ if args.model_server is not None:
 model_client = GameClient(model_server)
 data_client = GameClient(data_server)
 
-(last_model_id, action_model) = model_client.get_last_model()
-logging.info(f'loading last snapshot from DB: id={last_model_id}')
+if args.from_model_id is None:
+    (last_model_id, action_model) = model_client.get_last_model()
+else:
+    last_model_id = int(args.from_model_id)
+    action_model = model_client.get_model(last_model_id)
+
+logging.info(f'loading snapshot from DB: id={last_model_id}')
 logging.info(f'training on device {device}')
 
 sample_id = 0
