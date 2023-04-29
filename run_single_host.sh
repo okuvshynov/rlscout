@@ -1,4 +1,4 @@
-cd rlslib && make all && cd ..
+cd src/rlslib && make all && cd ../..
 
 python src/serve_models.py &
 python src/serve_samples.py &
