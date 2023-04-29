@@ -10,17 +10,28 @@ struct PyLog {
 
   void initialize(PyLogFn log_fn) { log_fn_ = log_fn; }
 
-  static void INFO(const char* str) {
-    auto log_fn = instance().log_fn_;
-    if (log_fn != nullptr) {
-      log_fn("info", str);
-    }
+  static void INFO(const char* msg) {
+    log("info", msg);
+  }
+
+  static void WARNING(const char* msg) {
+    log("warning", msg);
+  }
+
+  static void ERROR(const char* msg) {
+    log("error", msg);
   }
 
   PyLog(const PyLog&) = delete;
   PyLog& operator=(const PyLog&) = delete;
 
  private:
+  static void log(const char* level, const char* msg) {
+    auto log_fn = instance().log_fn_;
+    if (log_fn != nullptr) {
+      log_fn(level, msg);
+    }    
+  }
   PyLog() {}
 
   PyLogFn log_fn_ = nullptr;
