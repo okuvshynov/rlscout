@@ -59,6 +59,7 @@ minibatch_per_epoch = args.minibatch_per_epoch
 minibatch_size = args.minibatch_size
 wait_for_evaluation = args.wait_for_evaluation
 read_batch_size = args.read_batch_size
+evaluation_sample_size = args.evaluation_sample_size
 
 if action_model is None:
     action_model = ActionValueModel()
@@ -87,9 +88,8 @@ def train_minibatch(boards, probs):
     return loss.item()
 
 def evaluate_sample(boards, probs):
-    sample_size = 2 ** 14
     # pick sample
-    ix = torch.randint(0, boards.shape[0], (sample_size, ), generator=gen)
+    ix = torch.randint(0, boards.shape[0], (evaluation_sample_size, ), generator=gen)
     X = boards[ix]
     y = probs[ix]
     #z = scores[ix]
