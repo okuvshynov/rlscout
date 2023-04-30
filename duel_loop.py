@@ -4,37 +4,37 @@ import time
 import logging
 from threading import Thread
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
-
 from src.backends.backend import backend
 from src.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
 from src.utils import pick_device
 
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
+
 parser = argparse.ArgumentParser("rlscout training")
-parser.add_argument('-d', '--device')
-parser.add_argument('-s', '--model_server')
+parser.add_argument('-d', '--device', default=pick_device())
+parser.add_argument('-m', '--model_server', default='tcp://localhost:8888')
+parser.add_argument('-b', '--batch_size', type=int, default=64)
+parser.add_argument('-g', '--games', type=int, default=128)
+parser.add_argument('--rollouts', type=int, default=3000)
+parser.add_argument('--random_rollouts', type=int, default=20)
 
 args = parser.parse_args()
 
-device = pick_device()
-if args.device is not None:
-    device = args.device
-
-model_server = 'tcp://localhost:8888'
-if args.model_server is not None:
-    model_server = args.model_server
+device = args.device
+model_server = args.model_server
+batch_size = args.batch_size
+games_to_play = args.games
+model_rollouts = args.rollouts
+random_rollouts = args.random_rollouts
 
 board_size = 6
-batch_size = 64
 games_done = 0
-games_to_play = 128
+
 margin = games_to_play // 16
 games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 20
-model_rollouts = 3000
 model_temp = 2.5
-random_rollouts = 20
 
 raw_rollouts = 1000
 raw_temp = 1.5
