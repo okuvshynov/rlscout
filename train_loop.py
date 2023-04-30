@@ -129,7 +129,7 @@ while True:
         continue
 
     if reader.boards_train is None:
-        logging.info('no samples, waiting for {wait_s} seconds')
+        logging.info(f'no samples, waiting for {wait_s} seconds')
         time.sleep(wait_s)
         continue
 

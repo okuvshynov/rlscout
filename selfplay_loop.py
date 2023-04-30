@@ -20,6 +20,7 @@ parser.add_argument('-d', '--device')
 parser.add_argument('-t', '--nthreads')
 parser.add_argument('-s', '--data_server')
 parser.add_argument('-m', '--model_server')
+parser.add_argument('-b', '--batch_size')
 
 args = parser.parse_args()
 
@@ -42,7 +43,10 @@ if args.nthreads is not None:
     nthreads = int(args.nthreads)
 
 board_size = 6
+
 batch_size = 64
+if args.batch_size is not None:
+    batch_size = int(batch_size)
 
 games_done = 0
 games_done_lock = Lock()
