@@ -23,6 +23,8 @@ parser.add_argument('-s', '--data_server', default='tcp://localhost:8889')
 parser.add_argument('-m', '--model_server', default='tcp://localhost:8888')
 parser.add_argument('-b', '--batch_size', type=int, default=64)
 parser.add_argument('-g', '--games', type=int, default=1024)
+parser.add_argument('--rollouts', type=int, default=3000)
+parser.add_argument('--random_rollouts', type=int, default=20)
 args = parser.parse_args()
 
 device = args.device
@@ -34,16 +36,15 @@ games_to_play = args.games
 
 board_size = 6
 explore_for_n_moves = 20
-model_rollouts = 3000
+model_rollouts = args.rollouts
 model_temp = 2.5
-random_rollouts = 20
+random_rollouts = args.random_rollouts
 dirichlet_noise = 0.3
 
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
 games_stats = defaultdict(lambda : 0)
-
 
 def add_dirichlet_noise(probs, eps):
     alpha = np.ones_like(probs) * 0.3

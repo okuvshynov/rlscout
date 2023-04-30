@@ -30,6 +30,7 @@ parser.add_argument('--dataset_split', type=float, default=0.8)
 parser.add_argument('--minibatch_per_epoch', type=int, default=5000)
 parser.add_argument('--minibatch_size', type=int, default=512)
 parser.add_argument('--wait_for_evaluation', type=int, default=2)
+parser.add_argument('--evaluation_sample_size', type=int, default=2**14)
 
 
 args = parser.parse_args()

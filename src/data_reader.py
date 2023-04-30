@@ -22,6 +22,7 @@ class DataReader:
         self.probs_val = None
         self.device = device
         self.epoch_samples_max = epoch_samples_max
+        self.read_batch_size = read_batch_size
 
 
     def read_samples(self):
