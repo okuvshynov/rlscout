@@ -2,6 +2,7 @@ from base64 import b64encode, b64decode
 from io import BytesIO
 import torch
 import zmq
+import logging
 
 def torch_encode(t):
     if t is None:
@@ -19,6 +20,7 @@ class GameClient:
     def __init__(self, server="tcp://localhost:8888"):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
+        logging.info(f'Connecting to remote server at {server}')
         self.socket.connect(server)
 
     def get_batch(self, size, from_id=0):

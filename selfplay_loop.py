@@ -10,44 +10,29 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/selfplay_loop.log', encoding='utf-8', level=logging.INFO)
 
-from src.backends.backend import backend
+
 from src.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
+from src.model_store import ModelStore
 from src.utils import pick_device
 
 parser = argparse.ArgumentParser("rlscout training")
-parser.add_argument('-d', '--device')
-parser.add_argument('-t', '--nthreads')
-parser.add_argument('-s', '--data_server')
-parser.add_argument('-m', '--model_server')
-parser.add_argument('-b', '--batch_size')
-
+parser.add_argument('-d', '--device', default=pick_device())
+parser.add_argument('-t', '--nthreads', default=1)
+parser.add_argument('-s', '--data_server', default='tcp://localhost:8889')
+parser.add_argument('-m', '--model_server', default='tcp://localhost:8888')
+parser.add_argument('-b', '--batch_size', default=64)
+parser.add_argument('-g', '--games', default=1024)
 args = parser.parse_args()
 
-device = pick_device()
-if args.device is not None:
-    device = args.device
-
-logging.info(f'starting self-play on device {device}')
-
-data_server = 'tcp://localhost:8889'
-if args.data_server is not None:
-    data_server = args.data_server
-
-model_server = 'tcp://localhost:8888'
-if args.model_server is not None:
-    model_server = args.model_server
-
-nthreads = 1
-if args.nthreads is not None:
-    nthreads = int(args.nthreads)
+device = args.device
+data_server = args.data_server
+model_server = args.model_server
+nthreads = int(args.nthreads)
+batch_size = int(args.batch_size)
+games_to_play = int(args.games)
 
 board_size = 6
-
-batch_size = 64
-if args.batch_size is not None:
-    batch_size = int(batch_size)
-
 games_done = 0
 games_done_lock = Lock()
 start = time.time()
@@ -60,6 +45,8 @@ random_rollouts = 20
 
 dirichlet_noise = 0.3
 
+logging.info(f'starting self-play on device {device}')
+
 def add_dirichlet_noise(probs, eps):
     alpha = np.ones_like(probs) * 0.3
     noise = np.random.dirichlet(alpha) * batch_size
@@ -69,39 +56,11 @@ def add_dirichlet_noise(probs, eps):
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)
 
-class ModelStore:
-    def __init__(self, batch_size):
-        self.lock = Lock()
-        self.model_id = 0
-        self.model = None
-        self.game_client = GameClient(model_server)
-        self.batch_size = batch_size
-        self.last_refresh = 0.0
-        self.maybe_refresh_model()
 
-    # loads new model if different from current
-    def maybe_refresh_model(self):
-        global device
-        with self.lock:
-            if self.last_refresh + 2.0 > time.time():
-                # no refreshing too often
-                return
-            out = self.game_client.get_best_model()
-            self.last_refresh = time.time()
-            (model_id, torch_model) = out
-            if model_id == self.model_id:
-                return 
-            model = backend(device, torch_model, self.batch_size, board_size)
-            (self.model_id, self.model) = (model_id, model)
-            logging.info(f'new best model: {self.model_id}')
-
-    def get_best_model(self):
-        with self.lock:
-            return (self.model_id, self.model)
 
 
 logging.info('setting up model store')
-models = ModelStore(batch_size=batch_size)
+models = ModelStore(GameClient(model_server), device=device, batch_size=batch_size, board_size=board_size)
 
 def start_batch_mcts():
     boards_buffer = np.zeros(batch_size * 2 * board_size *
@@ -186,15 +145,15 @@ def start_batch_mcts():
         random_rollouts
     )
 
-logging.info('starting self play')
 
-threads = [Thread(target=start_batch_mcts, daemon=False)
-           for _ in range(nthreads)]
+if __name__ == '__main__':
+    threads = [Thread(target=start_batch_mcts, daemon=False)
+            for _ in range(nthreads)]
 
-for t in threads:
-    t.start()
+    for t in threads:
+        t.start()
 
-for t in threads:
-    t.join()
+    for t in threads:
+        t.join()
 
-logging.info(games_stats)
+    logging.info(games_stats)

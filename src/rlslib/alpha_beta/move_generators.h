@@ -32,6 +32,8 @@ struct ActionModelMoveGenerator {
   ActionModelMoveGenerator(const State& state,
                            const ModelEvaluator& evaluator) {
     state.fill_boards(evaluator.boards_buffer);
+
+    // model_id = 0, no adding extra noise
     evaluator.run(0, false);
     if constexpr (stones + 1 == State::M * State::N) {
       moves_ = OthelloDumb7Fill6x6::has_valid_move(
