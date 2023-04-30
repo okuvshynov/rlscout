@@ -117,19 +117,25 @@ def evaluate_sample(boards, probs):
 e = 0
 
 reader = DataReader(data_client, read_batch_size, device)
+wait_s = 60
 
 while True:
     reader.read_samples()
 
     models_to_eval = model_client.count_models_to_eval()
     if models_to_eval > wait_for_evaluation:
-        logging.info(f'{models_to_eval} models are not evaluated yet, waiting')
-        time.sleep(60)
+        logging.info(f'{models_to_eval} models are not evaluated yet, waiting for {wait_s} seconds')
+        time.sleep(wait_s)
+        continue
+
+    if reader.boards_train is None:
+        logging.info('no samples, waiting for {wait_s} seconds')
+        time.sleep(wait_s)
         continue
 
     if reader.boards_train.shape[0] < epoch_samples_min:
-        logging.info(f'{reader.boards_train.shape} samples only, waiting')
-        time.sleep(60)
+        logging.info(f'{reader.boards_train.shape} samples only, waiting for {wait_s} seconds')
+        time.sleep(wait_s)
         continue
 
     start = time.time()
