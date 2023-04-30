@@ -11,9 +11,9 @@ def symm(t):
     return res
 
 class DataReader:
-    def __init__(self, client, read_batch_size, device, start_id=0, train_set_rate=0.8, epoch_samples_max=2**20):
+    def __init__(self, client, dataset_split, device, start_id=0, train_set_rate=0.8, epoch_samples_max=2**20):
         self.client = client
-        self.read_batch_size = read_batch_size
+        self.dataset_split = dataset_split
         self.current_id = start_id
         self.train_set_rate = train_set_rate
         self.boards_train = None
@@ -68,7 +68,7 @@ class DataReader:
         boards, probs, scores = zip(*samples)
         scores = list(scores)
 
-        idx = int(self.train_set_rate * len(boards))
+        idx = int(self.dataset_split * len(boards))
 
         boards_train = torch.stack(boards[:idx]).float().to(self.device)
         boards_val = torch.stack(boards[idx:]).float().to(self.device)

@@ -19,24 +19,24 @@ gen = torch.Generator()
 gen.manual_seed(1991)
 
 parser = argparse.ArgumentParser("rlscout training")
-parser.add_argument('-d', '--device')
-parser.add_argument('-s', '--data_server')
-parser.add_argument('-m', '--model_server')
+parser.add_argument('-d', '--device', default=pick_train_device())
+parser.add_argument('-s', '--data_server', default='tcp://localhost:8889')
+parser.add_argument('-m', '--model_server', default='tcp://localhost:8888')
 parser.add_argument('-f', '--from_model_id')
+parser.add_argument('--read_batch_size', default=2**13)
+parser.add_argument('--epoch_samples_max', default=2**20)
+parser.add_argument('--epoch_samples_min', default=2**18)
+parser.add_argument('--dataset_split', default=0.8)
+parser.add_argument('--minibatch_per_epoch', default=5000)
+parser.add_argument('--minibatch_size', default=512)
+parser.add_argument('--wait_for_evaluation', default=2)
+
 
 args = parser.parse_args()
 
-device = pick_train_device()
-if args.device is not None:
-    device = args.device
-
-data_server = 'tcp://localhost:8889'
-if args.data_server is not None:
-    data_server = args.data_server
-
-model_server = 'tcp://localhost:8888'
-if args.model_server is not None:
-    model_server = args.model_server
+device = args.device
+data_server = args.data_server
+model_server = args.model_server
 
 model_client = GameClient(model_server)
 data_client = GameClient(data_server)
@@ -50,32 +50,20 @@ else:
 logging.info(f'loading snapshot from DB: id={last_model_id}')
 logging.info(f'training on device {device}')
 
-sample_id = 0
-read_batch_size = 2 ** 13
-
-current_data = []
-
-epoch_samples_max = 2 ** 20
-epoch_samples_min = 2 ** 18
-
-train_set_rate = 0.8
-
-minibatch_per_epoch = 5000
-minibatch_size = 512
-
-wait_for_evaluation = 2
-
-# circular buffer for 'most recent training samples'
-current_samples = deque([], maxlen=epoch_samples_max)
+read_batch_size = args.read_batch_size
+epoch_samples_max = args.epoch_samples_max
+epoch_samples_min = args.epoch_samples_min
+dataset_split = args.dataset_split
+minibatch_per_epoch = args.minibatch_per_epoch
+minibatch_size = args.minibatch_size
+wait_for_evaluation = args.wait_for_evaluation
 
 if action_model is None:
     action_model = ActionValueModel()
-    
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9)
-
-score_loss_fn = torch.nn.MSELoss()
+# score_loss_fn = torch.nn.MSELoss()
 
 def train_minibatch(boards, probs):
     # pick minibatch
@@ -114,9 +102,7 @@ def evaluate_sample(boards, probs):
         
     return loss.item()
 
-e = 0
-
-reader = DataReader(data_client, read_batch_size, device)
+reader = DataReader(data_client, dataset_split, device, epoch_samples_max=epoch_samples_max)
 wait_s = 60
 
 while True:
@@ -145,7 +131,7 @@ while True:
             dur = time.time() - start
             train_loss = evaluate_sample(reader.boards_train, reader.probs_train)
             val_loss = evaluate_sample(reader.boards_val, reader.probs_val)
-            logging.info(f'{dur:.1f} seconds | minibatches {e}:{i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
+            logging.info(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     logging.info('saving model snapshot')
     model_client.save_model_snapshot(action_model)

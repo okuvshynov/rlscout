@@ -33,19 +33,17 @@ batch_size = int(args.batch_size)
 games_to_play = int(args.games)
 
 board_size = 6
-games_done = 0
-games_done_lock = Lock()
-start = time.time()
-games_to_play = 1024 * 8
-games_stats = defaultdict(lambda : 0)
 explore_for_n_moves = 20
 model_rollouts = 3000
 model_temp = 2.5
 random_rollouts = 20
-
 dirichlet_noise = 0.3
 
-logging.info(f'starting self-play on device {device}')
+games_done = 0
+games_done_lock = Lock()
+start = time.time()
+games_stats = defaultdict(lambda : 0)
+
 
 def add_dirichlet_noise(probs, eps):
     alpha = np.ones_like(probs) * 0.3
@@ -53,11 +51,9 @@ def add_dirichlet_noise(probs, eps):
     res = (1 - eps) * probs + eps * noise
     return res
 
+logging.info(f'starting self-play on device {device}')
 executor = ThreadPoolExecutor(max_workers=1)
 log_executor = ThreadPoolExecutor(max_workers=1)
-
-
-
 
 logging.info('setting up model store')
 models = ModelStore(GameClient(model_server), device=device, batch_size=batch_size, board_size=board_size)
