@@ -293,7 +293,10 @@ struct OthelloState {
   }
 
   friend std::istream& operator>>(std::istream& in, Self& state) {
-    in >> state.board[0] >> state.board[1] >> state.player >> state.skipped;
+    uint64_t b0, b1;
+    in >> b0 >> b1 >> state.player >> state.skipped;
+    state.board[0] = b0;
+    state.board[1] = b1;
     return in;
   }
 

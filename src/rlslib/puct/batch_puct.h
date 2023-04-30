@@ -245,7 +245,7 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
           continue;
         }*/
         double val = 0.0;
-        for (auto rr = 0; rr < random_rollouts; rr++) {
+        for (uint32_t rr = 0; rr < random_rollouts; rr++) {
           auto temp_state = g.rollout_state;
           while (!temp_state.finished()) {
             temp_state.take_random_action();

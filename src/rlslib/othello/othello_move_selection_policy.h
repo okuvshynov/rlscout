@@ -35,7 +35,6 @@ struct RandomSelectionPolicy {
     }
     return -1;
   }
-  int random_depth_;
   std::random_device rd_;
   std::mt19937 gen_{rd_()};
 };
@@ -72,7 +71,7 @@ struct RandomPlayer : public Player {
 };
 
 struct RandomABPlayer : public Player {
-  RandomABPlayer(int random_depth, score_t alpha, score_t beta)
+  RandomABPlayer(uint32_t random_depth, score_t alpha, score_t beta)
       : ab_policy_(alpha, beta), random_depth_(random_depth) {}
   virtual int64_t get_move(const State& state) {
     return state.stones_played() < random_depth_
@@ -90,5 +89,5 @@ struct RandomABPlayer : public Player {
 
   RandomSelectionPolicy random_policy_;
   ABSelectionPolicy ab_policy_;
-  int random_depth_;
+  uint32_t random_depth_;
 };

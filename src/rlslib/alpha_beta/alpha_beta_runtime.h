@@ -27,7 +27,7 @@ class AlphaBetaRuntime {
   template <template <uint32_t V> class D, typename... ArgsT, uint32_t... X>
   score_t dispatch_impl(uint32_t x, ArgsT... args,
                         std::integer_sequence<uint32_t, X...>) {
-    score_t res;
+    score_t res = 0;
     ((x == X ? res = D<X>().run(args...) : score_t()), ...);
     return res;
   }

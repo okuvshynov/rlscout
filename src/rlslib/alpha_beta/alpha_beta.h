@@ -1,7 +1,9 @@
 #pragma once
 
 #include <bit>
+#include <chrono>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 
 #include "alpha_beta/move_generators.h"
