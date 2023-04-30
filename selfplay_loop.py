@@ -18,19 +18,19 @@ from src.utils import pick_device
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_device())
-parser.add_argument('-t', '--nthreads', default=1)
+parser.add_argument('-t', '--nthreads', type=int, default=1)
 parser.add_argument('-s', '--data_server', default='tcp://localhost:8889')
 parser.add_argument('-m', '--model_server', default='tcp://localhost:8888')
-parser.add_argument('-b', '--batch_size', default=64)
-parser.add_argument('-g', '--games', default=1024)
+parser.add_argument('-b', '--batch_size', type=int, default=64)
+parser.add_argument('-g', '--games', type=int, default=1024)
 args = parser.parse_args()
 
 device = args.device
 data_server = args.data_server
 model_server = args.model_server
-nthreads = int(args.nthreads)
-batch_size = int(args.batch_size)
-games_to_play = int(args.games)
+nthreads = args.nthreads
+batch_size = args.batch_size
+games_to_play = args.games
 
 board_size = 6
 explore_for_n_moves = 20
