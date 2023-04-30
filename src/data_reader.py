@@ -11,7 +11,7 @@ def symm(t):
     return res
 
 class DataReader:
-    def __init__(self, client, dataset_split, device, start_id=0, train_set_rate=0.8, epoch_samples_max=2**20):
+    def __init__(self, client, dataset_split, device, start_id=0, train_set_rate=0.8, epoch_samples_max=2**20, read_batch_size=2**12):
         self.client = client
         self.dataset_split = dataset_split
         self.current_id = start_id

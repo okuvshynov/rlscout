@@ -57,6 +57,7 @@ dataset_split = args.dataset_split
 minibatch_per_epoch = args.minibatch_per_epoch
 minibatch_size = args.minibatch_size
 wait_for_evaluation = args.wait_for_evaluation
+read_batch_size = args.read_batch_size
 
 if action_model is None:
     action_model = ActionValueModel()
@@ -102,7 +103,7 @@ def evaluate_sample(boards, probs):
         
     return loss.item()
 
-reader = DataReader(data_client, dataset_split, device, epoch_samples_max=epoch_samples_max)
+reader = DataReader(data_client, dataset_split, device, epoch_samples_max=epoch_samples_max, read_batch_size=read_batch_size)
 wait_s = 60
 
 while True:
