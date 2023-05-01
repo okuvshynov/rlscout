@@ -10,4 +10,5 @@
 [?] add requirements.txt
     [ ] need to test more. Different environment need different versions, for example raspberry pi has to use older torch.
 [ ] use compiple-time config.
+[ ] signal to shutdown everything
 ```

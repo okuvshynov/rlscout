@@ -84,7 +84,7 @@ SELECT
 FROM 
     samples 
 WHERE
-    id > ?
+    id > ? AND score IS NOT NULL
 ORDER BY id
 LIMIT ?
 """

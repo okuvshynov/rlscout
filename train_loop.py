@@ -3,7 +3,6 @@ import random
 import time
 import torch
 import torch.optim as optim
-from collections import deque
 import logging
 
 from src.action_value_model import ActionValueModel
@@ -65,7 +64,7 @@ if action_model is None:
     action_model = ActionValueModel()
 action_model = action_model.to(device)
 
-optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
 # score_loss_fn = torch.nn.MSELoss()
 
 def train_minibatch(boards, probs):
