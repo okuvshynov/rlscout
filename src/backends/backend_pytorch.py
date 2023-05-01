@@ -12,4 +12,5 @@ class EvalBackend:
     def get_probs(self, boards):
         with torch.no_grad():
             sample = torch.from_numpy(boards).view(self.batch_size, 2, self.board_size, self.board_size).float().to(self.device)
-            return torch.exp(self.model(sample)).to("cpu").numpy().reshape(self.batch_size * self.board_size * self.board_size)
+            probs, scores = self.model(sample)
+            return torch.exp(probs).to("cpu").numpy().reshape(self.batch_size * self.board_size * self.board_size), scores

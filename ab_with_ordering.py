@@ -16,19 +16,14 @@ from src.utils import pick_device
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', encoding='utf-8', level=logging.INFO)
 
 parser = argparse.ArgumentParser("rlscout training")
-parser.add_argument('-d', '--device')
-parser.add_argument('-s', '--model_server')
+parser.add_argument('-d', '--device', default=pick_device())
+parser.add_argument('-s', '--model_server', 'tcp://localhost:8888')
 parser.add_argument('-m', '--model_id')
 
 args = parser.parse_args()
 
-device = pick_device()
-if args.device is not None:
-    device = args.device
-
-model_server = 'tcp://localhost:8888'
-if args.model_server is not None:
-    model_server = args.model_server
+device = args.device
+model_server = args.model_server
 
 board_size = 6
 
