@@ -17,6 +17,7 @@ parser.add_argument('-m', '--model_server', default='tcp://localhost:8888')
 parser.add_argument('-b', '--batch_size', type=int, default=64)
 parser.add_argument('-g', '--games', type=int, default=128)
 parser.add_argument('--rollouts', type=int, default=3000)
+parser.add_argument('--raw_rollouts', type=int, default=3000)
 parser.add_argument('--random_rollouts', type=int, default=20)
 
 args = parser.parse_args()
@@ -27,17 +28,16 @@ batch_size = args.batch_size
 games_to_play = args.games
 model_rollouts = args.rollouts
 random_rollouts = args.random_rollouts
+raw_rollouts = args.raw_rollouts
 
 board_size = 6
-games_done = 0
-
 margin = games_to_play // 16
-games_stats = {0: 0, -1: 0, 1:0}
 explore_for_n_moves = 20
 model_temp = 2.5
-
-raw_rollouts = 1000
 raw_temp = 1.5
+
+games_done = 0
+games_stats = {0: 0, -1: 0, 1:0}
 
 client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *

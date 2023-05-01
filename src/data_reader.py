@@ -62,8 +62,11 @@ class DataReader:
             # boards are ordered from POV of current player, but score is
             # from player 0 POV.
             samples.extend(list(zip(symm(b), symm(p), [value] * 8)))
+        logging.info(f'observed {nans} corrupted samples out of {len(new_samples)}')
 
-        logging.info(f'observed {nans} corrupted samples')
+        if not samples:
+            return
+
         random.shuffle(samples)
 
         boards, probs, scores = zip(*samples)
