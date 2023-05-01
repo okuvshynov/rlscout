@@ -11,7 +11,7 @@ from src.game_client import GameClient
 from src.utils import pick_train_device
 from src.data_reader import DataReader
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', level=logging.INFO)
 
 random.seed(1991)
 

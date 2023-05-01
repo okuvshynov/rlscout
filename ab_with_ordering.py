@@ -13,7 +13,7 @@ from src.utils import pick_device
 # - write results to database. Results include both absolute time and number of visits per level.
 # - change logging to PyLog
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', level=logging.INFO)
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_device())

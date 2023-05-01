@@ -9,7 +9,7 @@ from src.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from src.game_client import GameClient
 from src.utils import pick_device
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', level=logging.INFO)
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_device())

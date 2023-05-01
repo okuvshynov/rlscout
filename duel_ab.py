@@ -11,7 +11,7 @@ from src.utils import pick_device
 
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_with_ab.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_with_ab.log', level=logging.INFO)
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device')
