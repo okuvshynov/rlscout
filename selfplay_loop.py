@@ -93,20 +93,15 @@ def start_batch_mcts():
         return local_gd + batch_size * nthreads <= games_to_play
 
     def eval_fn(model_id_IGNORE, add_noise):
-        # in self-play we ignore model id and just use the latest one
-
         def eval_model():
             if model is not None:
                 return model.get_probs(boards_buffer)
         fut = executor.submit(eval_model)
-        probs, scores = fut.result()
+        probs = fut.result()
         probs = probs.reshape((batch_size * board_size * board_size, ))
         if add_noise:
             probs = add_dirichlet_noise(probs, dirichlet_noise)
         np.copyto(probs_buffer, probs)
-        np.copyto(scores_buffer, scores.reshape(
-            (batch_size, )))
-
 
     def log_fn(game_id, player, skipped):
         ## logging will be done in separate thread so we clone 

@@ -1,5 +1,9 @@
 import torch.nn as nn
 
+
+channels = 64
+m, n = 6, 6
+
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResidualBlock, self).__init__()
@@ -18,9 +22,6 @@ class ResidualBlock(nn.Module):
         out += residual
         return self.relu(out)
 
-channels = 128
-m, n = 6, 6
-
 class ActionValueModel(nn.Module):
     def __init__(self):
         super(ActionValueModel, self).__init__()
@@ -28,11 +29,6 @@ class ActionValueModel(nn.Module):
             nn.Conv2d(2, channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(channels),
             nn.ReLU(),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
             ResidualBlock(channels, channels),
         )
         self.action = nn.Sequential(
@@ -43,15 +39,14 @@ class ActionValueModel(nn.Module):
             nn.Linear(2 * m * n, m * n),
             nn.LogSoftmax(dim=1)
         )
-
-        self.value = nn.Sequential(
-            nn.Conv2d(channels, 1, kernel_size=1),
-            nn.BatchNorm2d(1),
-            nn.Flatten(),
-            nn.Linear(m * n, 1),
-            nn.Tanh()
-        )
+#        self.value = nn.Sequential(
+#            nn.Conv2d(channels, 1, kernel_size=1),
+#            nn.BatchNorm2d(1),
+#            nn.Flatten(),
+#            nn.Linear(m * n, 1),
+#            nn.Tanh()
+#        )
     
     def forward(self, x):
         w = self.residual_tower(x)
-        return self.action(w), self.value(w)
+        return self.action(w) #, self.value(w)

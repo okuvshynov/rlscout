@@ -19,6 +19,7 @@ parser.add_argument('-g', '--games', type=int, default=128)
 parser.add_argument('--rollouts', type=int, default=3000)
 parser.add_argument('--raw_rollouts', type=int, default=3000)
 parser.add_argument('--random_rollouts', type=int, default=20)
+parser.add_argument('--iterations', type=int, default=20000)
 
 args = parser.parse_args()
 
@@ -29,6 +30,7 @@ games_to_play = args.games
 model_rollouts = args.rollouts
 random_rollouts = args.random_rollouts
 raw_rollouts = args.raw_rollouts
+iterations = args.iterations
 
 board_size = 6
 margin = games_to_play // 16
@@ -85,11 +87,9 @@ def start_batch_duel():
         return local_gd + batch_size <= games_to_play
 
     def eval_fn(model_id, add_noise_IGNORE):
-        probs, scores = models_by_id[model_id].get_probs(boards_buffer)
+        probs = models_by_id[model_id].get_probs(boards_buffer)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
-        np.copyto(scores_buffer, scores.reshape(
-            (batch_size, )))
 
     def log_fn(game_id, player, skipped):
         pass
@@ -165,10 +165,15 @@ def start_batch_duel():
     return True
 
 def duel_loop():
+    played = 0
     while True:
         if not start_batch_duel():
             logging.info('no model to eval, sleeping')
             time.sleep(60)
+        else:
+            played += 1
+            if played >= iterations:
+                break
 
 t = Thread(target=duel_loop, daemon=False)
 t.start()

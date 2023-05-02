@@ -30,7 +30,7 @@ parser.add_argument('--minibatch_per_epoch', type=int, default=5000)
 parser.add_argument('--minibatch_size', type=int, default=512)
 parser.add_argument('--wait_for_evaluation', type=int, default=2)
 parser.add_argument('--evaluation_sample_size', type=int, default=2**14)
-
+parser.add_argument('--snapshots', type=int, default=100000)
 
 args = parser.parse_args()
 
@@ -59,6 +59,7 @@ minibatch_size = args.minibatch_size
 wait_for_evaluation = args.wait_for_evaluation
 read_batch_size = args.read_batch_size
 evaluation_sample_size = args.evaluation_sample_size
+snapshots = args.snapshots
 
 if action_model is None:
     action_model = ActionValueModel()
@@ -75,7 +76,7 @@ def train_minibatch(boards, probs):
     #z = scores[ix]
 
     optimizer.zero_grad()
-    actions_probs, _ = action_model(X)
+    actions_probs = action_model(X)
 
     pb = y.view(y.shape[0], -1)
     action_loss = -torch.mean(torch.sum(pb * actions_probs, dim=1))
@@ -94,7 +95,7 @@ def evaluate_sample(boards, probs):
     #z = scores[ix]
 
     with torch.no_grad():
-        action_probs, _ = action_model(X)
+        action_probs = action_model(X)
         probs = y.view(y.shape[0], -1)
         action_loss = -torch.mean(torch.sum(probs * action_probs, dim=1))
         score_loss = 0 # score_loss_fn(z, score.view(-1))
@@ -106,6 +107,7 @@ def evaluate_sample(boards, probs):
 reader = DataReader(data_client, dataset_split, device, epoch_samples_max=epoch_samples_max, read_batch_size=read_batch_size)
 wait_s = 60
 
+snapshot = 0 
 while True:
     reader.read_samples()
 
@@ -134,5 +136,8 @@ while True:
             val_loss = evaluate_sample(reader.boards_val, reader.probs_val)
             logging.info(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
-    logging.info('saving model snapshot')
+    logging.info(f'saving model snapshot {snapshot}')
+    snapshot += 1
     model_client.save_model_snapshot(action_model)
+    if snapshot >= snapshots:
+        break

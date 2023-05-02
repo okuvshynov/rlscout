@@ -24,9 +24,6 @@ class EvalBackend:
 
     def get_probs(self, boards):
         sample = {'x': boards.reshape(self.batch_size, 2, self.board_size, self.board_size)}
-        values = self.model.predict(sample)
+        values = self.model.predict(sample).values()
 
-        #TODO: this is likely wrong. 
-        keys = sorted(values.keys())
-
-        return np.exp(list(values[keys[0]])), values[keys[1]]
+        return np.exp(list(next(iter(values))))#, values[keys[1]]

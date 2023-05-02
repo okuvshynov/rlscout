@@ -20,6 +20,18 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Integration test
+
+Can we do 'minimal' test? Something like 'play a few games', 'train small but better than random model', 'play a few games with new model again'?
+
+### testing on fresh raspberry Pi
+1. requirements are:
+    - zmq
+    - torch
+    - numpy
+    - matplotlib for some helper visualization scripts
+
+
 ### First version of model-guided alpha-beta search works good.
 
 We end up with almost ~3x improvement even with very restricted evaluation (up to level 12): 3763.47s. 
