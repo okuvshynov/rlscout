@@ -6,7 +6,7 @@ import logging
 from numpy.ctypeslib import ndpointer
 
 rlslib = ctl.load_library("librls.so", os.path.join(
-    os.path.dirname(__file__), "rlslib", "_build"))
+    os.path.dirname(__file__), "_build"))
 
 LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int64, ctypes.c_int8, ctypes.c_int8)
 GameDoneFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32, ctypes.c_int64)

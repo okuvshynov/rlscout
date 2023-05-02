@@ -1,7 +1,8 @@
 from threading import Lock
 import time
-from src.backends.backend import backend
 import logging
+
+from utils.backends.backend import backend
 
 class ModelStore:
     def __init__(self, client, device, board_size, batch_size=1):

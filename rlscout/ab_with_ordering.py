@@ -3,10 +3,10 @@ import numpy as np
 import logging
 from threading import Thread
 
-from src.backends.backend import backend
-from src.rlslib import rlslib, EvalFn
-from src.game_client import GameClient
-from src.utils import pick_device
+from utils.backends.backend import backend
+from rlslib.rlslib import rlslib, EvalFn
+from utils.game_client import GameClient
+from utils.utils import pick_device
 
 ## TODO:
 # - make it a loop as well

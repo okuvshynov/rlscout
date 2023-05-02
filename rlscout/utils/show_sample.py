@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import random
 import torch
 
-from src.backends.backend import backend
-from src.game_client import GameClient
-from src.utils import pick_device
+from utils.backends.backend import backend
+from utils.game_client import GameClient
+from utils.utils import pick_device
 
 def plot_sample(where, board, probs):
     m = board.shape[1]

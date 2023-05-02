@@ -7,10 +7,10 @@ import torch
 from collections import defaultdict
 import logging
 
-from src.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
-from src.game_client import GameClient
-from src.model_store import ModelStore
-from src.utils import pick_device
+from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
+from utils.game_client import GameClient
+from utils.model_store import ModelStore
+from utils.utils import pick_device
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/selfplay_loop.log', level=logging.INFO)
 

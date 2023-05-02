@@ -4,10 +4,10 @@ import time
 import logging
 from threading import Thread
 
-from src.backends.backend import backend
-from src.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
-from src.game_client import GameClient
-from src.utils import pick_device
+from utils.backends.backend import backend
+from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
+from utils.game_client import GameClient
+from utils.utils import pick_device
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', level=logging.INFO)
 

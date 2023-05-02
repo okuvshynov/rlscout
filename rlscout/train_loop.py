@@ -5,10 +5,10 @@ import torch
 import torch.optim as optim
 import logging
 
-from src.action_value_model import ActionValueModel
-from src.game_client import GameClient
-from src.utils import pick_train_device
-from src.data_reader import DataReader
+from model.action_value_model import ActionValueModel
+from utils.game_client import GameClient
+from utils.utils import pick_train_device
+from utils.data_reader import DataReader
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', level=logging.INFO)
 

@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/samples_db.log', encoding='utf-8', level=logging.INFO)
 
-from game_db import GameDB
+from utils.game_db import GameDB
 
 parser = argparse.ArgumentParser("sample storage")
 parser.add_argument('-p', '--port')

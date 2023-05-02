@@ -1,4 +1,4 @@
-src/rlslib/_build/**
+rlscout/rlslib/_build/**
 **/__pycache__/**
 db/*.db
 db/*.tt
