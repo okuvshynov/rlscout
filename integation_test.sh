@@ -4,12 +4,12 @@ rm -f ./db/tmp_samples.db
 python src/serve_models.py --db=./db/tmp_models.db &
 python src/serve_samples.py --db=./db/tmp_samples.db &
 
-python selfplay_loop.py --batch_size=64 --games=128 -t 4 --rollouts=500 --random_rollouts=50
+python selfplay_loop.py --batch_size=64 --games=256 -t 4 --rollouts=500 --random_rollouts=50
 python train_loop.py --snapshots=1 --epoch_samples_min=1000 --minibatch_size=16 --minibatch_per_epoch=2000
-python duel_loop.py --batch_size=32 --games=64 --rollouts=500 --raw_rollouts=500 --iterations=1
-python selfplay_loop.py --batch_size=64 --games=128 -t 4 --rollouts=500 --random_rollouts=50
+python duel_loop.py --batch_size=32 --games=128 --rollouts=500 --raw_rollouts=500 --iterations=1
+python selfplay_loop.py --batch_size=64 --games=256 -t 4 --rollouts=500 --random_rollouts=50
 python train_loop.py --snapshots=1 --epoch_samples_min=1000 --minibatch_size=16 --minibatch_per_epoch=2000
-python duel_loop.py --batch_size=32 --games=64 --rollouts=500 --raw_rollouts=500 --iterations=1
+python duel_loop.py --batch_size=32 --games=128 --rollouts=500 --raw_rollouts=500 --iterations=1
 
 rows=`sqlite3 db/tmp_models.db 'select id, evaluation from models;' | tr -d ' \t\n\r' `
 expected="1|+2|+"
