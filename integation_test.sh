@@ -1,5 +1,5 @@
-rm ./db/tmp_models.db
-rm ./db/tmp_samples.db
+rm -f ./db/tmp_models.db
+rm -f ./db/tmp_samples.db
 
 python src/serve_models.py --db=./db/tmp_models.db &
 python src/serve_samples.py --db=./db/tmp_samples.db &
