@@ -17,7 +17,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_device())
-parser.add_argument('-s', '--model_server', 'tcp://localhost:8888')
+parser.add_argument('-s', '--model_server', default='tcp://localhost:8888')
 parser.add_argument('-m', '--model_id')
 
 args = parser.parse_args()
@@ -40,7 +40,7 @@ else:
 model = backend(device, model, batch_size=1, board_size=board_size)
 
 def eval_fn(model_id_IGNORE, add_noise_IGNORE):
-    probs, _ = model.get_probs(boards_buffer)
+    probs = model.get_probs(boards_buffer)
     np.copyto(probs_buffer, probs.reshape(
         (board_size * board_size, )))
     
