@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## simple e2e test of three major components of self-play iterative learning
+## simple sequential e2e test of three major components of self-play iterative learning
 # requires sqlite3 to run (for now)
 
 rm -f ./db/tmp_models.db
