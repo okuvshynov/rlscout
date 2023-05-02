@@ -24,6 +24,8 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 Can we do 'minimal' test? Something like 'play a few games', 'train small but better than random model', 'play a few games with new model again'?
 
+Current version takes 10 min to run on Mac mini
+
 ### testing on fresh raspberry Pi
 1. requirements are:
     - zmq

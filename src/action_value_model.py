@@ -1,6 +1,5 @@
 import torch.nn as nn
 
-
 channels = 64
 m, n = 6, 6
 
