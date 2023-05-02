@@ -1,8 +1,8 @@
-rm ./db/tmp_models.py
-rm ./db/tmp_samples.py
+rm ./db/tmp_models.db
+rm ./db/tmp_samples.db
 
-python src/serve_models.py --db=./db/tmp_models.py &
-python src/serve_samples.py --db=./db/tmp_samples.py &
+python src/serve_models.py --db=./db/tmp_models.db &
+python src/serve_samples.py --db=./db/tmp_samples.db &
 
 python selfplay_loop.py --batch_size=64 --games=256 -t 4 --rollouts=500 --random_rollouts=50
 python train_loop.py --snapshots=1 --epoch_samples_min=1000 --minibatch_size=16
