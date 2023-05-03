@@ -20,6 +20,14 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Notes after first tests
+
+1. We are optimizing for winning a game, not 'minimize number of searches', which might be a little different objective, especially when taking into account transposition table. Let's plot a chart of number of nodes visited per model iteration.
+
+2. AB search needs to work in more constrained environment. 
+
+3. Self-play takes time and we need to allocate resources accordingly. What's the right way to allocate between training, self-play and evaluation?
+
 ### Smaller model testing
 
 Testing much smaller model with 1 residual block using run_single_host. Is it still pretty good, getting solved 6x6 in 2817.94s after ~6-8h of self-play training. 
