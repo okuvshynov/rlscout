@@ -9,6 +9,7 @@
 #include "alpha_beta/move_generators.h"
 #include "tt/tt.h"
 #include "utils/model_evaluator.h"
+#include "utils/py_log.h"
 
 template <typename State, typename score_t>
 class AlphaBeta {
@@ -42,13 +43,13 @@ class AlphaBeta {
   void log_stats_by_depth() {
     auto curr = std::chrono::steady_clock::now();
     std::chrono::duration<double> diff = curr - start;
-    std::cout << diff.count() << std::endl;
+    PYLOG << diff.count();
 
     for (size_t d = 0; d < kLevels; d++) {
       if (completions[d] == 0ull) {
         continue;
       }
-      std::cout << d << " completions " << completions[d] << std::endl;
+      PYLOG << d << " completions " << completions[d];
     }
     tt.log_stats();
   }

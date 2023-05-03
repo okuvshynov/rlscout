@@ -20,6 +20,88 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Smaller model testing
+
+Testing much smaller model with 1 residual block using run_single_host. Is it still pretty good, getting solved 6x6 in 2817.94s after ~6-8h of self-play training. 
+Let's also save the number of visits per level:
+
+```
+2817.94
+4 completions 1
+5 completions 1
+6 completions 3
+7 completions 7
+8 completions 16
+9 completions 39
+10 completions 99
+11 completions 238
+12 completions 666
+13 completions 1508
+14 completions 4527
+15 completions 10124
+16 completions 30634
+17 completions 66903
+18 completions 197497
+19 completions 417868
+20 completions 1261545
+21 completions 2679524
+22 completions 7571763
+23 completions 15084384
+24 completions 39000247
+25 completions 73820125
+26 completions 173794540
+27 completions 312279627
+28 completions 666576712
+29 completions 1102753640
+30 completions 2079911894
+31 completions 3148177652
+32 completions 5087534461
+33 completions 8269978135
+34 completions 13661910047
+35 completions 12136661237
+```
+
+As we'll be testing it on different HW, time will become meaningless. Number of visits per level would be a better metric to track.
+
+
+model_id=72
+
+```
+2584.72
+4 completions 1
+5 completions 1
+6 completions 3
+7 completions 7
+8 completions 16
+9 completions 39
+10 completions 95
+11 completions 241
+12 completions 618
+13 completions 1508
+14 completions 4165
+15 completions 10086
+16 completions 28204
+17 completions 66235
+18 completions 182531
+19 completions 414940
+20 completions 1179347
+21 completions 2648001
+22 completions 7084447
+23 completions 14745886
+24 completions 36335195
+25 completions 71221906
+26 completions 160803117
+27 completions 296838184
+28 completions 612246694
+29 completions 1034191085
+30 completions 1896300021
+31 completions 2920686807
+32 completions 4612049756
+33 completions 7592654325
+34 completions 12390480344
+35 completions 10950869422
+```
+
 ### Integration test
 
 Can we do 'minimal' test? Something like 'play a few games', 'train small but better than random model', 'play a few games with new model again'?
