@@ -23,6 +23,16 @@ class GameClient:
         logging.info(f'Connecting to remote server at {server}')
         self.socket.connect(server)
 
+    def get_lastn_samples(self, size):
+        req = {
+            'method': 'get_lastn',
+            'size': size,
+        }
+        self.socket.send_json(req)
+        res = self.socket.recv_json()
+        return [(i, v, torch_decode(b), torch_decode(p), player, skipped, key) for (i, v, b, p, player, skipped, key) in res['data']]
+
+
     def get_batch(self, size, from_id=0):
         req = {
             'method': 'get_batch',

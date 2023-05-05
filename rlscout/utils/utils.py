@@ -6,6 +6,10 @@ def pick_device():
     if torch.cuda.is_available():
         return "cuda:0"
     return "cpu"
+
+def split_int64(v):
+    v += 2**63
+    return [((v >> (i * 8)) & 0xff) for i in range(8)]
     
 def pick_train_device():
     if torch.backends.mps.is_available():

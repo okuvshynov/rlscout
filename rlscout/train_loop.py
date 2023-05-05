@@ -53,7 +53,7 @@ logging.info(f'training on device {device}')
 read_batch_size = args.read_batch_size
 epoch_samples_max = args.epoch_samples_max
 epoch_samples_min = args.epoch_samples_min
-dataset_split = args.dataset_split
+train_set_rate = args.dataset_split
 minibatch_per_epoch = args.minibatch_per_epoch
 minibatch_size = args.minibatch_size
 wait_for_evaluation = args.wait_for_evaluation
@@ -104,12 +104,17 @@ def evaluate_sample(boards, probs):
         
     return loss.item()
 
-reader = DataReader(data_client, dataset_split, device, epoch_samples_max=epoch_samples_max, read_batch_size=read_batch_size)
+reader = DataReader(data_client, train_set_rate, epoch_samples_max)
 wait_s = 60
 
 snapshot = 0 
 while True:
-    reader.read_samples()
+    (boards_train, probs_train, boards_val, probs_val) = reader.read_samples()
+
+    boards_train = boards_train.to(device)
+    boards_val = boards_val.to(device)
+    probs_train = probs_train.to(device)
+    probs_val = probs_val.to(device)
 
     models_to_eval = model_client.count_models_to_eval()
     if models_to_eval > wait_for_evaluation:
@@ -117,23 +122,23 @@ while True:
         time.sleep(wait_s)
         continue
 
-    if reader.boards_train is None:
+    if boards_train is None:
         logging.info(f'no samples, waiting for {wait_s} seconds')
         time.sleep(wait_s)
         continue
 
-    if reader.boards_train.shape[0] < epoch_samples_min:
+    if boards_train.shape[0] < epoch_samples_min:
         logging.info(f'{reader.boards_train.shape} samples only, waiting for {wait_s} seconds')
         time.sleep(wait_s)
         continue
 
     start = time.time()
     for i in range(minibatch_per_epoch):
-        train_minibatch(reader.boards_train, reader.probs_train)
+        train_minibatch(boards_train, probs_train)
         if i % 100 == 99:
             dur = time.time() - start
-            train_loss = evaluate_sample(reader.boards_train, reader.probs_train)
-            val_loss = evaluate_sample(reader.boards_val, reader.probs_val)
+            train_loss = evaluate_sample(boards_train, probs_train)
+            val_loss = evaluate_sample(boards_val, probs_val)
             logging.info(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     logging.info(f'saving model snapshot {snapshot}')

@@ -10,7 +10,8 @@ samples (
     game_id INTEGER,
     player INTEGER,
     skipped INTEGER,
-    score INTEGER
+    score INTEGER,
+    key INTEGER
 );
 """
 init_models = """
@@ -25,9 +26,9 @@ models (
 insert_samples_sql = """
 INSERT INTO
 samples
-    (boards_tensor, probs_tensor, game_id, score, player, skipped) 
+    (boards_tensor, probs_tensor, game_id, score, player, skipped, key) 
 VALUES
-    (?, ?, ?, NULL, ?, ?)
+    (?, ?, ?, NULL, ?, ?, RANDOM())
 """
 
 select_best_model_sql = """
@@ -86,6 +87,17 @@ FROM
 WHERE
     id > ? AND score IS NOT NULL
 ORDER BY id
+LIMIT ?
+"""
+
+select_lastn_sql = """
+SELECT
+    id, score, boards_tensor, probs_tensor, player, skipped, key
+FROM 
+    samples 
+WHERE
+    score IS NOT NULL
+ORDER BY id DESC 
 LIMIT ?
 """
 
@@ -161,6 +173,10 @@ class GameDB:
     def get_batch(self, size, from_id):
         with closing(self.conn.cursor()) as cursor:
             return cursor.execute(select_training_batch_sql, (from_id, size)).fetchall()
+        
+    def get_lastn(self, size):
+        with closing(self.conn.cursor()) as cursor:
+            return cursor.execute(select_lastn_sql, (size, )).fetchall()
 
     def append_sample(self, boards, probs, game_id=None, player=0, skipped=0):
         with closing(self.conn.cursor()) as cursor:

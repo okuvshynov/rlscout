@@ -20,6 +20,53 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### results for 2 blocks
+
+2023-05-04 13:51:41,962 1924.73
+2023-05-04 13:51:41,962 4 completions 1
+2023-05-04 13:51:41,962 5 completions 1
+2023-05-04 13:51:41,962 6 completions 3
+2023-05-04 13:51:41,962 7 completions 7
+2023-05-04 13:51:41,962 8 completions 16
+2023-05-04 13:51:41,962 9 completions 42
+2023-05-04 13:51:41,962 10 completions 100
+2023-05-04 13:51:41,962 11 completions 237
+2023-05-04 13:51:41,962 12 completions 641
+2023-05-04 13:51:41,962 13 completions 1426
+2023-05-04 13:51:41,962 14 completions 4148
+2023-05-04 13:51:41,963 15 completions 9050
+2023-05-04 13:51:41,963 16 completions 26623
+2023-05-04 13:51:41,963 17 completions 56342
+2023-05-04 13:51:41,963 18 completions 162576
+2023-05-04 13:51:41,963 19 completions 333140
+2023-05-04 13:51:41,963 20 completions 988559
+2023-05-04 13:51:41,963 21 completions 2062078
+2023-05-04 13:51:41,963 22 completions 5729220
+2023-05-04 13:51:41,963 23 completions 11316601
+2023-05-04 13:51:41,963 24 completions 28698014
+2023-05-04 13:51:41,963 25 completions 54139375
+2023-05-04 13:51:41,963 26 completions 124882199
+2023-05-04 13:51:41,963 27 completions 224144835
+2023-05-04 13:51:41,963 28 completions 469504672
+2023-05-04 13:51:41,963 29 completions 777120438
+2023-05-04 13:51:41,963 30 completions 1439417926
+2023-05-04 13:51:41,963 31 completions 2180418124
+2023-05-04 13:51:41,963 32 completions 3459818453
+2023-05-04 13:51:41,963 33 completions 5647879987
+2023-05-04 13:51:41,963 34 completions 9257971762
+2023-05-04 13:51:41,963 35 completions 8186001888
+
+### current issues 
+
+[ ] Figure out what's going on with multi-threading self-play. Seems like it works ok on OS X, but very slow on Linux - both Pi instances and Lambda in the cloud.
+[ ] try different processes
+[ ] shutdown time out after small test finished
+
+[?] there might be a bug in incremental data update. Training gets insane errors after a while. Make some unit tests for it.
+    [+] add consistent keys to samples
+[ ] random rollout becomes expensive. Do we improve that OR move back to value model?
+[ ] use all 8 symmetries to pick alpha-beta move
+
 ### Notes after first tests
 
 1. We are optimizing for winning a game, not 'minimize number of searches', which might be a little different objective, especially when taking into account transposition table. Let's plot a chart of number of nodes visited per model iteration.
