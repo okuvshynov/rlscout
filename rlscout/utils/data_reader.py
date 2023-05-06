@@ -1,13 +1,6 @@
 import torch
 from utils.game_client import GameClient
-from utils.utils import split_int64
-
-# expects tensor of shape [?, N, N], returns list of 8 tensors
-def symm(t):
-    res = [torch.rot90(t, w, [1, 2]) for w in range(4)]
-    t = torch.flip(t, [1])
-    res += [torch.rot90(t, w, [1, 2]) for w in range(4)]
-    return res
+from utils.utils import split_int64, symm
 
 class DataReader:
     def __init__(self, client: GameClient, train_set_rate=0.8, samples_to_query=2**20):

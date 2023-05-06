@@ -111,7 +111,7 @@ struct OthelloDumb7Fill6x6 {
     return flood & ~(gen | prop);
   }
 
-  // works for single empty cell case
+  // checks if single move is valid. Faster than valid_moves.
   static uint64_t has_valid_move(uint64_t gen, uint64_t prop) {
     uint64_t self = gen;
 

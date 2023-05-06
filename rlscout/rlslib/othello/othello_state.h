@@ -16,6 +16,23 @@ uint64_t flip_v_6x6(uint64_t v) {
          ((v & 0b111111000000ull) << 18) | ((v & 0b111111ull) << 30);
 }
 
+// idea from
+// https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal
+// reimplemented for 6x6 board with 3 other masks / delta swaps
+uint64_t flip_diag_6x6(uint64_t x) {
+  uint64_t t;
+  const uint64_t k3 = 0x1c71c0000ull;
+  const uint64_t k2 = 0x489012240ull;
+  const uint64_t k1 = 0x240009000ull;
+  t = k3 & (x ^ (x << 15));
+  x ^= t ^ (t >> 15);
+  t = k2 & (x ^ (x << 5));
+  x ^= t ^ (t >> 5);
+  t = k1 & (x ^ (x << 10));
+  x ^= t ^ (t >> 10);
+  return x;
+}
+
 const uint64_t kCorners = 0b100001000000000000000000000000100001ull;
 const uint64_t kBorder = 0b111111100001100001100001100001111111ull;
 
@@ -59,22 +76,7 @@ struct OthelloState {
 
   bool empty() const { return board[0] == 0ull && board[1] == 0ull; }
 
-  // idea from
-  // https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal
-  // reimplemented for 6x6 board with 3 other masks / delta swaps
-  uint64_t flip_diag_6x6(uint64_t x) const {
-    uint64_t t;
-    const uint64_t k3 = 0x1c71c0000ull;
-    const uint64_t k2 = 0x489012240ull;
-    const uint64_t k1 = 0x240009000ull;
-    t = k3 & (x ^ (x << 15));
-    x ^= t ^ (t >> 15);
-    t = k2 & (x ^ (x << 5));
-    x ^= t ^ (t >> 5);
-    t = k1 & (x ^ (x << 10));
-    x ^= t ^ (t >> 10);
-    return x;
-  }
+
 
   void apply_skip() {
     skipped++;
@@ -117,36 +119,7 @@ struct OthelloState {
     return true;
   }
 
-  bool apply_move_no_check(uint64_t index) {
-    auto m = mask(index);
-
-    skipped = 0;
-
-    auto to_flip =
-        OthelloDumb7Fill6x6::to_flip(m, board[player], board[1 - player]);
-
-    board[player] |= m;
-    board[player] |= to_flip;
-    board[1 - player] ^= to_flip;
-
-    player = 1 - player;
-    return true;
-  }
-
   bool finished() const { return skipped >= 2 || full(); }
-
-  int32_t winner() const {
-    if (finished()) {
-      auto score0 = score(0);
-      if (score0 > 0) {
-        return 0;
-      }
-      if (score0 < 0) {
-        return 1;
-      }
-    }
-    return -1;
-  }
 
   bool full() const { return (board[0] | board[1]) == kFull; }
 
@@ -176,7 +149,7 @@ struct OthelloState {
     board[1] = flip_v_6x6(board[1]);
   }
 
-  bool operator<(const Self& other) {
+  bool operator<(const Self& other) const {
     return (board[0] | board[1]) < (other.board[0] | other.board[1]);
   }
 
@@ -249,7 +222,6 @@ struct OthelloState {
   // TODO: remove after we have value model
   void take_random_action() {
     auto single_move = get_random_action();
-
     if (single_move == 0ull) {
       apply_skip();
     } else {
