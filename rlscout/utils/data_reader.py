@@ -1,6 +1,7 @@
 import torch
 from utils.game_client import GameClient
 from utils.utils import split_int64, symm
+import logging
 
 class DataReader:
     def __init__(self, client: GameClient, train_set_rate=0.8, samples_to_query=2**20):
@@ -9,8 +10,9 @@ class DataReader:
         self.samples_to_query = samples_to_query
 
     def read_samples(self):
+        logging.info('querying DB')
         batch = self.client.get_lastn_samples(self.samples_to_query)
-
+        logging.info(f'got {len(batch)} samples from DB')
         nans = [0, 0, 0]
 
         boards_train = []
