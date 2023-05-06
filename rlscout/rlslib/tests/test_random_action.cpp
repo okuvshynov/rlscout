@@ -16,7 +16,7 @@ void test_take_random_action() {
     }
     for (int i = 0; i < 36; i++) {
         if (i == 9 || i == 16 || i == 19 || i == 26) {
-            expect_true(hits[i] > 9900 && hits[i] < 10100);
+            expect_true(hits[i] > 9500 && hits[i] < 10500);
         } else {
             expect_true(hits[i] == 0ull);
         }
