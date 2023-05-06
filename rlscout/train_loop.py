@@ -109,7 +109,14 @@ wait_s = 60
 
 snapshot = 0 
 while True:
-    (boards_train, probs_train, boards_val, probs_val) = reader.read_samples()
+
+    samples = reader.read_samples()
+    if samples is None:
+        logging.info(f'no samples, waiting for {wait_s} seconds')
+        time.sleep(wait_s)
+        continue
+
+    (boards_train, probs_train, boards_val, probs_val) = samples
 
     boards_train = boards_train.to(device)
     boards_val = boards_val.to(device)
@@ -122,13 +129,8 @@ while True:
         time.sleep(wait_s)
         continue
 
-    if boards_train is None:
-        logging.info(f'no samples, waiting for {wait_s} seconds')
-        time.sleep(wait_s)
-        continue
-
     if boards_train.shape[0] < epoch_samples_min:
-        logging.info(f'{reader.boards_train.shape} samples only, waiting for {wait_s} seconds')
+        logging.info(f'{boards_train.shape} samples only, waiting for {wait_s} seconds')
         time.sleep(wait_s)
         continue
 

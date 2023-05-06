@@ -52,5 +52,8 @@ class DataReader:
                 else:
                     boards_dev.append(board)
                     prob_dev.append(prob)
+
+        if not boards_train or not boards_dev:
+            return None
         
         return tuple(map(torch.stack, (boards_train, prob_train, boards_dev, prob_dev)))
