@@ -22,6 +22,7 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ### results for 2 blocks
 
+```
 2023-05-04 13:51:41,962 1924.73
 2023-05-04 13:51:41,962 4 completions 1
 2023-05-04 13:51:41,962 5 completions 1
@@ -55,9 +56,11 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 2023-05-04 13:51:41,963 33 completions 5647879987
 2023-05-04 13:51:41,963 34 completions 9257971762
 2023-05-04 13:51:41,963 35 completions 8186001888
+```
 
 ### current issues 
 
+```
 [?] Figure out what's going on with multi-threading self-play. Seems like it works ok on OS X, but very slow on Linux - both Pi instances and Lambda in the cloud.
     [+] try different processes. Works great. What's wrong about threading implementation here?
 [ ] shutdown time out after small test finished
@@ -69,6 +72,7 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 [ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
 [ ] multi-GPU instances were crashing last time
 [ ] we are not cleaning up database. 
+```
 
 ### Notes after first tests
 
