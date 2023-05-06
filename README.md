@@ -58,14 +58,17 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ### current issues 
 
-[ ] Figure out what's going on with multi-threading self-play. Seems like it works ok on OS X, but very slow on Linux - both Pi instances and Lambda in the cloud.
-[ ] try different processes
+[?] Figure out what's going on with multi-threading self-play. Seems like it works ok on OS X, but very slow on Linux - both Pi instances and Lambda in the cloud.
+    [+] try different processes. Works great. What's wrong about threading implementation here?
 [ ] shutdown time out after small test finished
 
-[?] there might be a bug in incremental data update. Training gets insane errors after a while. Make some unit tests for it.
-    [+] add consistent keys to samples
-[ ] random rollout becomes expensive. Do we improve that OR move back to value model?
-[ ] use all 8 symmetries to pick alpha-beta move
+[+] there might be a bug in incremental data update. Training gets insane errors after a while. Make some unit tests for it.
+    [+] add consistent keys to samples. To make sure sample goes to the same partition (train or validation set), we assign random 64 bit int at write time. At read time, we split 64 bit int into 8 bit numbers for each symmetry
+        and use that number to deterministically assign sample to training or validation set.
+[+] random rollout becomes expensive. Do we improve that OR move back to value model? Improve for now
+[ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
+[ ] multi-GPU instances were crashing last time
+[ ] we are not cleaning up database. 
 
 ### Notes after first tests
 

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <random>
 
 #include "othello_dumb7.h"
 
@@ -228,20 +229,31 @@ struct OthelloState {
     return res;
   }
 
-  // TODO: remove after we have value model
-  void take_random_action() {
+  uint64_t get_random_action() {
     auto actions = valid_actions();
     if (actions == 0ull) {
-      apply_skip();
-      return;
+      return 0ull;
+    }
+    static std::mt19937 gen{42};
+    std::uniform_int_distribution<int> dis(0, std::popcount(actions) - 1);
+    uint64_t shifts = dis(gen);
+
+    while (shifts--) {
+      actions = (actions & (actions - 1));
     }
 
-    while (true) {
-      uint64_t index = rand() % (n * n);
-      if (mask(index) & actions) {
-        apply_move(index);
-        return;
-      }
+    uint64_t other_actions = (actions & (actions - 1));
+    return other_actions ^ actions;
+  }
+
+  // TODO: remove after we have value model
+  void take_random_action() {
+    auto single_move = get_random_action();
+
+    if (single_move == 0ull) {
+      apply_skip();
+    } else {
+      apply_move_mask(single_move);
     }
   }
 
