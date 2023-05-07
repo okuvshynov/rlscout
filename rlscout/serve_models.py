@@ -3,7 +3,7 @@ import zmq
 
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/models_db.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/models_db.log', level=logging.INFO)
 
 from utils.game_db import GameDB
 
