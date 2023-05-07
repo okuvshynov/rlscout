@@ -21,7 +21,7 @@ python rlscout/serve_models.py --db=./db/tmp_models.db &
 python rlscout/serve_samples.py --db=./db/tmp_samples.db &
 
 echo "Starting first iteration of self-play"
-python rlscout/selfplay_loop.py --batch_size=64 --games=256 -t 4 --rollouts=500 --random_rollouts=50  2> logs/stderr.log
+python rlscout/selfplay_loop.py --batch_size=64 --games=256 -t 4 --rollouts=500 --random_rollouts=50
 echo "Starting first iteration of model training"
 python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=1000 --minibatch_size=16 --minibatch_per_epoch=5000 2> logs/stderr.log
 echo "Starting first iteration of model evaluation"

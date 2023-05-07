@@ -42,3 +42,6 @@ def symm(t):
     t = torch.flip(t, [1])
     res += [torch.rot90(t, w, [1, 2]) for w in range(4)]
     return res
+
+def random_seed():
+    return 1991

@@ -4,6 +4,7 @@
 #include "othello/othello_state.h"
 #include "puct/batch_puct.h"
 #include "utils/model_evaluator.h"
+#include "utils/random.h"
 
 template <typename State>
 void process_mcts(std::vector<GameSlot<State>> &games, uint32_t rollouts,
@@ -53,6 +54,8 @@ void process_rand_ab(std::vector<GameSlot<State>> &games,
 extern "C" {
 
 void init_py_logger(PyLogFn log_fn) { PyLog::instance().initialize(log_fn); }
+
+void init_random_seed(int32_t seed) { RandomGen::init(seed); }
 
 void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, float *scores_buffer,

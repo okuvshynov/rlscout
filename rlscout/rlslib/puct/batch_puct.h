@@ -2,11 +2,11 @@
 
 #include <array>
 #include <cstdint>
-#include <random>
 #include <vector>
 
 #include "utils/model_evaluator.h"
 #include "utils/py_log.h"
+#include "utils/random.h"
 
 /*
 
@@ -23,8 +23,6 @@ them in 1 batch and then continue serially.
 Multithreading (and another layer of batching) can be applied on top if needed.
 
 */
-
-std::random_device batch_mcts_rd;
 
 using LogFn = void (*)(int64_t, int8_t, int8_t);
 using GameDoneFn = bool (*)(int32_t, int64_t);
@@ -47,16 +45,16 @@ struct MCTSNode {
 
 template <typename State>
 struct GameSlot {
-  GameSlot() : gen{batch_mcts_rd()} {
-    dis = std::uniform_int_distribution<int64_t>(
-        std::numeric_limits<int64_t>::min(),
-        std::numeric_limits<int64_t>::max());
+  GameSlot() {
     restart();
   }
 
   void restart() {
     state = State();
-    game_id = dis(gen);
+    auto dis = std::uniform_int_distribution<int64_t>(
+      std::numeric_limits<int64_t>::min(),
+      std::numeric_limits<int64_t>::max());
+    game_id = dis(RandomGen::gen());
   }
 
   // TODO: this returns 0 when there are no valid moves
@@ -78,7 +76,7 @@ struct GameSlot {
     } else {
       // sample
       std::discrete_distribution<> d(visits.begin(), visits.end());
-      return d(gen);
+      return d(RandomGen::gen());
     }
   }
 
@@ -134,9 +132,6 @@ struct GameSlot {
     node.N++;
   }
 
-  // global scope
-  std::mt19937 gen;
-  std::uniform_int_distribution<int64_t> dis;
   bool slot_active = true;
 
   // per game instance scope

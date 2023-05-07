@@ -2,10 +2,11 @@
 
 #include <bit>
 #include <iostream>
-#include <random>
+#include <vector>
 
 #include "alpha_beta/alpha_beta_runtime.h"
 #include "othello/othello_state.h"
+#include "utils/random.h"
 
 using State = OthelloState<6>;
 using score_t = int8_t;
@@ -23,7 +24,7 @@ struct RandomSelectionPolicy {
 
     auto action_size = std::popcount(actions);
     auto dis = std::uniform_int_distribution<int64_t>(0, action_size - 1);
-    auto selected = dis(gen_);
+    auto selected = dis(RandomGen::gen());
     int set_bit_count = 0;
     for (int i = 0; i < 64; i++) {
       if (actions & (1ULL << i)) {
@@ -35,8 +36,6 @@ struct RandomSelectionPolicy {
     }
     return -1;
   }
-  std::random_device rd_;
-  std::mt19937 gen_{rd_()};
 };
 
 struct ABSelectionPolicy {

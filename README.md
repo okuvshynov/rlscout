@@ -20,6 +20,17 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Need to make entire thing reproducible
+
+Let's make it deterministic by fixing seed.
+Where do we need to do that?
+
+1. Model initial weights
+2. Move selection 
+3. Sample selection
+4. Sample split in sqlite
+
+
 ### results for 2 blocks
 
 ```

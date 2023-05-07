@@ -7,15 +7,12 @@ import logging
 
 from model.action_value_model import ActionValueModel
 from utils.game_client import GameClient
-from utils.utils import pick_train_device
+from utils.utils import pick_train_device, random_seed
 from utils.data_reader import DataReader
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', level=logging.INFO)
 
-random.seed(1991)
 
-gen = torch.Generator()
-gen.manual_seed(1991)
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_train_device())
@@ -33,6 +30,10 @@ parser.add_argument('--evaluation_sample_size', type=int, default=2**14)
 parser.add_argument('--snapshots', type=int, default=100000)
 
 args = parser.parse_args()
+
+random.seed(random_seed())
+
+gen = torch.manual_seed(random_seed())
 
 device = args.device
 data_server = args.data_server

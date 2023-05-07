@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
-#include <random>
 
 #include "othello_6x6_dumb7.h"
 #include "othello_6x6_board_ops.h"
+#include "utils/random.h"
 
 template <uint8_t n>
 struct OthelloState {
@@ -162,9 +162,8 @@ struct OthelloState {
     if (actions == 0ull) {
       return 0ull;
     }
-    static std::mt19937 gen{42};
     std::uniform_int_distribution<int> dis(0, std::popcount(actions) - 1);
-    uint64_t shifts = dis(gen);
+    uint64_t shifts = dis(RandomGen::gen());
 
     while (shifts--) {
       actions = (actions & (actions - 1));

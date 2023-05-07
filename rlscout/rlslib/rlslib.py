@@ -4,6 +4,7 @@ import os
 import logging
 
 from numpy.ctypeslib import ndpointer
+from utils.utils import random_seed
 
 rlslib = ctl.load_library("librls.so", os.path.join(
     os.path.dirname(__file__), "_build"))
@@ -46,6 +47,11 @@ def py_log_impl_cb(level, msg):
 py_log_fn = PyLogFn(py_log_impl_cb)
 
 rlslib.init_py_logger(py_log_fn)
+
+rlslib.init_random_seed.argtypes = [ctypes.c_int64]
+rlslib.init_random_seed.restype = None
+
+rlslib.init_random_seed(random_seed())
 
 rlslib.ab_duel.argtypes = [
     ctypes.c_int, 
