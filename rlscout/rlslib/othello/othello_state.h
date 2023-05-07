@@ -6,35 +6,8 @@
 #include <iostream>
 #include <random>
 
-#include "othello_dumb7.h"
-
-uint64_t flip_v_6x6(uint64_t v) {
-  return ((v & 0b111111000000000000000000000000000000ull) >> 30) |
-         ((v & 0b111111000000000000000000000000ull) >> 18) |
-         ((v & 0b111111000000000000000000ull) >> 6) |
-         ((v & 0b111111000000000000ull) << 6) |
-         ((v & 0b111111000000ull) << 18) | ((v & 0b111111ull) << 30);
-}
-
-// idea from
-// https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Diagonal
-// reimplemented for 6x6 board with 3 other masks / delta swaps
-uint64_t flip_diag_6x6(uint64_t x) {
-  uint64_t t;
-  const uint64_t k3 = 0x1c71c0000ull;
-  const uint64_t k2 = 0x489012240ull;
-  const uint64_t k1 = 0x240009000ull;
-  t = k3 & (x ^ (x << 15));
-  x ^= t ^ (t >> 15);
-  t = k2 & (x ^ (x << 5));
-  x ^= t ^ (t >> 5);
-  t = k1 & (x ^ (x << 10));
-  x ^= t ^ (t >> 10);
-  return x;
-}
-
-const uint64_t kCorners = 0b100001000000000000000000000000100001ull;
-const uint64_t kBorder = 0b111111100001100001100001100001111111ull;
+#include "othello_6x6_dumb7.h"
+#include "othello_6x6_board_ops.h"
 
 template <uint8_t n>
 struct OthelloState {
@@ -47,7 +20,7 @@ struct OthelloState {
   uint64_t board[2] = {0b000000000000001000000100000000000000ull,
                        0b000000000000000100001000000000000000ull};
 
-  static constexpr uint64_t kFull = 0b111111111111111111111111111111111111ull;
+  static const uint64_t k6x6Full = 0b111111111111111111111111111111111111ull;
 
   int8_t player = 0;  // 0 or 1
   // int32_t winner = -1;  // -1 -- draw or not finished
@@ -76,8 +49,6 @@ struct OthelloState {
 
   bool empty() const { return board[0] == 0ull && board[1] == 0ull; }
 
-
-
   void apply_skip() {
     skipped++;
     player = 1 - player;
@@ -86,23 +57,12 @@ struct OthelloState {
   bool apply_move(uint64_t index) {
     auto m = mask(index);
 
-    // TODO: remove valid_actions call
     if (!(m & valid_actions())) {
       apply_skip();
       return false;
     }
 
-    skipped = 0;
-
-    auto to_flip = OthelloDumb7Fill6x6::to_flip(mask(index), board[player],
-                                                board[1 - player]);
-
-    board[player] |= m;
-    board[player] |= to_flip;
-    board[1 - player] ^= to_flip;
-
-    player = 1 - player;
-    return true;
+    return apply_move_mask(m);
   }
 
   bool apply_move_mask(uint64_t m) {
@@ -121,7 +81,7 @@ struct OthelloState {
 
   bool finished() const { return skipped >= 2 || full(); }
 
-  bool full() const { return (board[0] | board[1]) == kFull; }
+  bool full() const { return (board[0] | board[1]) == k6x6Full; }
 
   void fill_boards(int32_t* boards) const {
     for (uint64_t i = 0; i < n * n; i++) {
@@ -152,20 +112,7 @@ struct OthelloState {
   bool operator<(const Self& other) const {
     return (board[0] | board[1]) < (other.board[0] | other.board[1]);
   }
-
-  // randomly transforms the board to one of the 8 symmetries
-  void pick_random_symmetry() {
-    int idx = rand() % 8;
-    for (int i = 0; i < idx; i++) {
-      if (i % 2 == 0) {
-        vflip();
-      } else {
-        dflip();
-      }
-    }
-  }
-
-  // TODO: this is too slow
+  
   Self to_canonical() const {
     Self res = *this;
     Self curr = res;
@@ -202,6 +149,14 @@ struct OthelloState {
     return res;
   }
 
+  Self maybe_to_canonical(const Self& old, uint64_t move) {
+    uint64_t old_board = old.board[0] | old.board[1];
+    if (move > old_board) {
+      return to_canonical();
+    }
+    return *this;
+  }
+
   uint64_t get_random_action() {
     auto actions = valid_actions();
     if (actions == 0ull) {
@@ -219,7 +174,6 @@ struct OthelloState {
     return other_actions ^ actions;
   }
 
-  // TODO: remove after we have value model
   void take_random_action() {
     auto single_move = get_random_action();
     if (single_move == 0ull) {
@@ -227,14 +181,6 @@ struct OthelloState {
     } else {
       apply_move_mask(single_move);
     }
-  }
-
-  Self maybe_to_canonical(const Self& old, uint64_t move) {
-    uint64_t old_board = old.board[0] | old.board[1];
-    if (move > old_board) {
-      return to_canonical();
-    }
-    return *this;
   }
 
   int32_t score(int32_t player) const {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "othello/othello_dumb7.h"
+#include "othello/othello_6x6_dumb7.h"
 #include "utils/model_evaluator.h"
 
 template <typename State, uint32_t stones>
