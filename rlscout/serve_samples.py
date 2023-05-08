@@ -60,7 +60,7 @@ while True:
 
     # write
     if req['method'] == 'append_sample':
-        db.append_sample(req['board'], req['probs'], req['game_id'], req['player'], req['skipped'])
+        db.append_sample(req['board'], req['probs'], req['game_id'], req['player'], req['skipped'], req['key'])
         res['data'] = True
         append_sample_log()
 

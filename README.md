@@ -30,6 +30,10 @@ Where do we need to do that?
 3. Sample selection
 4. Sample split in sqlite
 
+Current version supports that for single thread. We need separate seeds and rng per thread to support being reproducible.
+
+We also need to have a 'reproducibility test' to make sure 2 runs result in identical outcomes.
+
 
 ### results for 2 blocks
 

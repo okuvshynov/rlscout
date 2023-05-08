@@ -94,14 +94,15 @@ class GameClient:
 
         return None if model is None else torch_decode(model)
 
-    def append_sample(self, board_tensor, probs_tensor, game_id, player, skipped):
+    def append_sample(self, board_tensor, probs_tensor, game_id, player, skipped, key):
         req = {
             'method': 'append_sample',
             'board': torch_encode(board_tensor),
             'probs': torch_encode(probs_tensor),
             'game_id': game_id,
             'player': player,
-            'skipped': skipped
+            'skipped': skipped,
+            'key': key,
         }
         self.socket.send_json(req)
         return self.socket.recv_json()

@@ -6,11 +6,12 @@ import time
 import torch
 from collections import defaultdict
 import logging
+import random
 
 from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from utils.game_client import GameClient
 from utils.model_store import ModelStore
-from utils.utils import pick_device
+from utils.utils import pick_device, random_seed
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/selfplay_loop.log', level=logging.INFO)
 
@@ -44,9 +45,12 @@ games_done_lock = Lock()
 start = time.time()
 games_stats = defaultdict(lambda : 0)
 
+random.seed(random_seed())
+rng = np.random.default_rng(seed=random_seed())
+
 def add_dirichlet_noise(probs, eps):
     alpha = np.ones_like(probs) * 0.3
-    noise = np.random.dirichlet(alpha) * batch_size
+    noise = rng.dirichlet(alpha) * batch_size
     res = (1 - eps) * probs + eps * noise
     return res
 
@@ -107,12 +111,12 @@ def start_batch_mcts():
         ## logging will be done in separate thread so we clone 
         board = torch.from_numpy(log_boards_buffer).clone()
         prob = torch.from_numpy(log_probs_buffer).clone()
-        def log_impl(board, prob, game_id, player, skipped):
+        def log_impl(board, prob, game_id, player, skipped, key):
             board = board.float()
             prob = prob / prob.sum()
-            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), game_id, player, skipped)
+            client.append_sample(board.view(2, board_size, board_size), prob.view(1, board_size, board_size), game_id, player, skipped, key)
 
-        log_executor.submit(log_impl, board, prob, game_id, player, skipped)
+        log_executor.submit(log_impl, board, prob, game_id, player, skipped, random.randint(-2**63, 2**63 - 1))
 
     rlslib.batch_mcts(
         batch_size,

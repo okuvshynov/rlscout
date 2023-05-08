@@ -12,8 +12,6 @@ from utils.data_reader import DataReader
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', level=logging.INFO)
 
-
-
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_train_device())
 parser.add_argument('-s', '--data_server', default='tcp://localhost:8889')
@@ -110,7 +108,6 @@ wait_s = 60
 
 snapshot = 0 
 while True:
-
     samples = reader.read_samples()
     if samples is None:
         logging.info(f'no samples, waiting for {wait_s} seconds')

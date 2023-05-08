@@ -28,7 +28,7 @@ INSERT INTO
 samples
     (boards_tensor, probs_tensor, game_id, score, player, skipped, key) 
 VALUES
-    (?, ?, ?, NULL, ?, ?, RANDOM())
+    (?, ?, ?, NULL, ?, ?, ?)
 """
 
 select_best_model_sql = """
@@ -178,9 +178,9 @@ class GameDB:
         with closing(self.conn.cursor()) as cursor:
             return cursor.execute(select_lastn_sql, (size, )).fetchall()
 
-    def append_sample(self, boards, probs, game_id=None, player=0, skipped=0):
+    def append_sample(self, boards, probs, game_id=None, player=0, skipped=0, key=0):
         with closing(self.conn.cursor()) as cursor:
-            cursor.execute(insert_samples_sql, (boards, probs, game_id, player, skipped))
+            cursor.execute(insert_samples_sql, (boards, probs, game_id, player, skipped, key))
             self.conn.commit()
 
     def game_done(self, game_id, score):
