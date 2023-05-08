@@ -11,6 +11,7 @@ from utils.game_db import GameDB
 parser = argparse.ArgumentParser("sample storage")
 parser.add_argument('-p', '--port')
 parser.add_argument('-d', '--db')
+parser.add_argument('-c', '--cleanup_after', default=300000, type=int)
 args = parser.parse_args()
 
 port = 8889
@@ -78,4 +79,8 @@ while True:
     if queries_processed % 100 == 0:
         logging.info(f'processed {queries_processed} queries')
         logging.info(f'samples processed: {len(samples_last_min)} last min,  {len(samples_last_10min)} last 10 min')
+        
+    if queries_processed % 10000 == 0:
+        logging.info(f'deleting old samples')
+        db.cleanup_samples(args.cleanup_after)
 
