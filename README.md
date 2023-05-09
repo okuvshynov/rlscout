@@ -20,6 +20,67 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+
+### current issues 
+
+```
+[?] Figure out what's going on with multi-threading self-play. Seems like it works ok on OS X, but very slow on Linux - both Pi instances and Lambda in the cloud.
+    [+] try different processes. Works great. What's wrong about threading implementation here?
+[ ] shutdown time out after small test finished
+[+] there might be a bug in incremental data update. Training gets insane errors after a while. Make some unit tests for it.
+    [+] add consistent keys to samples. To make sure sample goes to the same partition (train or validation set), we assign random 64 bit int at write time. At read time, we split 64 bit int into 8 bit numbers for each symmetry
+        and use that number to deterministically assign sample to training or validation set.
+[+] random rollout becomes expensive. Do we improve that OR move back to value model? Improve for now
+[ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
+[ ] multi-GPU instances were crashing last time
+[+] we are not cleaning up database.
+```
+
+### Longer training pays off
+
+Under 30 min for model_id=477 with 2 residual blocks.
+
+```
+2023-05-08 10:57:28,309 1717.5
+2023-05-08 10:57:28,309 4 completions 1
+2023-05-08 10:57:28,309 5 completions 1
+2023-05-08 10:57:28,309 6 completions 3
+2023-05-08 10:57:28,309 7 completions 7
+2023-05-08 10:57:28,309 8 completions 16
+2023-05-08 10:57:28,309 9 completions 42
+2023-05-08 10:57:28,309 10 completions 101
+2023-05-08 10:57:28,309 11 completions 240
+2023-05-08 10:57:28,309 12 completions 633
+2023-05-08 10:57:28,309 13 completions 1383
+2023-05-08 10:57:28,309 14 completions 3884
+2023-05-08 10:57:28,309 15 completions 8455
+2023-05-08 10:57:28,309 16 completions 24218
+2023-05-08 10:57:28,309 17 completions 51204
+2023-05-08 10:57:28,309 18 completions 144388
+2023-05-08 10:57:28,309 19 completions 296695
+2023-05-08 10:57:28,309 20 completions 863351
+2023-05-08 10:57:28,309 21 completions 1811213
+2023-05-08 10:57:28,309 22 completions 4983449
+2023-05-08 10:57:28,309 23 completions 9887937
+2023-05-08 10:57:28,309 24 completions 24945758
+2023-05-08 10:57:28,309 25 completions 47210427
+2023-05-08 10:57:28,309 26 completions 108516117
+2023-05-08 10:57:28,309 27 completions 195861136
+2023-05-08 10:57:28,309 28 completions 409314894
+2023-05-08 10:57:28,309 29 completions 683299246
+2023-05-08 10:57:28,309 30 completions 1265915745
+2023-05-08 10:57:28,309 31 completions 1934935541
+2023-05-08 10:57:28,309 32 completions 3078880772
+2023-05-08 10:57:28,309 33 completions 5045554668
+2023-05-08 10:57:28,309 34 completions 8269799491
+2023-05-08 10:57:28,309 35 completions 7324940896
+```
+
+### Future: implementing full search on GPU
+
+Can we make a slightly-less efficient but easier adoptable to GPU version of AB search for the last few layers in the search space?
+As we plan to do parallel/distributed search anyway, can we do many searches at once at the lower levels? How much wasted cycles will there be?
+
 ### Need to make entire thing reproducible
 
 Let's make it deterministic by fixing seed.
@@ -73,21 +134,6 @@ We also need to have a 'reproducibility test' to make sure 2 runs result in iden
 2023-05-04 13:51:41,963 35 completions 8186001888
 ```
 
-### current issues 
-
-```
-[?] Figure out what's going on with multi-threading self-play. Seems like it works ok on OS X, but very slow on Linux - both Pi instances and Lambda in the cloud.
-    [+] try different processes. Works great. What's wrong about threading implementation here?
-[ ] shutdown time out after small test finished
-
-[+] there might be a bug in incremental data update. Training gets insane errors after a while. Make some unit tests for it.
-    [+] add consistent keys to samples. To make sure sample goes to the same partition (train or validation set), we assign random 64 bit int at write time. At read time, we split 64 bit int into 8 bit numbers for each symmetry
-        and use that number to deterministically assign sample to training or validation set.
-[+] random rollout becomes expensive. Do we improve that OR move back to value model? Improve for now
-[ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
-[ ] multi-GPU instances were crashing last time
-[ ] we are not cleaning up database. 
-```
 
 ### Notes after first tests
 

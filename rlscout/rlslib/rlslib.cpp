@@ -82,7 +82,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                        scores_buffer, log_boards_buffer, log_probs_buffer,
                        eval_cb, log_freq_cb, log_game_done_cb, model_b,
                        explore_for_n_moves, b_rr);
-    PyLog::INFO("First player move done for batch");
+    PyLog::INFO("Second player move done for batch");
 
     // if a game is finished, but we need to play more games, restart the game
     // and reuse the slot
