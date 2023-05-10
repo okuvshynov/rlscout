@@ -20,6 +20,10 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Testing on single H100
+
+TBD
+
 
 ### current issues 
 
@@ -33,6 +37,8 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 [+] random rollout becomes expensive. Do we improve that OR move back to value model? Improve for now
 [ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
 [ ] multi-GPU instances were crashing last time
+[ ] pass seed to rlslib library at init
+
 [+] we are not cleaning up database.
 ```
 

@@ -6,6 +6,15 @@ import logging
 from numpy.ctypeslib import ndpointer
 from utils.utils import random_seed
 
+
+class RLScoutNative:
+    def __init__(self) -> None:
+        
+        pass
+
+
+        
+
 rlslib = ctl.load_library("librls.so", os.path.join(
     os.path.dirname(__file__), "_build"))
 

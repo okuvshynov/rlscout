@@ -8,7 +8,8 @@ from collections import defaultdict
 import logging
 import random
 
-from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
+#from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
+from rlslib.rlscout_native import RLScoutNative, EvalFn, LogFn, GameDoneFn
 from utils.game_client import GameClient
 from utils.model_store import ModelStore
 from utils.utils import pick_device, random_seed
@@ -24,6 +25,7 @@ parser.add_argument('-b', '--batch_size', type=int, default=64)
 parser.add_argument('-g', '--games', type=int, default=1024)
 parser.add_argument('--rollouts', type=int, default=3000)
 parser.add_argument('--random_rollouts', type=int, default=20)
+parser.add_argument('--seed', type=int, default=random_seed())
 args = parser.parse_args()
 
 device = args.device
@@ -45,8 +47,9 @@ games_done_lock = Lock()
 start = time.time()
 games_stats = defaultdict(lambda : 0)
 
-random.seed(random_seed())
-rng = np.random.default_rng(seed=random_seed())
+random.seed(args.seed)
+rng = np.random.default_rng(seed=args.seed)
+rls_native = RLScoutNative(seed=args.seed)
 
 def add_dirichlet_noise(probs, eps):
     alpha = np.ones_like(probs) * 0.3
@@ -118,7 +121,7 @@ def start_batch_mcts():
 
         log_executor.submit(log_impl, board, prob, game_id, player, skipped, random.randint(-2**63, 2**63 - 1))
 
-    rlslib.batch_mcts(
+    rls_native.lib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,
