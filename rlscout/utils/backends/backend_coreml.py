@@ -7,7 +7,7 @@ def to_coreml(torch_model, batch_size=1, board_size=8):
         return None
     torch_model = torch_model.cpu()
     torch_model.eval()
-    sample = torch.rand(batch_size, 2, board_size, board_size)
+    sample = torch.ones(batch_size, 2, board_size, board_size)
 
     traced_model = torch.jit.trace(torch_model, sample)
     return ct.convert(

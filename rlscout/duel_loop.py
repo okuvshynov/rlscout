@@ -9,7 +9,11 @@ from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from utils.game_client import GameClient
 from utils.utils import pick_device
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/duel_loop.log', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO,
+                    handlers=[
+                        logging.FileHandler('logs/duel_loop.log'),
+                        logging.StreamHandler()
+                    ])
 
 parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_device())
@@ -34,16 +38,16 @@ iterations = args.iterations
 
 board_size = 6
 margin = games_to_play // 16
-explore_for_n_moves = 20
+explore_for_n_moves = 0
 model_temp = 2.5
 raw_temp = 1.5
 
 games_done = 0
-games_stats = {0: 0, -1: 0, 1:0}
+games_stats = {0: 0, -1: 0, 1: 0}
 
 client = GameClient(model_server)
 boards_buffer = np.zeros(batch_size * 2 * board_size *
-                        board_size, dtype=np.int32)
+                         board_size, dtype=np.int32)
 probs_buffer = np.ones(batch_size * board_size * board_size, dtype=np.float32)
 scores_buffer = np.ones(batch_size, dtype=np.float32)
 
@@ -81,7 +85,8 @@ def start_batch_duel():
         local_gd = games_done
 
         rate = 1.0 * local_gd / (time.time() - start)
-        logging.info(f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
+        logging.info(
+            f'result = {score}|{winner}, done {local_gd} games. rate = {rate:.3f} games/s')
 
         # count done + enqueued
         return local_gd + batch_size <= games_to_play
@@ -96,7 +101,7 @@ def start_batch_duel():
 
     logging.info(f'playing {model_to_eval_id} vs {best_model_id}')
 
-    games_stats = {0: 0, -1: 0, 1:0}
+    games_stats = {0: 0, -1: 0, 1: 0}
     start = time.time()
     games_done = 0
 
@@ -111,24 +116,26 @@ def start_batch_duel():
         EvalFn(eval_fn),
         LogFn(log_fn),
         GameDoneFn(game_done_fn),
-        model_to_eval_id,
         best_model_id,
+        model_to_eval_id,
         explore_for_n_moves,
-        model_rollouts,
-        model_temp,
         model_rollouts if best_model is not None else raw_rollouts,
         model_temp if best_model is not None else raw_temp,
+        model_rollouts,
+        model_temp,
         random_rollouts,
         random_rollouts
     )
+
+
     logging.info(games_stats)
 
     local_stats = {
-        'new': games_stats[0],
-        'old': games_stats[1]
+        'new': games_stats[1],
+        'old': games_stats[0]
     }
 
-    games_stats = {0: 0, -1: 0, 1:0}
+    games_stats = {0: 0, -1: 0, 1: 0}
     games_done = 0
     start = time.time()
 
@@ -142,20 +149,20 @@ def start_batch_duel():
         EvalFn(eval_fn),
         LogFn(log_fn),
         GameDoneFn(game_done_fn),
-        best_model_id,
         model_to_eval_id,
+        best_model_id,
         explore_for_n_moves,
-        model_rollouts if best_model is not None else raw_rollouts,
-        model_temp if best_model is not None else raw_temp,
         model_rollouts,
         model_temp,
+        model_rollouts if best_model is not None else raw_rollouts,
+        model_temp if best_model is not None else raw_temp,
         random_rollouts,
         random_rollouts
     )
     logging.info(games_stats)
 
-    local_stats['new'] += games_stats[1]
-    local_stats['old'] += games_stats[0]
+    local_stats['new'] += games_stats[0]
+    local_stats['old'] += games_stats[1]
 
     logging.info(local_stats)
 
@@ -163,6 +170,7 @@ def start_batch_duel():
     client.record_eval(model_to_eval_id, outcome)
 
     return True
+
 
 def duel_loop():
     played = 0
@@ -174,6 +182,7 @@ def duel_loop():
             played += 1
             if played >= iterations:
                 break
+
 
 t = Thread(target=duel_loop, daemon=False)
 t.start()

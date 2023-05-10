@@ -17,7 +17,7 @@ rm -f ./db/samples_b.db
 rm -rf rlscout/rlslib/_build/
 
 __log "Building native rlslib"
-    cd rlscout/rlslib && make all && cd ../..
+cd rlscout/rlslib && make all && cd ../..
 
 __log " === Testing A === "
 
@@ -26,18 +26,18 @@ python rlscout/serve_models.py --db=./db/models_a.db &
 python rlscout/serve_samples.py --db=./db/samples_a.db &
 
 __log "Starting first iteration of self-play"
-python rlscout/selfplay_loop.py --batch_size=64 --games=64 -t 1 --rollouts=500 --random_rollouts=20
+python rlscout/selfplay_loop.py --batch_size=64 --games=256 -t 1 --rollouts=500 --random_rollouts=20
 __log "Starting first iteration of model training"
-python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=16 --minibatch_per_epoch=5000 2> logs/stderr.log
+python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=32 --minibatch_per_epoch=5000 2> logs/stderr.log
 __log "Starting first iteration of model evaluation"
-python rlscout/duel_loop.py --batch_size=32 --games=32 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 2> logs/stderr.log
+python rlscout/duel_loop.py --batch_size=32 --games=64 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 --device=cpu 2> logs/stderr.log
 
 __log "Starting second iteration of self-play"
-python rlscout/selfplay_loop.py --batch_size=64 --games=64 -t 1 --rollouts=500 --random_rollouts=20  2> logs/stderr.log
+python rlscout/selfplay_loop.py --batch_size=64 --games=256 -t 1 --rollouts=500 --random_rollouts=20  2> logs/stderr.log
 __log "Starting second iteration of model training"
-python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=16 --minibatch_per_epoch=5000  2> logs/stderr.log
+python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=32 --minibatch_per_epoch=5000  2> logs/stderr.log
 __log "Starting second iteration of model evaluation"
-python rlscout/duel_loop.py --batch_size=32 --games=32 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 2> logs/stderr.log
+python rlscout/duel_loop.py --batch_size=32 --games=64 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 --device=cpu  2> logs/stderr.log
 
 rows=`sqlite3 db/models_a.db 'select id, evaluation from models;' | tr -d ' \t\n\r' `
 expected="1|+2|+"
@@ -60,18 +60,18 @@ python rlscout/serve_models.py --db=./db/models_b.db &
 python rlscout/serve_samples.py --db=./db/samples_b.db &
 
 __log "Starting first iteration of self-play"
-python rlscout/selfplay_loop.py --batch_size=64 --games=64 -t 1 --rollouts=500 --random_rollouts=20
+python rlscout/selfplay_loop.py --batch_size=64 --games=256 -t 1 --rollouts=500 --random_rollouts=20
 __log "Starting first iteration of model training"
-python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=16 --minibatch_per_epoch=5000 2> logs/stderr.log
+python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=32 --minibatch_per_epoch=5000 2> logs/stderr.log
 __log "Starting first iteration of model evaluation"
-python rlscout/duel_loop.py --batch_size=32 --games=32 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 2> logs/stderr.log
+python rlscout/duel_loop.py --batch_size=32 --games=64 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 --device=cpu 2> logs/stderr.log
 
 __log "Starting second iteration of self-play"
-python rlscout/selfplay_loop.py --batch_size=64 --games=64 -t 1 --rollouts=500 --random_rollouts=20  2> logs/stderr.log
+python rlscout/selfplay_loop.py --batch_size=64 --games=256 -t 1 --rollouts=500 --random_rollouts=20  2> logs/stderr.log
 __log "Starting second iteration of model training"
-python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=16 --minibatch_per_epoch=5000  2> logs/stderr.log
+python rlscout/train_loop.py --snapshots=1 --epoch_samples_min=500 --minibatch_size=32 --minibatch_per_epoch=5000  2> logs/stderr.log
 __log "Starting second iteration of model evaluation"
-python rlscout/duel_loop.py --batch_size=32 --games=32 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 2> logs/stderr.log
+python rlscout/duel_loop.py --batch_size=32 --games=64 --rollouts=500 --raw_rollouts=500 --iterations=1 --random_rollouts=20 --device=cpu  2> logs/stderr.log
 
 rows=`sqlite3 db/models_b.db 'select id, evaluation from models;' | tr -d ' \t\n\r' `
 expected="1|+2|+"
