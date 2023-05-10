@@ -23,6 +23,11 @@ sudo chown ubuntu /usr/local/lib/python3.8/dist-packages/
 python setup.py install
 cd ..
 
+# ### sqlite3
+echo "Setting up sqlite3"
+sudo apt update
+sudo apt install sqlite3 --fix-missing
+
 # ### rlscout itself
 echo "Setting up rlscout"
 git clone https://github.com/okuvshynov/rlscout.git
