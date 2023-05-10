@@ -4,10 +4,14 @@ Most likely candidates are Othello 8x8 or freestyle gomoku on 8x8 - 9x9 boards.
 
 Rough idea is the following:
 1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game
-2. Use that model to provide a good ordering for full search, like [PVS](https://www.chessprogramming.org/Principal_Variation_Search)
+2. Use that model to provide a good ordering for minimax (e.g. alpha-beta pruning)
+
+What do we expect to achieve:
+1. Just solving minimax faster with good ordering
+2. being able to distribute it by sampling nodes from the model
 
 Currently is tested on:
-1. Apple's M* SoC (using GPU for training, ANE for self-play)
+1. Apple's M1/M2 SoC (using GPU for training, ANE for self-play)
 2. x86 Linux with nVidia GPUs
 
 ### script to setup everything for lambda cloud instance
@@ -20,10 +24,9 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
-### Testing on single H100
+### Let's focus on running everything on Mac M1/M2
 
-TBD
-
+With smaller models we have now we can skip GPU/TPU things for now and just run on HW we have.
 
 ### current issues 
 
@@ -38,9 +41,9 @@ TBD
 [ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
 [ ] multi-GPU instances were crashing last time
 [?] pass seed to rlslib library at init
-    [+] for self-play only
-
+    [+] for self-play
 [+] we are not cleaning up database.
+[ ] just focus on model
 ```
 
 ### Longer training pays off
