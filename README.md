@@ -37,7 +37,8 @@ TBD
 [+] random rollout becomes expensive. Do we improve that OR move back to value model? Improve for now
 [ ] use all 8 symmetries to pick alpha-beta move or at least check how different are they
 [ ] multi-GPU instances were crashing last time
-[ ] pass seed to rlslib library at init
+[?] pass seed to rlslib library at init
+    [+] for self-play only
 
 [+] we are not cleaning up database.
 ```

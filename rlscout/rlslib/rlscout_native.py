@@ -72,20 +72,16 @@ class RLScoutNative:
         PyLogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p)
         self.lib.init_py_logger.argtypes = [PyLogFn]
         self.lib.init_py_logger.restype = None
-
         def py_log_impl_cb(level, msg):
             level = level.decode('utf-8')
             msg = msg.decode('utf-8')
             if level == 'info':
                 logging.info(msg)
+        self.py_log_fn = PyLogFn(py_log_impl_cb)
 
-        py_log_fn = PyLogFn(py_log_impl_cb)
-
-        self.lib.init_py_logger(py_log_fn)
+        self.lib.init_py_logger(self.py_log_fn)
 
         self.lib.init_random_seed.argtypes = [ctypes.c_int64]
         self.lib.init_random_seed.restype = None
 
         self.lib.init_random_seed(self.seed)
-
-        pass
