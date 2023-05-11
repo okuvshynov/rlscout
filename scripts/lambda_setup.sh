@@ -28,6 +28,9 @@ echo "Setting up sqlite3"
 sudo apt update
 sudo apt install sqlite3 --fix-missing
 
+# ### prometheus client
+pip install prometheus-client
+
 # ### rlscout itself
 echo "Setting up rlscout"
 git clone https://github.com/okuvshynov/rlscout.git
