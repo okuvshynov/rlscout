@@ -9,6 +9,7 @@ from utils.utils import random_seed
 LogFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int64, ctypes.c_int8, ctypes.c_int8)
 GameDoneFn = ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.c_int32, ctypes.c_int64)
 EvalFn = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_int32, ctypes.c_bool)
+ModelIDFn = ctypes.CFUNCTYPE(ctypes.c_uint32)
 
 class RLScoutNative:
     def __init__(self, seed=random_seed()) -> None:
@@ -27,8 +28,8 @@ class RLScoutNative:
             EvalFn,
             LogFn,
             GameDoneFn, # game_done_fn,
-            ctypes.c_int, #model_a
-            ctypes.c_int, #model_b
+            ModelIDFn, #model_a
+            ModelIDFn, #model_b
             ctypes.c_int,  # explore_for_n_moves
             ctypes.c_int32, # a_rollouts
             ctypes.c_double, # a_temp

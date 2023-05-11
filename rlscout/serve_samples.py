@@ -3,19 +3,25 @@ import time
 import zmq
 import argparse
 import logging
-
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/samples_db.log', level=logging.INFO)
+from prometheus_client import Counter
+from prometheus_client import start_http_server
 
 from utils.game_db import GameDB
 
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/samples_db.log', level=logging.INFO)
+
 parser = argparse.ArgumentParser("sample storage")
-parser.add_argument('-p', '--port')
-parser.add_argument('-d', '--db')
+parser.add_argument('--port', type=int, default=8889)
+parser.add_argument('--db', default='./db/othello6x6_samples.db')
 parser.add_argument('-c', '--cleanup_after', default=300000, type=int)
 args = parser.parse_args()
 
-port = 8889
-db_filename = './db/othello6x6_samples.db'
+port = args.port
+db_filename = args.db
+
+# prometheus
+calls_counter = Counter('requests', 'sample server requests', labelnames=['method'])
+start_http_server(9001)
 
 if args.port is not None:
     port = args.port
@@ -48,6 +54,8 @@ while True:
     req = socket.recv_json()
     res = {}
 
+    calls_counter.labels(req['method']).inc()
+
     # read
     if req['method'] == 'get_batch':
         res['data'] = db.get_batch(req['size'])
@@ -75,10 +83,6 @@ while True:
     socket.send_json(res)
 
     queries_processed += 1
-
-    if queries_processed % 100 == 0:
-        logging.info(f'processed {queries_processed} queries')
-        logging.info(f'samples processed: {len(samples_last_min)} last min,  {len(samples_last_10min)} last 10 min')
         
     if queries_processed % 10000 == 0:
         logging.info(f'deleting old samples')

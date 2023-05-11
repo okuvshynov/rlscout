@@ -61,7 +61,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
                 float *probs_buffer, float *scores_buffer,
                 int32_t *log_boards_buffer, float *log_probs_buffer,
                 EvalFn eval_cb, LogFn log_freq_cb, GameDoneFn log_game_done_cb,
-                int32_t model_a, int32_t model_b, uint32_t explore_for_n_moves,
+                ModelIdFn model_a_cb, ModelIdFn model_b_cb, uint32_t explore_for_n_moves,
                 uint32_t a_rollouts, double a_temp, uint32_t b_rollouts,
                 double b_temp, uint32_t a_rr, uint32_t b_rr) {
   using State = OthelloState<6>;
@@ -72,7 +72,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
     has_active_games = false;
     single_move<State>(games, a_rollouts, a_temp, boards_buffer, probs_buffer,
                        scores_buffer, log_boards_buffer, log_probs_buffer,
-                       eval_cb, log_freq_cb, log_game_done_cb, model_a,
+                       eval_cb, log_freq_cb, log_game_done_cb, model_a_cb(),
                        explore_for_n_moves, a_rr);
 
     PyLog::INFO("First player move done for batch");
@@ -80,7 +80,7 @@ void batch_mcts(uint32_t batch_size, int32_t *boards_buffer,
     // second player
     single_move<State>(games, b_rollouts, b_temp, boards_buffer, probs_buffer,
                        scores_buffer, log_boards_buffer, log_probs_buffer,
-                       eval_cb, log_freq_cb, log_game_done_cb, model_b,
+                       eval_cb, log_freq_cb, log_game_done_cb, model_b_cb(),
                        explore_for_n_moves, b_rr);
     PyLog::INFO("Second player move done for batch");
 

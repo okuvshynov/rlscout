@@ -1,24 +1,25 @@
 import argparse
 import zmq
+from prometheus_client import Counter
+from prometheus_client import start_http_server
 
 import logging
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/models_db.log', level=logging.INFO)
-
 from utils.game_db import GameDB
 
+logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/models_db.log', level=logging.INFO)
+
 parser = argparse.ArgumentParser("model storage")
-parser.add_argument('-p', '--port')
-parser.add_argument('-d', '--db')
+parser.add_argument('--port', type=int, default=8888)
+parser.add_argument('--db', default='/tmp/othello6x6_models.db')
 args = parser.parse_args()
 
-port = 8888
-db_filename = './db/othello6x6_models.db'
+port = args.port
+db_filename = args.db
 
-if args.port is not None:
-    port = args.port
-if args.db is not None:
-    db_filename = args.db
+# prometheus
+calls_counter = Counter('requests', 'model server requests', labelnames=['method'])
+start_http_server(9000)
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
@@ -32,7 +33,7 @@ while True:
     req = socket.recv_json()
     res = {}
 
-    logging.info(f'request: {req["method"]}')
+    calls_counter.labels(req['method']).inc()
 
     if req['method'] == 'get_best_model':
         out = db.get_best_model()

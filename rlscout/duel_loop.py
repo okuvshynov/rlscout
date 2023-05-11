@@ -3,11 +3,14 @@ import numpy as np
 import time
 import logging
 from threading import Thread
+from prometheus_client import Counter
+from prometheus_client import start_http_server
+import random
 
 from utils.backends.backend import backend
-from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
+from rlslib.rlscout_native import RLScoutNative, EvalFn, LogFn, GameDoneFn, ModelIDFn
 from utils.game_client import GameClient
-from utils.utils import pick_device
+from utils.utils import pick_device, random_seed
 
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO,
                     handlers=[
@@ -24,6 +27,7 @@ parser.add_argument('--rollouts', type=int, default=3000)
 parser.add_argument('--raw_rollouts', type=int, default=3000)
 parser.add_argument('--random_rollouts', type=int, default=20)
 parser.add_argument('--iterations', type=int, default=20000)
+parser.add_argument('--seed', type=int, default=random_seed())
 
 args = parser.parse_args()
 
@@ -35,6 +39,12 @@ model_rollouts = args.rollouts
 random_rollouts = args.random_rollouts
 raw_rollouts = args.raw_rollouts
 iterations = args.iterations
+
+# prometheus
+eval_counter = Counter('model_inference', 'how many eval calls were there')
+games_counter = Counter('games_done', 'how many games were finished')
+model_eval_counter = Counter('evaluations_done', 'how many new models were evaluated', labelnames=['result'])
+start_http_server(9003)
 
 board_size = 6
 margin = games_to_play // 16
@@ -54,6 +64,10 @@ scores_buffer = np.ones(batch_size, dtype=np.float32)
 log_boards_buffer = np.zeros(2 * board_size * board_size, dtype=np.int32)
 log_probs_buffer = np.ones(board_size * board_size, dtype=np.float32)
 
+random.seed(args.seed)
+rng = np.random.default_rng(seed=args.seed)
+rls_native = RLScoutNative(seed=args.seed)
+
 def start_batch_duel():
     global games_done, games_stats, start
     (model_to_eval_id, model_to_eval) = client.get_model_to_eval()
@@ -72,6 +86,7 @@ def start_batch_duel():
     }
 
     def game_done_fn(score, game_id):
+        games_counter.inc()
         global games_done
 
         winner = -1
@@ -92,6 +107,7 @@ def start_batch_duel():
         return local_gd + batch_size <= games_to_play
 
     def eval_fn(model_id, add_noise_IGNORE):
+        eval_counter.inc()
         probs = models_by_id[model_id].get_probs(boards_buffer)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
@@ -106,7 +122,7 @@ def start_batch_duel():
     games_done = 0
 
     # new model first player
-    rlslib.batch_mcts(
+    rls_native.lib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,
@@ -116,8 +132,8 @@ def start_batch_duel():
         EvalFn(eval_fn),
         LogFn(log_fn),
         GameDoneFn(game_done_fn),
-        best_model_id,
-        model_to_eval_id,
+        ModelIDFn(lambda: best_model_id),
+        ModelIDFn(lambda: model_to_eval_id),
         explore_for_n_moves,
         model_rollouts if best_model is not None else raw_rollouts,
         model_temp if best_model is not None else raw_temp,
@@ -139,7 +155,7 @@ def start_batch_duel():
     games_done = 0
     start = time.time()
 
-    rlslib.batch_mcts(
+    rls_native.lib.batch_mcts(
         batch_size,
         boards_buffer,
         probs_buffer,
@@ -149,8 +165,8 @@ def start_batch_duel():
         EvalFn(eval_fn),
         LogFn(log_fn),
         GameDoneFn(game_done_fn),
-        model_to_eval_id,
-        best_model_id,
+        ModelIDFn(lambda: model_to_eval_id),
+        ModelIDFn(lambda: best_model_id),
         explore_for_n_moves,
         model_rollouts,
         model_temp,
@@ -165,8 +181,8 @@ def start_batch_duel():
     local_stats['old'] += games_stats[1]
 
     logging.info(local_stats)
-
     outcome = '+' if local_stats['new'] >= local_stats['old'] + margin else '-'
+    model_eval_counter.labels(outcome).inc()
     client.record_eval(model_to_eval_id, outcome)
 
     return True

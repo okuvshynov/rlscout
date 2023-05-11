@@ -26,6 +26,7 @@ Multithreading (and another layer of batching) can be applied on top if needed.
 
 using LogFn = void (*)(int64_t, int8_t, int8_t);
 using GameDoneFn = bool (*)(int32_t, int64_t);
+using ModelIdFn = uint32_t (*)();
 
 struct MCTSNode {
   uint64_t in_action;
@@ -275,6 +276,8 @@ void single_move(std::vector<GameSlot<State>> &game_slots, int32_t rollouts,
                  float *log_probs_buffer, EvalFn eval_cb, LogFn log_freq_cb,
                  GameDoneFn log_game_done_cb, uint32_t model_id,
                  uint32_t explore_for_n_moves, uint32_t random_rollouts) {
+  PYLOG << "Single move with model " << model_id;
+  
   ModelEvaluator evaluator{.boards_buffer = boards_buffer,
                            .probs_buffer = probs_buffer,
                            .scores_buffer = scores_buffer,

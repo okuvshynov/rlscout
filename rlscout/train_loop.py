@@ -4,6 +4,8 @@ import time
 import torch
 import torch.optim as optim
 import logging
+from prometheus_client import Counter, Gauge
+from prometheus_client import start_http_server
 
 from model.action_value_model import ActionValueModel
 from utils.game_client import GameClient
@@ -30,12 +32,17 @@ parser.add_argument('--snapshots', type=int, default=100000)
 args = parser.parse_args()
 
 random.seed(random_seed())
-
 gen = torch.manual_seed(random_seed())
 
 device = args.device
 data_server = args.data_server
 model_server = args.model_server
+
+# prometheus
+snapshot_counter = Counter('snapshot_saved', 'how many snapshots were saved')
+samples_gauge = Gauge('samples_loaded', 'how many samples were loaded')
+loss_gauge = Gauge('loss_observed', 'observed loss', labelnames=['dataset'])
+start_http_server(9004)
 
 model_client = GameClient(model_server)
 data_client = GameClient(data_server)
@@ -110,11 +117,13 @@ snapshot = 0
 while True:
     samples = reader.read_samples()
     if samples is None:
+        samples_gauge.set(0)
         logging.info(f'no samples, waiting for {wait_s} seconds')
         time.sleep(wait_s)
         continue
 
     (boards_train, probs_train, boards_val, probs_val) = samples
+    samples_gauge.set(boards_train.shape[0])
 
     boards_train = boards_train.to(device)
     boards_val = boards_val.to(device)
@@ -139,10 +148,13 @@ while True:
             dur = time.time() - start
             train_loss = evaluate_sample(boards_train, probs_train)
             val_loss = evaluate_sample(boards_val, probs_val)
+            loss_gauge.labels('train').set(train_loss)
+            loss_gauge.labels('validation').set(val_loss)
             logging.info(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     logging.info(f'saving model snapshot {snapshot}')
     snapshot += 1
     model_client.save_model_snapshot(action_model)
+    snapshot_counter.inc()
     if snapshot >= snapshots:
         break

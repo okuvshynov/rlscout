@@ -28,6 +28,11 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 With smaller models we have now we can skip GPU/TPU things for now and just run on HW we have.
 
+1. Focus on just optimizing minimax
+2. Time/Number of nodes as a function of model iteration
+3. time/number of visits/total number of visits as a function of N threads/processes
+
+
 ### current issues 
 
 ```

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-rm -f ./db/othello6x6_models2.db
-rm -f ./db/othello6x6_samples2.db
+rm -f ./db/othello6x6_models2a.db
+rm -f ./db/othello6x6_samples2a.db
 rm -rf rlscout/rlslib/_build/
 
 echo "Building native rlslib"

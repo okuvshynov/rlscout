@@ -2,11 +2,12 @@ import argparse
 import numpy as np
 import logging
 from threading import Thread
+import random
 
 from utils.backends.backend import backend
-from rlslib.rlslib import rlslib, EvalFn
+from rlslib.rlscout_native import RLScoutNative, EvalFn
 from utils.game_client import GameClient
-from utils.utils import pick_device, parse_ids
+from utils.utils import pick_device, parse_ids, random_seed
 
 ## TODO:
 # - make it a loop as well
@@ -19,6 +20,7 @@ parser = argparse.ArgumentParser("rlscout training")
 parser.add_argument('-d', '--device', default=pick_device())
 parser.add_argument('-s', '--model_server', default='tcp://localhost:8888')
 parser.add_argument('-m', '--model_ids')
+parser.add_argument('--seed', type=int, default=random_seed())
 
 args = parser.parse_args()
 
@@ -37,6 +39,10 @@ if args.model_ids is None:
 else:
     models = [(model_id, client.get_model(model_id)) for model_id in parse_ids(args.model_ids)]
 
+random.seed(args.seed)
+rng = np.random.default_rng(seed=args.seed)
+rls_native = RLScoutNative(seed=args.seed)
+
 for (model_id, model) in models:
     logging.info(f'starting guided alpha-beta search with model_id={model_id}')
     model = backend(device, model, batch_size=1, board_size=board_size)
@@ -47,7 +53,7 @@ for (model_id, model) in models:
             (board_size * board_size, )))
         
     def start_ab():
-        rlslib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
+        rls_native.lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
 
     t = Thread(target=start_ab, daemon=False)
     t.start()

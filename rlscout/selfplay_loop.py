@@ -7,9 +7,12 @@ import torch
 from collections import defaultdict
 import logging
 import random
+from prometheus_client import Counter
+from prometheus_client import start_http_server
+
 
 #from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
-from rlslib.rlscout_native import RLScoutNative, EvalFn, LogFn, GameDoneFn
+from rlslib.rlscout_native import RLScoutNative, EvalFn, LogFn, GameDoneFn, ModelIDFn
 from utils.game_client import GameClient
 from utils.model_store import ModelStore
 from utils.utils import pick_device, random_seed
@@ -34,6 +37,11 @@ model_server = args.model_server
 nthreads = args.nthreads
 batch_size = args.batch_size
 games_to_play = args.games
+
+# prometheus
+eval_counter = Counter('model_inference', 'how many eval calls were there')
+games_counter = Counter('games_done', 'how many games were finished')
+start_http_server(9002)
 
 board_size = 6
 explore_for_n_moves = 20
@@ -79,6 +87,8 @@ def start_batch_mcts():
 
     def game_done_fn(score, game_id):
         global games_done, games_done_lock
+        nonlocal model_id
+        games_counter.inc()
 
         with games_done_lock:
             games_done += 1
@@ -100,6 +110,7 @@ def start_batch_mcts():
         return local_gd + batch_size * nthreads <= games_to_play
 
     def eval_fn(model_id_IGNORE, add_noise):
+        eval_counter.inc()
         def eval_model():
             if model is not None:
                 return model.get_probs(boards_buffer)
@@ -131,8 +142,8 @@ def start_batch_mcts():
         EvalFn(eval_fn),
         LogFn(log_fn),
         GameDoneFn(game_done_fn),
-        model_id,
-        model_id,
+        ModelIDFn(lambda: model_id),
+        ModelIDFn(lambda: model_id),
         explore_for_n_moves,
         model_rollouts,
         model_temp,
