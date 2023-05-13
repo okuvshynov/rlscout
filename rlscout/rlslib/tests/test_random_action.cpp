@@ -1,11 +1,5 @@
 #include "othello/othello_state.h"
-
-void expect_true(bool val) {
-    if (!val) {
-        std::cerr << "FAIL" << std::endl;
-        exit(1);
-    }
-}
+#include "tests/expect.h"
 
 void test_take_random_action() {
     OthelloState<6> state;

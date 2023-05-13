@@ -12,7 +12,6 @@ from utils.utils import pick_device, parse_ids, random_seed
 ## TODO:
 # - make it a loop as well
 # - write results to database. Results include both absolute time and number of visits per level.
-# - change logging to PyLog
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/ab_ordering.log', level=logging.INFO)
 
