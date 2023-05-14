@@ -4,6 +4,7 @@
 
 // this is a version which does a dispatch
 // from run-time only available state
+// Do we need this at all? Only to play from random state. 
 
 template <typename State, typename score_t>
 class AlphaBetaRuntime {
