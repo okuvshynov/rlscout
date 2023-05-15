@@ -130,11 +130,11 @@ while True:
     probs_train = probs_train.to(device)
     probs_val = probs_val.to(device)
 
-    #models_to_eval = model_client.count_models_to_eval()
-    #if models_to_eval > wait_for_evaluation:
-    ##    logging.info(f'{models_to_eval} models are not evaluated yet, waiting for {wait_s} seconds')
-    #    time.sleep(wait_s)
-    #    continue
+    models_to_eval = model_client.count_models_to_eval()
+    if models_to_eval > wait_for_evaluation:
+        logging.info(f'{models_to_eval} models are not evaluated yet, waiting for {wait_s} seconds')
+        time.sleep(wait_s)
+        continue
 
     if boards_train.shape[0] < epoch_samples_min:
         logging.info(f'{boards_train.shape} samples only, waiting for {wait_s} seconds')

@@ -24,10 +24,6 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
-### no duel?
-
-Let's try alphazero-like approach: onlt have 2 processes and just use latest model.
-
 ### Let's focus on running everything on Mac M1/M2
 
 With smaller models we have now we can skip GPU/TPU things for now and just run on HW we have.
@@ -52,7 +48,7 @@ With smaller models we have now we can skip GPU/TPU things for now and just run 
 [?] pass seed to rlslib library at init
     [+] for self-play
 [+] we are not cleaning up database.
-[ ] export more to prometheus
+[ ] just focus on model
 ```
 
 ### Longer training pays off

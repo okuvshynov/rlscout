@@ -35,7 +35,9 @@ select_best_model_sql = """
 SELECT
     id, torch_model
 FROM 
-    models
+    models 
+WHERE 
+    evaluation='+'
 ORDER BY id
 DESC
 LIMIT 1
