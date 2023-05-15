@@ -30,6 +30,8 @@ class ActionValueModel(nn.Module):
             nn.ReLU(),
             ResidualBlock(channels, channels),
             ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
+            ResidualBlock(channels, channels),
         )
         self.action = nn.Sequential(
             nn.Conv2d(channels, 2, kernel_size=1),
