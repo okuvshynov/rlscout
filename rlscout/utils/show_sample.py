@@ -23,33 +23,42 @@ def plot_sample(where, board, probs):
                     fontsize='large', va='center', ha='center')
     where.imshow(probs.view(m, n).cpu().numpy(), cmap='Blues')
 
-device = pick_device()
+def compare_probs(probs_a, probs_b):
+    f, axarr = plt.subplots(2, 1) 
+    axarr[0].imshow(probs_a.view(6, 6).cpu().numpy(), cmap='Blues')
+    axarr[1].imshow(probs_b.view(6, 6).cpu().numpy(), cmap='Blues')
 
-client = GameClient()
-
-samples = client.get_batch(1000)
-
-model_a = client.get_model(69)
-model_b = client.get_model(127)
-
-model_a = backend(device, model_a, 1, 6)
-model_b = backend(device, model_b, 1, 6)
-
-random.shuffle(samples)
-
-def format_sample(sample):
-    _, v, b, p, _, _= sample
-    return b.view(2, 6, 6), p, v
-
-for s in samples:
-    f, axarr = plt.subplots(3,1) 
-    b, p, v = format_sample(s)
-    pa, va = model_a.get_probs(b)
-    pb, vb = model_b.get_probs(b)
-
-    print(f'values: {v} {va} {vb}')
-
-    plot_sample(axarr[0], b, p)
-    plot_sample(axarr[1], b, torch.tensor(pa))
-    plot_sample(axarr[2], b, torch.tensor(pb))
     plt.show()
+
+
+if __name__ == '__main__':
+    device = pick_device()
+
+    client = GameClient()
+
+    samples = client.get_batch(1000)
+
+    model_a = client.get_model(69)
+    model_b = client.get_model(127)
+
+    model_a = backend(device, model_a, 1, 6)
+    model_b = backend(device, model_b, 1, 6)
+
+    random.shuffle(samples)
+
+    def format_sample(sample):
+        _, v, b, p, _, _= sample
+        return b.view(2, 6, 6), p, v
+
+    for s in samples:
+        f, axarr = plt.subplots(3,1) 
+        b, p, v = format_sample(s)
+        pa, va = model_a.get_probs(b)
+        pb, vb = model_b.get_probs(b)
+
+        print(f'values: {v} {va} {vb}')
+
+        plot_sample(axarr[0], b, p)
+        plot_sample(axarr[1], b, torch.tensor(pa))
+        plot_sample(axarr[2], b, torch.tensor(pb))
+        plt.show()

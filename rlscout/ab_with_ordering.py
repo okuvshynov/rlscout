@@ -3,11 +3,13 @@ import numpy as np
 import logging
 from threading import Thread
 import random
+import torch
 
 from utils.backends.backend import backend
 from rlslib.rlscout_native import RLScoutNative, EvalFn
 from utils.game_client import GameClient
-from utils.utils import pick_device, parse_ids, random_seed
+from utils.utils import pick_device, parse_ids, random_seed, symm
+from utils.show_sample import compare_probs
 
 ## TODO:
 # - make it a loop as well
@@ -44,18 +46,32 @@ rls_native = RLScoutNative(seed=args.seed)
 
 for (model_id, model) in models:
     logging.info(f'starting guided alpha-beta search with model_id={model_id}')
-    model = backend(device, model, batch_size=1, board_size=board_size)
+    model1 = backend(device, model, batch_size=1, board_size=board_size)
+    #model8 = backend(device, model, batch_size=8, board_size=board_size)
 
     def eval_fn(model_id_IGNORE, add_noise_IGNORE):
-        probs = model.get_probs(boards_buffer)
-        np.copyto(probs_buffer, probs.reshape(
+        # get all symmetries
+        #symm_boards = symm(torch.from_numpy(boards_buffer).reshape(2, board_size, board_size))
+        #symm_boards = torch.stack(symm_boards).numpy()
+        probs1 = model1.get_probs(boards_buffer)
+        #probs8 = model8.get_probs(symm_boards.reshape((8 * 2 * board_size * board_size, )))
+        #symm_probs = symm(torch.from_numpy(probs1).reshape(1, board_size, board_size))
+        #print(probs8[0].numpy())
+        #print(symm_probs[0])
+        #for i in range(8):
+        #    pa = torch.from_numpy(probs8[i])
+        #    pb = symm_probs[i]
+        #    compare_probs(pa, pb)
+        
+        np.copyto(probs_buffer, probs1.reshape(
             (board_size * board_size, )))
         
     def start_ab():
         total_visits = rls_native.lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
         logging.info(f'observed total visits = {total_visits} for model_id={model_id}')
 
-    t = Thread(target=start_ab, daemon=False)
-    t.start()
-    t.join()
+    #t = Thread(target=start_ab, daemon=False)
+    #t.start()
+    #t.join()
+    start_ab()
 
