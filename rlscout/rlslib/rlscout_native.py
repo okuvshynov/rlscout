@@ -61,7 +61,7 @@ class RLScoutNative:
         self.lib.ab_duel.restype = None
 
         # Run AB API
-        self.lib.run_ab.restype = ctypes.c_int8
+        self.lib.run_ab.restype = ctypes.c_uint64
         self.lib.run_ab.argtypes = [
             ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),   # boards
             ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # probs
@@ -79,10 +79,8 @@ class RLScoutNative:
             if level == 'info':
                 logging.info(msg)
         self.py_log_fn = PyLogFn(py_log_impl_cb)
-
         self.lib.init_py_logger(self.py_log_fn)
 
         self.lib.init_random_seed.argtypes = [ctypes.c_int64]
         self.lib.init_random_seed.restype = None
-
         self.lib.init_random_seed(self.seed)

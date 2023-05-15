@@ -150,4 +150,12 @@ class AlphaBeta {
   }
 
   void print_tt_stats() { tt.log_stats(); }
+
+  uint64_t total_completions() const {
+    uint64_t res = 0ull;
+    for (size_t i = 0; i < kLevels; i++) {
+      res += completions[i];
+    }
+    return res;
+  } 
 };

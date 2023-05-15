@@ -153,7 +153,7 @@ void ab_duel(uint32_t batch_size,
   // random_ab_player.ab_policy_.ab_.print_tt_stats();
 }
 
-int8_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb,
+uint64_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb,
               int8_t alpha, int8_t beta) {
   PyLog::INFO("starting alpha-beta search");
   using State = OthelloState<6>;
@@ -164,6 +164,8 @@ int8_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb,
                            .scores_buffer = nullptr,
                            .run = eval_cb};
   AB.set_model_evaluator(&evaluator);
-  return AB.alpha_beta<4, true>(s.to_canonical(), alpha, beta);
+  auto result = AB.alpha_beta<4, true>(s.to_canonical(), alpha, beta);
+  PYLOG << "result = " << result;
+  return AB.total_completions();
 }
 }

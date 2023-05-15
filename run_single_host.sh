@@ -18,7 +18,7 @@ python rlscout/serve_models.py --db=./db/othello6x6_models2a.db &
 python rlscout/serve_samples.py --db=./db/othello6x6_samples2a.db &
 
 echo "Starting self-play in the background"
-python rlscout/selfplay_loop.py --batch_size=128 --games=65536 -t 4 --rollouts=1500 --random_rollouts=50  2> logs/stderr.log &
+python rlscout/selfplay_loop.py --batch_size=128 --games=1000000 -t 4 --rollouts=1500 --random_rollouts=50  2> logs/stderr.log &
 echo "Starting model training in the background"
 python rlscout/train_loop.py --epoch_samples_min=200000 --minibatch_size=64 --minibatch_per_epoch=5000 --epoch_samples_max=500000 2> logs/stderr.log & 
 echo "Starting model evaluation in the background"

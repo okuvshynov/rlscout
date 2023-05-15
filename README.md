@@ -24,6 +24,17 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### How do we evaluate model quality wrt to alpha-beta search?
+
+Just from ordering point of view, we can count total number of nodes visited.
+
+Let's test the following:
+1. For same number of residual layers, train model for N hours with/without model evaluation. Compare the quality.
+2. Train models with 2-6 residual layers.
+3. Implement distributed/parallel alpha-beta.
+
+
+
 ### Let's focus on running everything on Mac M1/M2
 
 With smaller models we have now we can skip GPU/TPU things for now and just run on HW we have.
