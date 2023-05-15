@@ -40,26 +40,6 @@ class RLScoutNative:
         ]
         self.lib.batch_mcts.restype = None
 
-        # AB Duel API
-        self.lib.ab_duel.argtypes = [
-            ctypes.c_int, 
-            ndpointer(ctypes.c_int, flags="C_CONTIGUOUS"),   # boards
-            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # probs
-            ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), # scores
-            EvalFn,
-            GameDoneFn, # game_done_fn,
-            ctypes.c_int, #model_id
-            ctypes.c_int,  # explore_for_n_moves
-            ctypes.c_int32, # rollouts
-            ctypes.c_double, # temp
-            ctypes.c_int8, # alpha
-            ctypes.c_int8, # beta
-            ctypes.c_uint32, # full_after_n_moves
-            ctypes.c_bool, # inverse player order
-            ctypes.c_uint32, # random rollouts at leaf
-        ]
-        self.lib.ab_duel.restype = None
-
         # Run AB API
         self.lib.run_ab.restype = ctypes.c_uint64
         self.lib.run_ab.argtypes = [

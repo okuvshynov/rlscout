@@ -33,8 +33,6 @@ Let's test the following:
 2. Train models with 2-6 residual layers.
 3. Implement distributed/parallel alpha-beta.
 
-
-
 ### Let's focus on running everything on Mac M1/M2
 
 With smaller models we have now we can skip GPU/TPU things for now and just run on HW we have.
