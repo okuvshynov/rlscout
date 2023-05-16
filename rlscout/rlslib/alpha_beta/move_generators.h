@@ -7,7 +7,7 @@ template <typename State, uint32_t stones>
 struct PlainMoveGenerator {
   PlainMoveGenerator(const State& state) {
     if constexpr (stones + 1 == State::M * State::N) {
-      moves_ = OthelloDumb7Fill6x6::has_valid_move(
+      moves_ = OthelloDumb7Fill6x6::single_valid_move(
           state.board[state.player], state.board[1 - state.player]);
     } else {
       moves_ = state.valid_actions();
@@ -35,7 +35,7 @@ struct ActionModelMoveGenerator {
     // model_id = 0, no adding extra noise
     evaluator.run(0, false);
     if constexpr (stones + 1 == State::M * State::N) {
-      moves_ = OthelloDumb7Fill6x6::has_valid_move(
+      moves_ = OthelloDumb7Fill6x6::single_valid_move(
           state.board[state.player], state.board[1 - state.player]);
     } else {
       moves_ = state.valid_actions();

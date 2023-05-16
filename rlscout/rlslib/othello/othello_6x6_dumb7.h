@@ -10,7 +10,6 @@ struct OthelloDumb7Fill6x6 {
   static const uint64_t not_w =
       full6x6 & (~0b100000100000100000100000100000100000ull);
 
-
   static uint64_t s_shift(uint64_t b) { return (b << 6) & full6x6; }
   static uint64_t n_shift(uint64_t b) { return b >> 6; }
   static uint64_t e_shift(uint64_t b) { return (b << 1) & not_e & full6x6; }
@@ -112,7 +111,7 @@ struct OthelloDumb7Fill6x6 {
   }
 
   // checks if single move is valid. Faster than valid_moves.
-  static uint64_t has_valid_move(uint64_t gen, uint64_t prop) {
+  static uint64_t single_valid_move(uint64_t gen, uint64_t prop) {
     uint64_t self = gen;
 
     // gen becomes 'empty slot'
