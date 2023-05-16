@@ -51,8 +51,31 @@ void test_swap_vertical() {
     }
 }
 
+void test_board_from_string() {
+    const char* b = 
+        "......"
+        "......"
+        "..xx.."
+        "..xx.."
+        "......"
+        "......";
+
+    expect_true(board_from_string_6x6(b) == ((1ull << 14ull) | (1ull << 15ull) | (1ull << 20ull) | (1ull << 21ull)));
+
+    const char* b0 = 
+        "......"
+        "......"
+        "......"
+        "......"
+        "......"
+        "......";
+
+    expect_true(board_from_string_6x6(b0) == 0ull);
+}
+
 int main() {
     test_swap_diag();
     test_swap_vertical();
+    test_board_from_string();
     std::cerr << "OK" << std::endl;
 }

@@ -27,3 +27,12 @@ uint64_t flip_diag_6x6(uint64_t x) {
   return x;
 }
 
+uint64_t board_from_string_6x6(const char* str) {
+  uint64_t res = 0ull;
+  for (uint64_t i = 0; i < 36; i++) {
+    if (str[i] == 'x') {
+      res |= (1ull << i);
+    }
+  }
+  return res;
+}

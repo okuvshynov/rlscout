@@ -4,12 +4,12 @@
 
 // based on https://www.chessprogramming.org/Dumb7Fill
 struct OthelloDumb7Fill6x6 {
-  static const uint64_t full = 0xffffffffffffffffull;
-  static const uint64_t not_e =
-      ~(full & 0b000001000001000001000001000001000001ull);
-  static const uint64_t not_w =
-      ~(full & 0b100000100000100000100000100000100000ull);
   static const uint64_t full6x6 = (1ull << 36ull) - 1ull;
+  static const uint64_t not_e =
+      full6x6 & (~0b000001000001000001000001000001000001ull);
+  static const uint64_t not_w =
+      full6x6 & (~0b100000100000100000100000100000100000ull);
+
 
   static uint64_t s_shift(uint64_t b) { return (b << 6) & full6x6; }
   static uint64_t n_shift(uint64_t b) { return b >> 6; }

@@ -32,7 +32,6 @@ struct ActionModelMoveGenerator {
   ActionModelMoveGenerator(const State& state,
                            const ModelEvaluator& evaluator) {
     state.fill_boards(evaluator.boards_buffer);
-    // TODO: add all symmetries here
     // model_id = 0, no adding extra noise
     evaluator.run(0, false);
     if constexpr (stones + 1 == State::M * State::N) {
