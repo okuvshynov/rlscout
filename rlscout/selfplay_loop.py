@@ -10,8 +10,6 @@ import random
 from prometheus_client import Counter
 from prometheus_client import start_http_server
 
-
-#from rlslib.rlslib import rlslib, EvalFn, LogFn, GameDoneFn
 from rlslib.rlscout_native import RLScoutNative, EvalFn, LogFn, GameDoneFn, ModelIDFn
 from utils.game_client import GameClient
 from utils.model_store import ModelStore

@@ -51,7 +51,6 @@ class AlphaBeta {
       }
       PYLOG << d << " completions " << completions[d];
     }
-    tt.log_stats();
   }
 
   template <uint32_t stones, bool do_max>

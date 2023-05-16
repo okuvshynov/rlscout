@@ -70,8 +70,6 @@ for (model_id, model) in models:
         total_visits = rls_native.lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
         logging.info(f'observed total visits = {total_visits} for model_id={model_id}')
 
-    #t = Thread(target=start_ab, daemon=False)
-    #t.start()
-    #t.join()
-    start_ab()
-
+    t = Thread(target=start_ab, daemon=False)
+    t.start()
+    t.join()

@@ -24,6 +24,11 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Do we care about speed at all?
+
+In a way, if we moved from 'solving game' to 'allowing alpha-beta search to be distributed' we don't care too much about how fast in seconds/cycles the process is.
+This probably means we can simplify a few things. 
+
 ### How do we evaluate model quality wrt to alpha-beta search?
 
 Just from ordering point of view, we can count total number of nodes visited.
