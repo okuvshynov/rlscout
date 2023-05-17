@@ -1,12 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
 #include <iostream>
 #include <vector>
-
-// For 8x8 case this would be remote and there's not too much point optimizing
-// it a lot.
 
 template <typename State, typename score_t>
 struct SharedTT {
@@ -37,45 +33,6 @@ struct SharedTT {
         return slot;
       }
       slot = (slot + 1) % data.size();
-    }
-  }
-
-  void save_to(const std::string& filename) const {
-    auto out = std::ofstream(filename);
-
-    out << log_size_ << std::endl;
-
-    for (size_t i = 0; i < data.size(); i++) {
-      const auto& entry = data[i];
-      if (!entry.free) {
-        out << i << " " << entry.state << " " << int64_t(entry.low) << " "
-            << int64_t(entry.high) << std::endl;
-      }
-    }
-  }
-
-  // full replacement
-  void load_from(const std::string& filename) {
-    auto in = std::ifstream(filename);
-    size_t log_size, i;
-    in >> log_size;
-
-    for (size_t i = 0; i < data.size(); i++) {
-      data[i].free = true;
-    }
-    data.resize(1ull << log_size);
-
-    uint64_t low, high;
-    while (in >> i) {
-      auto& entry = data[i];
-      entry.free = false;
-      in >> entry.state >> low >> high;
-      entry.low = low;
-      entry.high = high;
-      if (entry.state.stones_played() < 8) {
-        entry.state.p();
-        std::cout << entry.low << " " << entry.high << std::endl;
-      }
     }
   }
 

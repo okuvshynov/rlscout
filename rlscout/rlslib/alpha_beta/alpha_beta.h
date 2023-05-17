@@ -33,9 +33,6 @@ class AlphaBeta {
   ModelEvaluator* evaluator = nullptr;
 
  public:
-  void load_shared_tt(const std::string& file) { tt.full_tt.load_from(file); }
-  void save_shared_tt(const std::string& file) { tt.full_tt.save_to(file); }
-
   void set_model_evaluator(ModelEvaluator* evaluator) {
     this->evaluator = evaluator;
   }
