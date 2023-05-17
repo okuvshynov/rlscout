@@ -23,7 +23,7 @@ class AlphaBeta {
   // TODO:  move this to some config
   static constexpr int32_t log_max_level = 11;
   static constexpr int32_t canonical_max_level = 32;
-  static constexpr int32_t evaluate_nn_until_level = 18;
+  static constexpr int32_t evaluate_nn_until_level = 20;
 
   uint64_t completions[kLevels] = {0ull};
   uint64_t cutoffs[kLevels][kLevels] = {{0ull}};

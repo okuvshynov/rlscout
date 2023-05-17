@@ -10,6 +10,8 @@ from rlslib.rlscout_native import RLScoutNative, EvalFn
 from utils.game_client import GameClient
 from utils.utils import pick_device, parse_ids, random_seed, symm
 from utils.show_sample import compare_probs
+from prometheus_client import Counter, Gauge
+from prometheus_client import start_http_server
 
 ## TODO:
 # - make it a loop as well
@@ -27,6 +29,11 @@ args = parser.parse_args()
 
 device = args.device
 model_server = args.model_server
+
+# prometheus
+eval_counter = Counter('model_inference', 'how many eval calls were there')
+visits_gauge = Gauge('alpha_beta_visits_counter', 'how many new nodes were visited', labelnames=['model_id'])
+start_http_server(9006)
 
 board_size = 6
 
@@ -50,6 +57,7 @@ for (model_id, model) in models:
     #model8 = backend(device, model, batch_size=8, board_size=board_size)
 
     def eval_fn(model_id_IGNORE, add_noise_IGNORE):
+        eval_counter.inc()
         # get all symmetries
         #symm_boards = symm(torch.from_numpy(boards_buffer).reshape(2, board_size, board_size))
         #symm_boards = torch.stack(symm_boards).numpy()
@@ -69,6 +77,7 @@ for (model_id, model) in models:
     def start_ab():
         total_visits = rls_native.lib.run_ab(boards_buffer, probs_buffer, EvalFn(eval_fn), -5, -3)
         logging.info(f'observed total visits = {total_visits} for model_id={model_id}')
+        visits_gauge.labels(f'{model_id}').set(total_visits)
 
     t = Thread(target=start_ab, daemon=False)
     t.start()

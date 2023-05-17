@@ -24,6 +24,187 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### to save on model evaluation, how do we do multiple searches in batches?
+
+If we do parallel, we can aggregate somewhere. But cost of one evaluation might get too low and synchronization becomes a bottleneck.
+Can we apply similar 'batched approach' as we do with MCTS? 
+
+
+### evaluate model for larger ply
+
+until level 22 (compared to normal 18):
+
+```
+2023-05-17 09:44:11,153 2188.62
+2023-05-17 09:44:11,153 4 completions 1
+2023-05-17 09:44:11,153 5 completions 1
+2023-05-17 09:44:11,153 6 completions 3
+2023-05-17 09:44:11,153 7 completions 7
+2023-05-17 09:44:11,153 8 completions 16
+2023-05-17 09:44:11,153 9 completions 40
+2023-05-17 09:44:11,153 10 completions 97
+2023-05-17 09:44:11,153 11 completions 228
+2023-05-17 09:44:11,153 12 completions 622
+2023-05-17 09:44:11,153 13 completions 1347
+2023-05-17 09:44:11,153 14 completions 3837
+2023-05-17 09:44:11,153 15 completions 8142
+2023-05-17 09:44:11,153 16 completions 23464
+2023-05-17 09:44:11,153 17 completions 48398
+2023-05-17 09:44:11,153 18 completions 136696
+2023-05-17 09:44:11,153 19 completions 274409
+2023-05-17 09:44:11,153 20 completions 744914
+2023-05-17 09:44:11,153 21 completions 1442261
+2023-05-17 09:44:11,153 22 completions 3687602
+2023-05-17 09:44:11,153 23 completions 6803939
+2023-05-17 09:44:11,153 24 completions 16809653
+2023-05-17 09:44:11,153 25 completions 30653028
+2023-05-17 09:44:11,153 26 completions 69508888
+2023-05-17 09:44:11,153 27 completions 117561664
+2023-05-17 09:44:11,153 28 completions 237549549
+2023-05-17 09:44:11,153 29 completions 366549060
+2023-05-17 09:44:11,153 30 completions 645562301
+2023-05-17 09:44:11,153 31 completions 926025030
+2023-05-17 09:44:11,153 32 completions 1404648218
+2023-05-17 09:44:11,153 33 completions 2268002377
+2023-05-17 09:44:11,153 34 completions 3649539411
+2023-05-17 09:44:11,153 35 completions 3190772340
+2023-05-17 09:44:11,153 result = -4
+2023-05-17 09:44:11,224 observed total visits = 12936357543 for model_id=450
+```
+
+We cut down the number of visits another 2x with the same model, but the wall time is larger due to model evaluation cost
+
+
+until level 20 (compared to normal 18):
+
+```
+--
+2023-05-17 10:14:20,988 1319.28
+2023-05-17 10:14:20,988 4 completions 1
+2023-05-17 10:14:20,988 5 completions 1
+2023-05-17 10:14:20,988 6 completions 3
+2023-05-17 10:14:20,988 7 completions 7
+2023-05-17 10:14:20,988 8 completions 16
+2023-05-17 10:14:20,988 9 completions 40
+2023-05-17 10:14:20,988 10 completions 97
+2023-05-17 10:14:20,988 11 completions 228
+2023-05-17 10:14:20,988 12 completions 622
+2023-05-17 10:14:20,988 13 completions 1347
+2023-05-17 10:14:20,988 14 completions 3837
+2023-05-17 10:14:20,988 15 completions 8142
+2023-05-17 10:14:20,988 16 completions 23464
+2023-05-17 10:14:20,988 17 completions 48398
+2023-05-17 10:14:20,988 18 completions 136693
+2023-05-17 10:14:20,988 19 completions 274399
+2023-05-17 10:14:20,988 20 completions 744882
+2023-05-17 10:14:20,988 21 completions 1442122
+2023-05-17 10:14:20,988 22 completions 3892743
+2023-05-17 10:14:20,988 23 completions 7574821
+2023-05-17 10:14:20,988 24 completions 19085001
+2023-05-17 10:14:20,988 25 completions 34953215
+2023-05-17 10:14:20,988 26 completions 79606591
+2023-05-17 10:14:20,988 27 completions 138237015
+2023-05-17 10:14:20,988 28 completions 284147827
+2023-05-17 10:14:20,988 29 completions 457332235
+2023-05-17 10:14:20,988 30 completions 829880425
+2023-05-17 10:14:20,988 31 completions 1237048836
+2023-05-17 10:14:20,988 32 completions 1932278656
+2023-05-17 10:14:20,988 33 completions 3149240499
+2023-05-17 10:14:20,988 34 completions 5123533071
+2023-05-17 10:14:20,988 35 completions 4514495245
+2023-05-17 10:14:20,988 result = -4
+2023-05-17 10:14:21,052 observed total visits = 17813990479 for model_id=450
+```
+
+### Distributed search - what's left?
+
+We'll do lazy SMP here, and sample moves based on the model we trained. We need to communicate through transposition table.
+Option 1 - we do it locally and make it thread-safe.
+Option 2 - we do it in truly distributed way, and TT becomes a separate service.
+Option 3 - combination of the first 2 options. For some layers have only 'local' TT and for others remote shared TT. 
+
+We'll need sampled move ordering with temperature, where 0 would mean 'greedy' and 1 would mean 'sampled'.
+
+We can simplify TT logic as we don't really care too much about absolute performance here as long as we can experiment in reasonable timeframe.
+
+
+### new best for 6 residual blocks:
+
+```
+2023-05-16 14:01:45,033 1622.08
+2023-05-16 14:01:45,033 4 completions 1
+2023-05-16 14:01:45,033 5 completions 1
+2023-05-16 14:01:45,033 6 completions 3
+2023-05-16 14:01:45,033 7 completions 7
+2023-05-16 14:01:45,033 8 completions 12
+2023-05-16 14:01:45,033 9 completions 36
+2023-05-16 14:01:45,033 10 completions 83
+2023-05-16 14:01:45,033 11 completions 216
+2023-05-16 14:01:45,033 12 completions 526
+2023-05-16 14:01:45,033 13 completions 1267
+2023-05-16 14:01:45,033 14 completions 3323
+2023-05-16 14:01:45,033 15 completions 7785
+2023-05-16 14:01:45,033 16 completions 20811
+2023-05-16 14:01:45,033 17 completions 47034
+2023-05-16 14:01:45,033 18 completions 124918
+2023-05-16 14:01:45,033 19 completions 270744
+2023-05-16 14:01:45,033 20 completions 749164
+2023-05-16 14:01:45,033 21 completions 1640236
+2023-05-16 14:01:45,033 22 completions 4305109
+2023-05-16 14:01:45,033 23 completions 8887242
+2023-05-16 14:01:45,033 24 completions 21522819
+2023-05-16 14:01:45,033 25 completions 42219021
+2023-05-16 14:01:45,033 26 completions 94011356
+2023-05-16 14:01:45,033 27 completions 174697705
+2023-05-16 14:01:45,033 28 completions 357152229
+2023-05-16 14:01:45,033 29 completions 609709000
+2023-05-16 14:01:45,033 30 completions 1112838075
+2023-05-16 14:01:45,033 31 completions 1725506865
+2023-05-16 14:01:45,033 32 completions 2714484810
+2023-05-16 14:01:45,033 33 completions 4482127979
+2023-05-16 14:01:45,033 34 completions 7310447932
+2023-05-16 14:01:45,033 35 completions 6463968592
+2023-05-16 14:01:45,033 result = -4
+2023-05-16 14:01:45,117 observed total visits = 25124744901 for model_id=265
+
+--
+2023-05-17 08:05:43,460 1397.86
+2023-05-17 08:05:43,460 4 completions 1
+2023-05-17 08:05:43,460 5 completions 1
+2023-05-17 08:05:43,460 6 completions 3
+2023-05-17 08:05:43,460 7 completions 7
+2023-05-17 08:05:43,460 8 completions 16
+2023-05-17 08:05:43,460 9 completions 40
+2023-05-17 08:05:43,460 10 completions 97
+2023-05-17 08:05:43,460 11 completions 227
+2023-05-17 08:05:43,460 12 completions 618
+2023-05-17 08:05:43,460 13 completions 1338
+2023-05-17 08:05:43,460 14 completions 3792
+2023-05-17 08:05:43,460 15 completions 8077
+2023-05-17 08:05:43,460 16 completions 23087
+2023-05-17 08:05:43,460 17 completions 47907
+2023-05-17 08:05:43,460 18 completions 134114
+2023-05-17 08:05:43,460 19 completions 271007
+2023-05-17 08:05:43,460 20 completions 781236
+2023-05-17 08:05:43,460 21 completions 1622006
+2023-05-17 08:05:43,460 22 completions 4420361
+2023-05-17 08:05:43,460 23 completions 8736284
+2023-05-17 08:05:43,460 24 completions 21839091
+2023-05-17 08:05:43,460 25 completions 41334742
+2023-05-17 08:05:43,460 26 completions 94294927
+2023-05-17 08:05:43,460 27 completions 170451783
+2023-05-17 08:05:43,460 28 completions 354420717
+2023-05-17 08:05:43,460 29 completions 592760698
+2023-05-17 08:05:43,460 30 completions 1095463528
+2023-05-17 08:05:43,461 31 completions 1673598101
+2023-05-17 08:05:43,461 32 completions 2659185481
+2023-05-17 08:05:43,461 33 completions 4355345040
+2023-05-17 08:05:43,461 34 completions 7141569074
+2023-05-17 08:05:43,461 35 completions 6320806330
+2023-05-17 08:05:43,461 result = -4
+2023-05-17 08:05:43,523 observed total visits = 24537119731 for model_id=450
+```
+
 
 ### Do we care about speed at all?
 
@@ -38,6 +219,7 @@ Let's test the following:
 1. For same number of residual layers, train model for N hours with/without model evaluation. Compare the quality.
 2. Train models with 2-6 residual layers.
 3. Implement distributed/parallel alpha-beta.
+4. How number of visits and time depend on the NN layer cutoff.
 
 ### Let's focus on running everything on Mac M1/M2
 
