@@ -68,7 +68,7 @@ evaluation_sample_size = args.evaluation_sample_size
 snapshots = args.snapshots
 
 if action_model is None:
-    action_model = ActionValueModel()
+    action_model = ActionValueModel(n=6, m=6, channels=64, nblocks=2)
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.001)

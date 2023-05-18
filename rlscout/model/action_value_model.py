@@ -1,7 +1,5 @@
 import torch.nn as nn
-
-channels = 64
-m, n = 6, 6
+from collections import OrderedDict
 
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -20,20 +18,25 @@ class ResidualBlock(nn.Module):
         out = self.conv(x)
         out += residual
         return self.relu(out)
+    
+class ResidualBlocks(nn.Module):
+    def __init__(self, channels, nblocks):
+        super(ResidualBlocks, self).__init__()
+        self.blocks = nn.Sequential(OrderedDict(
+            (f'res_block_{i}', ResidualBlock(channels, channels)) for i in range(nblocks))
+        )
+
+    def forward(self, x):
+        return self.blocks(x)
 
 class ActionValueModel(nn.Module):
-    def __init__(self):
+    def __init__(self, n=6, m=6, channels=64, nblocks=6):
         super(ActionValueModel, self).__init__()
         self.residual_tower = nn.Sequential(
             nn.Conv2d(2, channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(channels),
             nn.ReLU(),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
-            ResidualBlock(channels, channels),
+            ResidualBlocks(channels=channels, nblocks=nblocks)
         )
         self.action = nn.Sequential(
             nn.Conv2d(channels, 2, kernel_size=1),
