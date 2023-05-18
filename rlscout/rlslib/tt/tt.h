@@ -5,8 +5,8 @@
 
 template <typename State, typename score_t>
 struct TT {
-  static constexpr uint32_t tt_full_level = 24;
-  static constexpr int32_t tt_max_level = 32;
+  static constexpr uint32_t tt_full_level = 25;
+  static constexpr int32_t tt_max_level = 31;
 
   SharedTT<State, score_t> full_tt = SharedTT<State, score_t>{27};
 
