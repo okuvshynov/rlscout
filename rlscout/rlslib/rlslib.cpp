@@ -65,6 +65,7 @@ uint64_t run_ab(int32_t *boards_buffer, float *probs_buffer, EvalFn eval_cb,
   AB.set_model_evaluator(&evaluator);
   auto result = AB.alpha_beta<4, true>(s.to_canonical(), alpha, beta);
   PYLOG << "result = " << int32_t(result);
+  AB.print_tt_stats();
   return AB.total_completions();
 }
 }

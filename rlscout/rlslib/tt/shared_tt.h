@@ -37,9 +37,9 @@ struct SharedTT {
   }
 
   template <uint32_t stones>
-  bool lookup_and_init(const State& state, size_t& slot, score_t& alpha,
+  bool lookup_and_init(const State& state, score_t& alpha,
                        score_t& beta, score_t& value) {
-    slot = find_slot(state);
+    size_t slot = find_slot(state);
     auto& entry = data[slot];
     if (!entry.free) {
       if (entry.low >= beta) {
@@ -62,8 +62,10 @@ struct SharedTT {
   }
 
   template <uint32_t stones>
-  void update(const State& state, size_t& slot, score_t& alpha, score_t& beta,
+  void update(const State& state, score_t& alpha, score_t& beta,
               score_t& value) {
+    size_t slot = find_slot(state);
+    
     auto& entry = data[slot];
     entry.free = false;
     entry.state = state;

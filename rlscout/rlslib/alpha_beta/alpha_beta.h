@@ -56,10 +56,9 @@ class AlphaBeta {
       return state.score(0);
     }
 
-    size_t slot = 0;
     score_t value;
 
-    if (tt.template lookup_and_init<stones>(state, slot, alpha, beta, value)) {
+    if (tt.template lookup_and_init<stones>(state, alpha, beta, value)) {
       return value;
     }
     auto alpha0 = alpha;
@@ -137,7 +136,7 @@ class AlphaBeta {
     }
 
     completions[stones]++;
-    tt.template update<stones>(state, slot, alpha0, beta0, value);
+    tt.template update<stones>(state, alpha0, beta0, value);
 
     if constexpr (stones < log_max_level) {
       log_stats_by_depth();

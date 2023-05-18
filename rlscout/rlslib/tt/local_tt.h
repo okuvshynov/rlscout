@@ -7,16 +7,14 @@
 #include <utility>
 #include <vector>
 
-template <size_t N, size_t B1, size_t B2, size_t TSize, size_t... Is>
+template <size_t N, size_t B1, size_t TSize, size_t... Is>
 constexpr std::array<size_t, N> gen_ttable_sizes(std::index_sequence<Is...>) {
-  return {{(Is < B1 ? 1 : (Is < B2 ? TSize : TSize * 2))...}};
+  return {{(Is < B1 ? 1 : TSize )...}};
 }
 
-constexpr bool do_stats = false;
-
-template <typename State, typename score_t, size_t kFullLevel, size_t kLevels>
+template <typename State, typename score_t, size_t kFullLevel, size_t kLevels, bool do_stats=false>
 struct LocalTT {
-  static constexpr size_t tt_size = 1 << 24;
+  static constexpr size_t tt_size = 1 << 25;
 
   static constexpr auto min_score = std::numeric_limits<score_t>::min();
   static constexpr auto max_score = std::numeric_limits<score_t>::max();
@@ -29,7 +27,7 @@ struct LocalTT {
   std::vector<TTEntry> data[kLevels];
 
   static constexpr std::array<size_t, kLevels> tt_sizes =
-      gen_ttable_sizes<kLevels, kFullLevel, 29, tt_size>(
+      gen_ttable_sizes<kLevels, kFullLevel, tt_size>(
           std::make_index_sequence<kLevels>{});
 
   uint64_t tt_hits[kLevels] = {0ull};
@@ -56,10 +54,10 @@ struct LocalTT {
   }
 
   template <uint32_t stones>
-  bool lookup_and_init(const State& state, size_t& slot, score_t& alpha,
+  bool lookup_and_init(const State& state, score_t& alpha,
                        score_t& beta, score_t& value) {
     static_assert(stones < kLevels);
-    slot = state.hash() % tt_sizes[stones];
+    size_t slot = state.hash() % tt_sizes[stones];
 
     if (data[stones][slot].state == state) {
       if (data[stones][slot].low >= beta) {
@@ -93,9 +91,10 @@ struct LocalTT {
   }
 
   template <uint32_t stones>
-  void update(const State& state, size_t& slot, score_t& alpha, score_t& beta,
+  void update(const State& state, score_t& alpha, score_t& beta,
               score_t& value) {
     static_assert(stones < kLevels);
+    size_t slot = state.hash() % tt_sizes[stones];
     data[stones][slot].state = state;
 
     if (value <= alpha) {
