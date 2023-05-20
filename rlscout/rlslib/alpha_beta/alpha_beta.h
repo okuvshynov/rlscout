@@ -103,14 +103,8 @@ class AlphaBeta {
         State new_state = state;
         new_state.apply_move_mask(move);
 
-        // for lower depth we pick the smallest of the symmetries
-        // for high depth that operation itself becomes expensive enough
-        if constexpr (stones + 1 < canonical_max_level) {
-          if constexpr (stones + 4 < canonical_max_level) {
-            new_state = new_state.to_canonical();
-          } else {
-            new_state = new_state.maybe_to_canonical(state, move);
-          }
+        if constexpr (stones + 4 < canonical_max_level) {
+          new_state = new_state.to_canonical();
         }
 
         auto new_value =

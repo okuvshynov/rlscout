@@ -149,14 +149,6 @@ struct OthelloState {
     return res;
   }
 
-  Self maybe_to_canonical(const Self& old, uint64_t move) {
-    uint64_t old_board = old.board[0] | old.board[1];
-    if (move > old_board) {
-      return to_canonical();
-    }
-    return *this;
-  }
-
   uint64_t get_random_action() {
     auto actions = valid_actions();
     if (actions == 0ull) {
@@ -213,20 +205,6 @@ struct OthelloState {
       }
       printf("\n");
     }
-  }
-
-  friend std::ostream& operator<<(std::ostream& out, const Self& state) {
-    out << state.board[0] << " " << state.board[1] << " " << state.player << " "
-        << state.skipped;
-    return out;
-  }
-
-  friend std::istream& operator>>(std::istream& in, Self& state) {
-    uint64_t b0, b1;
-    in >> b0 >> b1 >> state.player >> state.skipped;
-    state.board[0] = b0;
-    state.board[1] = b1;
-    return in;
   }
 
 } __attribute__((packed));

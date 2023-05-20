@@ -14,7 +14,7 @@ constexpr std::array<size_t, N> gen_ttable_sizes(std::index_sequence<Is...>) {
 
 template <typename State, typename score_t, size_t kFullLevel, size_t kLevels, bool do_stats=false>
 struct LocalTT {
-  static constexpr size_t tt_size = 1 << 25;
+  static constexpr size_t tt_size = 1 << 26;
 
   static constexpr auto min_score = std::numeric_limits<score_t>::min();
   static constexpr auto max_score = std::numeric_limits<score_t>::max();
