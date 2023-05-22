@@ -78,21 +78,8 @@ class AlphaBeta {
       new_state.apply_skip();
       value = alpha_beta<stones, !do_max>(new_state, alpha, beta);
     } else if constexpr (stones + 1 == State::M * State::N) {
-      // TODO: This is othello-specific cutoff. Do we want to move it somewhere?
-      auto curr_score = state.score(0);
-      if constexpr (do_max) {
-        // valid move means we'll at least add our own + swap one
-        if (curr_score + 3 >= beta) {
-          return beta;
-        }
-      } else {
-        if (curr_score - 3 <= alpha) {
-          return alpha;
-        }
-      }
-      State new_state = state;
-      new_state.apply_move_mask(move_gen.moves());
-      value = new_state.score(0);
+      state.apply_move_mask(move_gen.moves());
+      return state.score(0);
     } else {
       value = do_max ? min_score : max_score;
       int32_t move_idx = 0;
