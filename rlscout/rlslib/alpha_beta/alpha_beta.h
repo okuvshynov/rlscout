@@ -22,7 +22,7 @@ class AlphaBeta {
 
   // TODO:  move this to some config
   static constexpr int32_t log_max_level = 11;
-  static constexpr int32_t canonical_max_level = 32;
+  static constexpr int32_t canonical_max_level = 28;
   static constexpr int32_t evaluate_nn_until_level = 20;
 
   uint64_t completions[kLevels] = {0ull};
@@ -103,7 +103,7 @@ class AlphaBeta {
         State new_state = state;
         new_state.apply_move_mask(move);
 
-        if constexpr (stones + 4 < canonical_max_level) {
+        if constexpr (stones < canonical_max_level) {
           new_state = new_state.to_canonical();
         }
 
