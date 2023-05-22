@@ -11,7 +11,7 @@
 #include "utils/model_evaluator.h"
 #include "utils/py_log.h"
 
-template <typename State, typename score_t>
+template <typename State, typename score_t, int32_t log_max_level = 11, int32_t canonical_max_level = 28, int32_t evaluate_nn_until_level = 20>
 class AlphaBeta {
   static constexpr auto min_score = std::numeric_limits<score_t>::min();
   static constexpr auto max_score = std::numeric_limits<score_t>::max();
@@ -19,11 +19,6 @@ class AlphaBeta {
   static constexpr size_t kLevels = State::M * State::N + 1;
   std::chrono::steady_clock::time_point start =
       std::chrono::steady_clock::now();
-
-  // TODO:  move this to some config
-  static constexpr int32_t log_max_level = 11;
-  static constexpr int32_t canonical_max_level = 28;
-  static constexpr int32_t evaluate_nn_until_level = 20;
 
   uint64_t completions[kLevels] = {0ull};
   uint64_t cutoffs[kLevels][kLevels] = {{0ull}};
