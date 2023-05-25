@@ -19,6 +19,8 @@ class DataReader:
         boards_dev = []
         prob_train = []
         prob_dev = []
+        scores_train = []
+        scores_dev = []
 
         for _, score, b, p, player, _, key in batch:
             if torch.isnan(b).any() or torch.isnan(p).any():
@@ -33,8 +35,8 @@ class DataReader:
                 nans[2] += 1
                 continue
 
-            value = 0 # ignore scores for now
-
+            value = max(-1, min(score + 4, 1))
+            
             if player == 1:
                 value = - value
 
@@ -49,11 +51,13 @@ class DataReader:
                 if key < self.train_set_cutoff:
                     boards_train.append(board)
                     prob_train.append(prob)
+                    scores_train.append(score)
                 else:
                     boards_dev.append(board)
                     prob_dev.append(prob)
+                    scores_dev.append(score)
 
         if not boards_train or not boards_dev:
             return None
         
-        return tuple(map(torch.stack, (boards_train, prob_train, boards_dev, prob_dev)))
+        return tuple(map(torch.stack, (boards_train, prob_train, scores_train, boards_dev, prob_dev, scores_dev)))

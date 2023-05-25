@@ -24,6 +24,17 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### adding value head back
+
+Just looking at probabilities is not very good idea. Let's say we have 2 good moves and both of them will lead to cutting of the search at this branch. There's no point exploring both of them.
+What we need to do instead, is to have value model, evaluate value model for each potential move and see how likely we are to get a cutoff from a single move. If likely, avoid sampling at that branch. This is 
+similar to younger sibling wait concept.
+
+On the other hand, if all values are fairly low and unlikely to result in cutoff we might have to explore them all. Can we still make this decisions individually, without having to communicate between threads/processes?
+Can processes easily come and go?
+
+
+
 ### Let's check distributed version this way:
 
 0. Try allocate manually and see if we can get below 10 min on 4 cores.

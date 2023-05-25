@@ -46,6 +46,16 @@ class ActionValueModel(nn.Module):
             nn.Linear(2 * m * n, m * n),
             nn.LogSoftmax(dim=1)
         )
+        self.value = nn.Sequential(
+            nn.Conv2d(channels, 1, kernel_size=1),
+            nn.BatchNorm2d(1),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(m * n, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+            nn.Tanh()
+        )
     
     def forward(self, x):
         w = self.residual_tower(x)

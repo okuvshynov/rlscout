@@ -72,40 +72,40 @@ if action_model is None:
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.001)
-# score_loss_fn = torch.nn.MSELoss()
+score_loss_fn = torch.nn.MSELoss()
 
-def train_minibatch(boards, probs):
+def train_minibatch(boards, probs, scores):
     # pick minibatch
     ix = torch.randint(0, boards.shape[0], (minibatch_size, ), generator=gen)
     X = boards[ix]
     y = probs[ix]
-    #z = scores[ix]
+    z = scores[ix]
 
     optimizer.zero_grad()
-    actions_probs = action_model(X)
+    actions_probs, score = action_model(X)
 
     pb = y.view(y.shape[0], -1)
     action_loss = -torch.mean(torch.sum(pb * actions_probs, dim=1))
-    score_loss = 0 # score_loss_fn(z, score.view(-1))
+    score_loss = score_loss_fn(z, score.view(-1))
     loss = action_loss + score_loss
 
     loss.backward()
     optimizer.step()
     return loss.item()
 
-def evaluate_sample(boards, probs):
+def evaluate_sample(boards, probs, scores):
     # pick sample
     ix = torch.randint(0, boards.shape[0], (evaluation_sample_size, ), generator=gen)
     X = boards[ix]
     y = probs[ix]
-    #z = scores[ix]
+    z = scores[ix]
 
     with torch.no_grad():
-        action_probs = action_model(X)
+        action_probs, score = action_model(X)
         probs = y.view(y.shape[0], -1)
         action_loss = -torch.mean(torch.sum(probs * action_probs, dim=1))
-        score_loss = 0 # score_loss_fn(z, score.view(-1))
-        #logging.info(f'action loss: {action_loss}, score loss: {score_loss}')
+        score_loss = score_loss_fn(z, score.view(-1))
+        logging.info(f'action loss: {action_loss}, score loss: {score_loss}')
         loss = action_loss + score_loss
         
     return loss.item()
@@ -122,13 +122,15 @@ while True:
         time.sleep(wait_s)
         continue
 
-    (boards_train, probs_train, boards_val, probs_val) = samples
+    (boards_train, probs_train, scores_train, boards_val, probs_val, scores_val) = samples
     samples_gauge.set(boards_train.shape[0])
 
     boards_train = boards_train.to(device)
     boards_val = boards_val.to(device)
     probs_train = probs_train.to(device)
     probs_val = probs_val.to(device)
+    scores_train = scores_train.to(device)
+    scores_val = scores_val.to(device)
 
     models_to_eval = model_client.count_models_to_eval()
     if models_to_eval > wait_for_evaluation:
@@ -143,11 +145,11 @@ while True:
 
     start = time.time()
     for i in range(minibatch_per_epoch):
-        train_minibatch(boards_train, probs_train)
+        train_minibatch(boards_train, probs_train, scores_train)
         if i % 100 == 99:
             dur = time.time() - start
-            train_loss = evaluate_sample(boards_train, probs_train)
-            val_loss = evaluate_sample(boards_val, probs_val)
+            train_loss = evaluate_sample(boards_train, probs_train, scores_train)
+            val_loss = evaluate_sample(boards_val, probs_val, scores_val)
             loss_gauge.labels('train').set(train_loss)
             loss_gauge.labels('validation').set(val_loss)
             logging.info(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
