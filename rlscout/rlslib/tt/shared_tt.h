@@ -3,17 +3,23 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#include <mutex>
 
-template <typename State, typename score_t>
+#include "utils/py_log.h"
+
+template <typename State, typename score_t, size_t log_size>
 struct SharedTT {
-  using Self = SharedTT<State, score_t>;
+  using Self = SharedTT<State, score_t, log_size>;
   static constexpr auto min_score = std::numeric_limits<score_t>::min();
   static constexpr auto max_score = std::numeric_limits<score_t>::max();
+  static constexpr size_t log_buckets = 3;
+  static constexpr size_t buckets = (1ull << log_buckets);
 
-  SharedTT(size_t log_size) : log_size_(log_size) {
-    data.resize(1ull << log_size);
+  static Self& instance() {
+    static Self self;
+    return self;
   }
-
+  
   struct Entry {
     State state;
     score_t low, high;
@@ -21,26 +27,31 @@ struct SharedTT {
   };
 
   static constexpr size_t kLevels = 37;
-  uint64_t tt_hits[kLevels] = {0ull};
+  std::atomic<uint64_t> tt_hits[kLevels] = {0ull};
+  std::atomic<uint64_t> uniques[kLevels] = {0ull};
 
-  size_t find_slot(const State& state) const {
-    size_t slot = state.hash() % data.size();
-    while (true) {
-      if (data[slot].free) {
-        return slot;
-      }
-      if (data[slot].state == state) {
-        return slot;
-      }
-      slot = (slot + 1) % data.size();
-    }
-  }
+  std::atomic<uint64_t> accesses[buckets] = {0ull};
 
   template <uint32_t stones>
   bool lookup_and_init(const State& state, score_t& alpha,
                        score_t& beta, score_t& value) {
-    size_t slot = find_slot(state);
-    auto& entry = data[slot];
+    auto h = state.hash();
+    auto& d = data[h % buckets];
+    accesses[h % buckets]++;
+    std::lock_guard<std::mutex> g(bucket_mutex[h % buckets]);
+
+    size_t slot = (h / buckets) % d.size();
+    while (true) {
+      if (d[slot].free) {
+        break;
+      }
+      if (d[slot].state == state) {
+        break;
+      }
+      slot = (slot + 1) % d.size();
+    }
+
+    auto& entry = d[slot];
     if (!entry.free) {
       if (entry.low >= beta) {
         tt_hits[stones]++;
@@ -64,9 +75,30 @@ struct SharedTT {
   template <uint32_t stones>
   void update(const State& state, score_t& alpha, score_t& beta,
               score_t& value) {
-    size_t slot = find_slot(state);
+    auto h = state.hash();
+    auto& d = data[h % buckets];
+    accesses[h % buckets]++;
+
+    std::lock_guard<std::mutex> g(bucket_mutex[h % buckets]);
+
+    size_t slot = (h / buckets) % d.size();
+    while (true) {
+      if (d[slot].free) {
+        break;
+      }
+      if (d[slot].state == state) {
+        break;
+      }
+      slot = (slot + 1) % d.size();
+    }
     
-    auto& entry = data[slot];
+    auto& entry = d[slot];
+    if (entry.free) {
+      uniques[stones]++;
+    }
+    if constexpr (stones < 12) {
+      PYLOG << "updating " << stones << " " << h;
+    }
     entry.free = false;
     entry.state = state;
     if (value <= alpha) {
@@ -83,14 +115,20 @@ struct SharedTT {
 
   void print_stats() const {
     for (size_t d = 0; d < kLevels; d++) {
-      if (tt_hits[d] == 0ull) {
+      if (uniques[d] == 0ull) {
         continue;
       }
-      std::cout << d << " tt_hits " << tt_hits[d] << std::endl;
+      PYLOG << d << " tt_hits " << tt_hits[d] << " unique " << uniques[d];
     }
   }
 
-  const size_t log_size_;
-
-  std::vector<Entry> data;
+ private:
+  SharedTT() {
+    for (size_t b = 0; b < buckets; b++) {
+      data[b].resize(1ull << (log_size - log_buckets));
+      PYLOG << b << " " << data[b].size();
+    }
+  }
+  std::mutex bucket_mutex[buckets];
+  std::vector<Entry> data[buckets];
 };

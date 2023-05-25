@@ -11,7 +11,7 @@
 #include "utils/model_evaluator.h"
 #include "utils/py_log.h"
 
-template <typename State, typename score_t, int32_t log_max_level = 11, int32_t canonical_max_level = 28, int32_t evaluate_nn_until_level = 20>
+template <typename State, typename score_t, int32_t log_max_level = 11, int32_t canonical_max_level = 28, int32_t evaluate_nn_until_level = 20, int32_t sample_nn_until_level = 9>
 class AlphaBeta {
   static constexpr auto min_score = std::numeric_limits<score_t>::min();
   static constexpr auto max_score = std::numeric_limits<score_t>::max();
@@ -50,10 +50,16 @@ class AlphaBeta {
     if (state.finished()) {
       return state.score(0);
     }
+    if constexpr (stones < 10) {
+      PYLOG << stones << " node enter " << state.hash(); 
+    }
 
     score_t value;
 
     if (tt.template lookup_and_init<stones>(state, alpha, beta, value)) {
+      if constexpr (stones < 10) {
+        PYLOG << stones << " node tt hit " << state.hash(); 
+      }
       return value;
     }
     auto alpha0 = alpha;
@@ -64,7 +70,11 @@ class AlphaBeta {
       if constexpr (stones > evaluate_nn_until_level) {
         return PlainMoveGenerator<State, stones>(state);
       } else {
-        return ActionModelMoveGenerator<State, stones>(state, *evaluator);
+        if constexpr (stones < sample_nn_until_level) {
+          return SamplingActionModelMoveGenerator<State, stones>(state, *evaluator);
+        } else {
+          return ActionModelMoveGenerator<State, stones>(state, *evaluator);
+        }
       }
     }();
 
@@ -116,6 +126,11 @@ class AlphaBeta {
 
     if constexpr (stones < log_max_level) {
       log_stats_by_depth();
+      print_tt_stats();
+    }
+
+    if constexpr (stones < 10) {
+      PYLOG << stones << " node done " << state.hash(); 
     }
     return value;
   }

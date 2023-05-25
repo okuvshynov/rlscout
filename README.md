@@ -24,6 +24,14 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 
 ## LIFO order notes
 
+### Let's check distributed version this way:
+
+0. Try allocate manually and see if we can get below 10 min on 4 cores.
+1. Fix model id. We'll use same model for all tests.
+2. Run single-thread version with no sampling. Record visited nodes for levels < N
+3. Run multithreadded version with sampling up to level N. Check if we visit extra nodes, how many, how often do we duplicate the work
+
+
 ### Some simplification of transposition table
 
 ```

@@ -8,7 +8,9 @@ struct TT {
   static constexpr uint32_t tt_full_level = 25;
   static constexpr int32_t tt_max_level = 30;
 
-  SharedTT<State, score_t> full_tt = SharedTT<State, score_t>{27};
+  using SharedTTable = SharedTT<State, score_t, 27>;
+
+  SharedTTable& full_tt = SharedTTable::instance();
 
   using LocalTTable = LocalTT<State, score_t, tt_full_level, tt_max_level>;
 
