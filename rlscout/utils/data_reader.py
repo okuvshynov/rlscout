@@ -35,7 +35,7 @@ class DataReader:
                 nans[2] += 1
                 continue
 
-            value = max(-1, min(score + 4, 1))
+            value = float(max(-1, min(score + 4, 1)))
             
             if player == 1:
                 value = - value
@@ -51,11 +51,11 @@ class DataReader:
                 if key < self.train_set_cutoff:
                     boards_train.append(board)
                     prob_train.append(prob)
-                    scores_train.append(score)
+                    scores_train.append(torch.tensor(score))
                 else:
                     boards_dev.append(board)
                     prob_dev.append(prob)
-                    scores_dev.append(score)
+                    scores_dev.append(torch.tensor(score))
 
         if not boards_train or not boards_dev:
             return None

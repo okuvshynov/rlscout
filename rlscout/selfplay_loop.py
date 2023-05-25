@@ -113,7 +113,7 @@ def start_batch_mcts():
             if model is not None:
                 return model.get_probs(boards_buffer)
         fut = executor.submit(eval_model)
-        probs = fut.result()
+        probs, scores = fut.result()
         probs = probs.reshape((batch_size * board_size * board_size, ))
         if add_noise:
             probs = add_dirichlet_noise(probs, dirichlet_noise)

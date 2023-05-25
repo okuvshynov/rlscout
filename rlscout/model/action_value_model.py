@@ -59,4 +59,4 @@ class ActionValueModel(nn.Module):
     
     def forward(self, x):
         w = self.residual_tower(x)
-        return self.action(w)
+        return self.action(w), self.value(w)
