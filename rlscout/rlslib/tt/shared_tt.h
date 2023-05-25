@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <mutex>
+#include <atomic>
 
 #include "utils/py_log.h"
 
