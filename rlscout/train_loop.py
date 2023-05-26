@@ -68,7 +68,7 @@ evaluation_sample_size = args.evaluation_sample_size
 snapshots = args.snapshots
 
 if action_model is None:
-    action_model = ActionValueModel(n=6, m=6, channels=64, nblocks=2)
+    action_model = ActionValueModel(n=6, m=6, channels=128, nblocks=10)
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.001)
@@ -106,9 +106,9 @@ def evaluate_sample(boards, probs, scores):
         action_loss = -torch.mean(torch.sum(probs * action_probs, dim=1))
         score_loss = score_loss_fn(z, score.view(-1))
         logging.info(f'action loss: {action_loss}, score loss: {score_loss}')
-        loss = action_loss + score_loss
+        #loss = action_loss + score_loss
         
-    return loss.item()
+    return action_loss.item(), score_loss.item()
 
 reader = DataReader(data_client, train_set_rate, epoch_samples_max)
 wait_s = 60
@@ -148,10 +148,15 @@ while True:
         train_minibatch(boards_train, probs_train, scores_train)
         if i % 100 == 99:
             dur = time.time() - start
-            train_loss = evaluate_sample(boards_train, probs_train, scores_train)
-            val_loss = evaluate_sample(boards_val, probs_val, scores_val)
-            loss_gauge.labels('train').set(train_loss)
-            loss_gauge.labels('validation').set(val_loss)
+            actions_loss, value_loss = evaluate_sample(boards_train, probs_train, scores_train)
+            loss_gauge.labels('train_actions_loss').set(actions_loss)
+            loss_gauge.labels('train_value_loss').set(value_loss)
+            train_loss = actions_loss + value_loss
+
+            actions_loss, value_loss = evaluate_sample(boards_val, probs_val, scores_val)
+            loss_gauge.labels('validation_actions_loss').set(actions_loss)
+            loss_gauge.labels('validation_value_loss').set(value_loss)
+            val_loss = actions_loss + value_loss
             logging.info(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
 
     logging.info(f'saving model snapshot {snapshot}')

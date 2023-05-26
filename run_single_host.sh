@@ -1,7 +1,7 @@
 #!/bin/bash
 
-models_db=./db/othello6x6_models2.db
-samples_db=./db/othello6x6_samples2.db
+models_db=./db/othello6x6_models10.db
+samples_db=./db/othello6x6_samples10.db
 
 rm -f $models_db
 rm -f $samples_db

@@ -111,6 +111,7 @@ def start_batch_duel():
         probs, scores = models_by_id[model_id].get_probs(boards_buffer)
         np.copyto(probs_buffer, probs.reshape(
             (batch_size * board_size * board_size, )))
+        np.copyto(scores_buffer, scores.reshape((batch_size, )))
 
     def log_fn(game_id, player, skipped):
         pass

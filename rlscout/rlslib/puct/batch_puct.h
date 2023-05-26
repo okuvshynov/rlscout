@@ -208,8 +208,10 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
     // eval_cb takes boards_buffer as an input and writes results to
     // probs_buffer and scores buffer
 
+    bool use_scores_from_model = false;
     if (evaluator.run != nullptr && model_id != 0) {
       evaluator.run(model_id, r == 0);
+      use_scores_from_model = true;
     }
 
     for (size_t i = 0; i < game_slots.size(); ++i) {
@@ -235,11 +237,11 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         g.nodes[g.node_id].children_count = j - g.size;
         g.size = j;
 
-        /*if (use_scores_from_model) {
-          // std::cout << "using score " << scores_buffer[i] << std::endl;
-          g.record(g.node_id, scores_buffer[i]);
+        if (use_scores_from_model) {
+          std::cout << "using score " << evaluator.scores_buffer[i] << std::endl;
+          g.record(g.node_id, evaluator.scores_buffer[i]);
           continue;
-        }*/
+        }
         double val = 0.0;
         for (uint32_t rr = 0; rr < random_rollouts; rr++) {
           auto temp_state = g.rollout_state;

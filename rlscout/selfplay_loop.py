@@ -118,6 +118,7 @@ def start_batch_mcts():
         if add_noise:
             probs = add_dirichlet_noise(probs, dirichlet_noise)
         np.copyto(probs_buffer, probs)
+        np.copyto(scores_buffer, scores.reshape((batch_size, )))
 
     def log_fn(game_id, player, skipped):
         ## logging will be done in separate thread so we clone 

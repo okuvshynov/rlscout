@@ -51,9 +51,9 @@ class ActionValueModel(nn.Module):
             nn.BatchNorm2d(1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(m * n, 128),
+            nn.Linear(m * n, 256),
             nn.ReLU(),
-            nn.Linear(128, 1),
+            nn.Linear(256, 1),
             nn.Tanh()
         )
     
