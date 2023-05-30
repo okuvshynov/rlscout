@@ -35,7 +35,7 @@ class DataReader:
                 nans[2] += 1
                 continue
 
-            value = float(max(-1, min(score + 4, 1)))
+            value = float(max(-1, min(score, 1)))
             
             if player == 1:
                 value = - value

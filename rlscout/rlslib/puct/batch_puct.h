@@ -236,12 +236,16 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         }
         g.nodes[g.node_id].children_count = j - g.size;
         g.size = j;
-
         if (use_scores_from_model) {
-          std::cout << "using score " << evaluator.scores_buffer[i] << std::endl;
+          //PYLOG << "value estimate: " << evaluator.scores_buffer[i] << " " << val;
           g.record(g.node_id, evaluator.scores_buffer[i]);
-          continue;
+          //continue;
+        } else {
+          std::uniform_real_distribution<> dis(-1.0, 1.0);
+          g.record(g.node_id, dis(RandomGen::gen()));
         }
+
+        /*
         double val = 0.0;
         for (uint32_t rr = 0; rr < random_rollouts; rr++) {
           auto temp_state = g.rollout_state;
@@ -251,9 +255,10 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
           auto v = temp_state.score(g.last_player);
           val += v;
         }
-        g.record(g.node_id, val / random_rollouts);
+        val /= random_rollouts;
+        g.record(g.node_id, val);*/
       } else {
-        g.record(g.node_id, g.rollout_state.score(g.last_player));
+        g.record(g.node_id, std::min(1.0, std::max(-1.0, double(g.rollout_state.score(g.last_player)))));
       }
     }
   }

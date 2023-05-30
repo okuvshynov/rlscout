@@ -145,7 +145,7 @@ WHERE
 class GameDB:
     def __init__(self, filename):
         self.filename = filename
-        self.conn = sqlite3.connect(filename, check_same_thread=False, timeout=60.0)
+        self.conn = sqlite3.connect(filename, check_same_thread=False, timeout=120.0)
         self._setup_tables()
 
     def get_best_model(self):

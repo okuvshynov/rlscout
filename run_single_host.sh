@@ -21,11 +21,11 @@ python rlscout/serve_models.py --db=$models_db &
 python rlscout/serve_samples.py --db=$samples_db &
 
 echo "Starting self-play in the background"
-python rlscout/selfplay_loop.py --batch_size=128 --games=1000000 -t 4 --rollouts=1500 --random_rollouts=50  2> logs/stderr.log &
+python rlscout/selfplay_loop.py --batch_size=128 --games=1000000 -t 4 --rollouts=1500 --random_rollouts=1  2> logs/stderr.log &
 echo "Starting model training in the background"
-python rlscout/train_loop.py --epoch_samples_min=200000 --minibatch_size=64 --minibatch_per_epoch=5000 --epoch_samples_max=500000 2> logs/stderr.log & 
+python rlscout/train_loop.py --epoch_samples_min=300000 --minibatch_size=64 --minibatch_per_epoch=5000 --epoch_samples_max=1000000 2> logs/stderr.log & 
 echo "Starting model evaluation in the background"
-python rlscout/duel_loop.py --batch_size=64 --games=128 --rollouts=1500 --raw_rollouts=1500  2> logs/stderr.log &
+python rlscout/duel_loop.py --batch_size=64 --games=128 --rollouts=1500 --raw_rollouts=1500 --random_rollouts=1 2> logs/stderr.log &
 
 while true
 do
