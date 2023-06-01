@@ -37,15 +37,16 @@ class DataReader:
 
             value = float(max(-1, min(score, 1)))
             
+            # boards are ordered from POV of current player, but score is
+            # from player 0 POV.
             if player == 1:
                 value = - value
-
+            
             # key is 64 bit int (signed)
             # we add 2**63 to it, treat it as unsigned and split into 8 chunks of 8 bit each.
             keys = split_int64(key)
 
-            # boards are ordered from POV of current player, but score is
-            # from player 0 POV.
+
 
             for board, prob, score, key in zip(symm(b), symm(p), [value] * 8, keys):
                 if key < self.train_set_cutoff:

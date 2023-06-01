@@ -28,6 +28,7 @@ parser.add_argument('--minibatch_size', type=int, default=512)
 parser.add_argument('--wait_for_evaluation', type=int, default=5)
 parser.add_argument('--evaluation_sample_size', type=int, default=2**14)
 parser.add_argument('--snapshots', type=int, default=100000)
+parser.add_argument('--value_weight', type=float, default=0.0)
 
 args = parser.parse_args()
 
@@ -66,6 +67,7 @@ wait_for_evaluation = args.wait_for_evaluation
 read_batch_size = args.read_batch_size
 evaluation_sample_size = args.evaluation_sample_size
 snapshots = args.snapshots
+value_weight = args.value_weight
 
 if action_model is None:
     action_model = ActionValueModel(n=6, m=6, channels=256, nblocks=2)
@@ -87,7 +89,7 @@ def train_minibatch(boards, probs, scores):
     pb = y.view(y.shape[0], -1)
     action_loss = -torch.mean(torch.sum(pb * actions_probs, dim=1))
     score_loss = score_loss_fn(z, score.view(-1))
-    loss = action_loss + score_loss
+    loss = action_loss + value_weight * score_loss
 
     loss.backward()
     optimizer.step()

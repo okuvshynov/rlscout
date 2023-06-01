@@ -106,7 +106,8 @@ struct GameSlot {
   double value(const MCTSNode &node, double temp) const {
     double res = node.Q;
     if (node.parent != -1) {
-      res += node.P * temp * std::sqrt(nodes[node.parent].N) / (node.N + 1.0);
+      auto adjusted_prior = node.P * temp * std::sqrt(nodes[node.parent].N) / (node.N + 1.0);
+      res += adjusted_prior;
     }
     return res;
   }
@@ -236,6 +237,14 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         }
         g.nodes[g.node_id].children_count = j - g.size;
         g.size = j;
+
+        // we have different ways of value estimates
+        // - value model
+        // - running random rollouts
+        // - just random
+        // - doing full search 
+
+/*
         if (use_scores_from_model) {
           //PYLOG << "value estimate: " << evaluator.scores_buffer[i] << " " << val;
           g.record(g.node_id, evaluator.scores_buffer[i]);
@@ -243,9 +252,9 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
         } else {
           std::uniform_real_distribution<> dis(-1.0, 1.0);
           g.record(g.node_id, dis(RandomGen::gen()));
-        }
+        }*/
 
-        /*
+        
         double val = 0.0;
         for (uint32_t rr = 0; rr < random_rollouts; rr++) {
           auto temp_state = g.rollout_state;
@@ -256,7 +265,7 @@ std::vector<uint64_t> get_moves(std::vector<GameSlot<State>> &game_slots,
           val += v;
         }
         val /= random_rollouts;
-        g.record(g.node_id, val);*/
+        g.record(g.node_id, val);
       } else {
         g.record(g.node_id, std::min(1.0, std::max(-1.0, double(g.rollout_state.score(g.last_player)))));
       }
