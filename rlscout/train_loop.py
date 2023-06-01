@@ -70,7 +70,7 @@ snapshots = args.snapshots
 value_weight = args.value_weight
 
 if action_model is None:
-    action_model = ActionValueModel(n=6, m=6, channels=256, nblocks=2)
+    action_model = ActionValueModel(n=6, m=6, channels=128, nblocks=6)
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.001)
