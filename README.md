@@ -1,18 +1,11 @@
 This is an in-progress attempt (with very slow progress) to find a solution to some game. 
 
-Most likely candidates are Othello 8x8 or freestyle gomoku on 8x8 - 9x9 boards.  
+Most likely candidates are Othello 8x8 or freestyle gomoku on 8x8 - 9x9 boards.
 
 Rough idea is the following:
 1. Use self-play Deep RL (think AlphaZero) to get a very strong model for the game
 2. Use that model to provide a good ordering for minimax (e.g. alpha-beta pruning)
-
-What do we expect to achieve:
-1. Just solving minimax faster with good ordering
-2. being able to distribute it by sampling nodes from the model
-
-Currently is tested on:
-1. Apple's M1/M2 SoC (using GPU for training, ANE for self-play)
-2. x86 Linux with nVidia GPUs
+3. Use that model to estimate probability of cutoff and thus allow better scaling full distributed search.
 
 ### script to setup everything for lambda cloud instance
 
@@ -23,6 +16,16 @@ wget -O ~/lambda_rlscout_setup.sh https://raw.githubusercontent.com/okuvshynov/r
 ```
 
 ## LIFO order notes
+
+### Utilizing search to estimate value
+
+in Alpha Zero etc. MCTS is used to 'refine' move predictions done by the model. In our case, if we want to make a decision on 'which branches to explore with full search' we need 
+to get a refined value estimate + some uncertainty around it.
+
+The procedure itself will be likely similar, but the output of the search would be the expected value for each move. 
+There's a difference here: if we only care about 'which move is better' as we want to play as good as possible, we don't need to know if best move will result in win, draw or 'not losing as badly'. In case 
+of distributing full search that's crucial piece of information - if we win no matter what, we need to go deeper. If we unlikely to get a cutoff, it makes sense to distribute the search at that level and explore.
+
 
 ### adding value head back
 
