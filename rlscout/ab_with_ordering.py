@@ -69,7 +69,7 @@ if __name__ == '__main__':
                         return model1.get_probs(boards_buffer)
                     
                 fut = executor.submit(eval_model)
-                probs1 = fut.result()
+                probs1, scores = fut.result()
                 
                 np.copyto(probs_buffer, probs1.reshape(
                     (board_size * board_size, )))
