@@ -10,7 +10,7 @@ from prometheus_client import start_http_server
 from model.action_value_model import ActionValueModel
 from utils.game_client import GameClient
 from utils.utils import pick_train_device, random_seed
-from utils.data_reader import DataReader
+from utils.data_reader import DataReader, IncrementalDataReader
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='logs/training_loop.log', level=logging.INFO)
 
@@ -112,7 +112,8 @@ def evaluate_sample(boards, probs, scores):
         
     return action_loss.item(), score_loss.item()
 
-reader = DataReader(data_client, train_set_rate, epoch_samples_max)
+# reader = DataReader(data_client, train_set_rate, epoch_samples_max)
+reader = IncrementalDataReader(data_client, train_set_rate)
 wait_s = 60
 
 snapshot = 0 

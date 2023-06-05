@@ -81,7 +81,7 @@ VALUES(?, ?)
 
 select_training_batch_sql = """
 SELECT
-    id, score, boards_tensor, probs_tensor, player, skipped
+    id, score, boards_tensor, probs_tensor, player, skipped, key
 FROM 
     samples 
 WHERE

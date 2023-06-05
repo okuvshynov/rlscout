@@ -15,7 +15,7 @@ minibatch_per_epoch = 5000
 scores_unique = torch.load('db/scores_train_unique.pt')
 boards_unique = torch.load('db/boards_train_unique.pt')
 
-action_model = ActionValueModel(n=6, m=6, channels=64, nblocks=2, hidden_fc=32)
+action_model = ActionValueModel(n=6, m=6, channels=16, nblocks=2, hidden_fc=16)
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.001)
