@@ -30,7 +30,7 @@ class ResidualBlocks(nn.Module):
         return self.blocks(x)
 
 class ActionValueModel(nn.Module):
-    def __init__(self, n=6, m=6, channels=64, nblocks=6):
+    def __init__(self, n=6, m=6, channels=64, nblocks=6, hidden_fc=256):
         super(ActionValueModel, self).__init__()
         self.residual_tower = nn.Sequential(
             nn.Conv2d(2, channels, kernel_size=3, padding=1),
@@ -51,13 +51,13 @@ class ActionValueModel(nn.Module):
             nn.BatchNorm2d(1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(m * n, 256),
+            nn.Linear(m * n, hidden_fc),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(256, 256),
+            nn.Linear(hidden_fc, hidden_fc),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(256, 1),
+            nn.Linear(hidden_fc, 1),
             nn.Tanh()
         )
     

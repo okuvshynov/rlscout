@@ -46,8 +46,6 @@ class DataReader:
             # we add 2**63 to it, treat it as unsigned and split into 8 chunks of 8 bit each.
             keys = split_int64(key)
 
-
-
             for board, prob, score, key in zip(symm(b), symm(p), [value] * 8, keys):
                 if key < self.train_set_cutoff:
                     boards_train.append(board)

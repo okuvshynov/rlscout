@@ -15,7 +15,7 @@ minibatch_per_epoch = 5000
 scores_unique = torch.load('db/scores_train_unique.pt')
 boards_unique = torch.load('db/boards_train_unique.pt')
 
-action_model = ActionValueModel(n=6, m=6, channels=128, nblocks=6)
+action_model = ActionValueModel(n=6, m=6, channels=64, nblocks=2, hidden_fc=32)
 action_model = action_model.to(device)
 
 optimizer = optim.SGD(action_model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.001)
@@ -48,6 +48,13 @@ def evaluate_sample(boards, scores):
         
     return score_loss.item()
 
+def evaluate_all(boards, scores):
+    with torch.no_grad():
+        _, score = action_model(boards)
+        score_loss = score_loss_fn(scores, score.view(-1))
+        
+    return score_loss.item()
+
 print(scores_unique.shape, boards_unique.shape)
 
 samples = list(zip(list(boards_unique), list(scores_unique)))
@@ -71,5 +78,5 @@ while True:
         if i % 100 == 99:
             dur = time.time() - start
             train_loss = evaluate_sample(boards_train, scores_train)
-            val_loss = evaluate_sample(boards_val, scores_val)
+            val_loss = evaluate_all(boards_val, scores_val)
             print(f'{dur:.1f} seconds | minibatches {i + 1} | training loss: {train_loss:.3f}, validation loss: {val_loss:.3f}')
