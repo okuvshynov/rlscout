@@ -73,7 +73,7 @@ class IncrementalDataReader:
         self.prob_train = collections.deque(maxlen=samples_to_keep)
         self.prob_dev = collections.deque(maxlen=samples_to_keep)
         self.scores_train = collections.deque(maxlen=samples_to_keep)
-        self.cores_dev = collections.deque(maxlen=samples_to_keep)
+        self.scores_dev = collections.deque(maxlen=samples_to_keep)
 
     def read_samples(self):
         logging.info('querying DB')
@@ -121,4 +121,4 @@ class IncrementalDataReader:
         if not self.boards_train or not self.boards_dev:
             return None
         
-        return tuple(map(torch.stack, (self.boards_train, self.prob_train, self.scores_train, self.boards_dev, self.prob_dev, self.scores_dev)))
+        return tuple(map(torch.stack, map(tuple, (self.boards_train, self.prob_train, self.scores_train, self.boards_dev, self.prob_dev, self.scores_dev))))

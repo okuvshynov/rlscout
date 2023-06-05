@@ -58,7 +58,7 @@ while True:
 
     # read
     if req['method'] == 'get_batch':
-        res['data'] = db.get_batch(req['size'])
+        res['data'] = db.get_batch(req['size'], req['from_id'])
 
     if req['method'] == 'get_lastn':
         res['data'] = db.get_lastn(req['size'])

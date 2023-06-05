@@ -146,6 +146,8 @@ while True:
         time.sleep(wait_s)
         continue
 
+    logging.info(f'starting epoch on {boards_train.shape} samples and {boards_val.shape} validation set')
+
     start = time.time()
     for i in range(minibatch_per_epoch):
         train_minibatch(boards_train, probs_train, scores_train)

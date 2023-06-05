@@ -40,7 +40,7 @@ class GameClient:
         }
         self.socket.send_json(req)
         res = self.socket.recv_json()
-        return [(i, v, torch_decode(b), torch_decode(p), player, skipped) for (i, v, b, p, player, skipped) in res['data']]
+        return [(i, v, torch_decode(b), torch_decode(p), player, skipped, key) for (i, v, b, p, player, skipped, key) in res['data']]
 
     def get_best_model(self):
         req = {
