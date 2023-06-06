@@ -94,6 +94,9 @@ struct GameSlot {
       const auto &node = nodes[nodes[root_id].children_from + i];
       freq_buffer[node.in_action] = node.N;
     }
+    // TODO: we also need to log here:
+    // frequencies produced by the model, score produced by the model, score from random simulation
+    // we'll also join this with actual score afterwards
     log_freq_cb(game_id, state.player, state.skipped);
   }
 
